@@ -1,0 +1,47 @@
+{
+  "$schema": "https://raw.githubusercontent.com/typhonjs-fvtt-lib/validate-manifest/master/schema/module.json",
+  "id": "altarion-aitusa",
+  "name": "altarion-aitusa",
+  "title": "Fichas Altarion e Aitusa",
+  "description": "Implementação das fichas de Altarion e Aitusa no FoundryVTT",
+  "version": "1.0.0",
+  "author": "Gustavo",
+  "authors": [
+    {
+      "name": "Gustavo",
+      "url": "https://github.com/Gutasso"
+    }
+  ],
+  "minimumCoreVersion": "11",
+  "compatibility": {
+    "minimum": "11",
+    "verified": "13",
+    "maximum": "13"
+  },
+  "manifest": "https://raw.githubusercontent.com/Gutasso/professions-reworked-5e/main/module.json",
+  "download": "https://github.com/Gutasso/professions-reworked-5e/archive/refs/heads/main.zip",
+  "relationships": {
+    "systems": [
+      {
+        "id": "dnd5e",
+        "type": "system",
+        "compatibility": {
+          "minimum": "3.0.0"
+        }
+      }
+    ]
+  },
+  "esmodules": [
+    "scripts/main.js"
+  ],
+  "styles": [
+    "css/profissoes.css"
+  ],
+  "languages": [
+    {
+      "lang": "pt-BR",
+      "name": "Português (Brasil)",
+      "path": "lang/pt-BR.json"
+    }
+  ]
+}
