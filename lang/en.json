@@ -1,0 +1,18 @@
+{
+  "ALTARION_AITUSA": {
+    "Title": "Altarion & Aitusa",
+    "PrimaryClassBadge": "Primary Class: Dragon Rider (Level {level})",
+    "SecondaryClassBadge": "Secondary Class: Wizard (Level {level})",
+    "CompanionBadge": "Dragon Companion: Aitusa (Size: {size}, Level {level})",
+    "SyncButton": "Sync Features",
+    "SyncSuccess": "Successfully synchronized Altarion & Aitusa character sheets!",
+    "Settings": {
+      "AltarionName": "Altarion Actor Name",
+      "AltarionNameHint": "Exact name of the Dragon Rider character sheet in FoundryVTT.",
+      "AitusaName": "Aitusa Actor Name",
+      "AitusaNameHint": "Exact name of the companion Dragon character sheet in FoundryVTT.",
+      "AutoSync": "Auto-Sync on Load",
+      "AutoSyncHint": "Automatically synchronize class features, active effects, and dragon size scaling when the world loads."
+    }
+  }
+}

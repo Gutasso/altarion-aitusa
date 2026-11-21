@@ -2,9 +2,9 @@
   "$schema": "https://raw.githubusercontent.com/typhonjs-fvtt-lib/validate-manifest/master/schema/module.json",
   "id": "altarion-aitusa",
   "name": "altarion-aitusa",
-  "title": "Fichas Altarion e Aitusa",
-  "description": "Implementação das fichas de Altarion e Aitusa no FoundryVTT",
-  "version": "1.0.0",
+  "title": "Altarion & Aitusa - Dragon Rider",
+  "description": "Character sheet implementation for Altarion (Dragon Rider Lvl 4 / Wizard Lvl 1) and Aitusa (Dragon Companion Lvl 4) in FoundryVTT.",
+  "version": "1.1.0",
   "author": "Gustavo",
   "authors": [
     {
@@ -12,14 +12,11 @@
       "url": "https://github.com/Gutasso"
     }
   ],
-  "minimumCoreVersion": "11",
   "compatibility": {
     "minimum": "11",
     "verified": "13",
     "maximum": "13"
   },
-  "manifest": "https://raw.githubusercontent.com/Gutasso/professions-reworked-5e/main/module.json",
-  "download": "https://github.com/Gutasso/professions-reworked-5e/archive/refs/heads/main.zip",
   "relationships": {
     "systems": [
       {
@@ -32,12 +29,44 @@
     ]
   },
   "esmodules": [
-    "scripts/main.js"
+    "scripts/main.js",
+    "other_players/OtherPlayersBase.js",
+    "other_players/Parva.js",
+    "other_players/Kyrion.js",
+    "other_players/Flinn.js"
   ],
+  "socket": true,
   "styles": [
-    "css/profissoes.css"
+    "css/altarion-aitusa.css"
+  ],
+  "packs": [
+    {
+      "name": "subclasses",
+      "label": "Altarion & Aitusa Subclasses & Features",
+      "path": "packs/subclasses",
+      "type": "Item",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {
+        "dnd5e": {
+          "sourceBook": "PHB",
+          "types": [
+            "subclass",
+            "feat"
+          ]
+        }
+      }
+    }
   ],
   "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    },
     {
       "lang": "pt-BR",
       "name": "Português (Brasil)",

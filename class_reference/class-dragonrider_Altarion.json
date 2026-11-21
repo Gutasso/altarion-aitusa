@@ -1,0 +1,1641 @@
+{
+	"_meta": {
+		"sources": [
+			{
+				"json": "DR-Altarion",
+				"abbreviation": "DRa",
+				"full": "Dragon Rider: Altarion",
+				"authors": [
+					"TheSpellweaver",
+					"tjiago_oBrabo"
+				],
+				"version": "1.0.0_a"
+			}
+		],
+		"internalCopies": [
+			"subclass"
+		],
+		"dateAdded": 1766568304,
+		"dateLastModified": 1766568304,
+		"edition": "classic"
+	},
+	"class": [
+		{
+			"name": "Dragon Rider",
+			"source": "DR-Altarion",
+			"page": 1,
+			"hd": {
+				"number": 1,
+				"faces": 10
+			},
+			"proficiency": [
+				"int",
+				"con"
+			],
+			"optionalfeatureProgression": [
+				{
+					"name": "Fighting Style",
+					"featureType": [
+						"FS:F"
+					],
+					"progression": {
+						"1": 1
+					}
+				}
+			],
+			"startingProficiencies": {
+				"armor": [
+					"light",
+					"medium",
+					"heavy",
+					"shield"
+				],
+				"weapons": [
+					"simple",
+					"martial"
+				],
+				"skills": [
+					{
+						"choose": {
+							"from": [
+								"acrobatics",
+								"animal handling",
+								"athletics",
+								"intimidation",
+								"investigation",
+								"nature",
+								"perception",
+								"survival"
+							],
+							"count": 2
+						}
+					}
+				]
+			},
+			"startingEquipment": {
+				"additionalFromBackground": true,
+				"default": [
+					"(a) {@item chain mail|phb} or (b) {@item leather armor|phb}, {@item longbow|phb}, and {@item arrows (20)|phb|20 arrows}",
+					"(a) a {@filter martial weapon|items|source=phb|category=basic|type=martial weapon} and a {@item shield|phb} or (b) two {@filter martial weapons|items|source=phb|category=basic|type=martial weapon}",
+					"(a) a {@item light crossbow|phb} and {@item crossbow bolts (20)|phb|20 bolts} or (b) two {@item handaxe|phb|handaxes}",
+					"(a) a {@item dungeoneer's pack|phb} or (b) an {@item explorer's pack|phb}"
+				],
+				"goldAlternative": "{@dice 5d4 × 10|5d4 × 10|Starting Gold}",
+				"defaultData": [
+					{
+						"a": [
+							"chain mail|phb"
+						],
+						"b": [
+							"leather armor|phb",
+							"longbow|phb",
+							"arrows (20)|phb"
+						]
+					},
+					{
+						"a": [
+							{
+								"equipmentType": "weaponMartial"
+							},
+							"shield|phb"
+						],
+						"b": [
+							{
+								"equipmentType": "weaponMartial",
+								"quantity": 2
+							}
+						]
+					},
+					{
+						"a": [
+							"light crossbow|phb",
+							"crossbow bolts (20)|phb"
+						],
+						"b": [
+							{
+								"item": "handaxe|phb",
+								"quantity": 2
+							}
+						]
+					},
+					{
+						"a": [
+							"dungeoneer's pack|phb"
+						],
+						"b": [
+							"explorer's pack|phb"
+						]
+					}
+				]
+			},
+			"multiclassing": {
+				"requirements": {
+					"or": [
+						{
+							"str": 13,
+							"dex": 13
+						}
+					]
+				},
+				"proficienciesGained": {
+					"armor": [
+						"light",
+						"medium",
+						"shield"
+					],
+					"weapons": [
+						"simple",
+						"martial"
+					]
+				}
+			},
+			"classFeatures": [
+				"Obtaining your Dragon|Dragon Rider|DR-Altarion|1",
+				"Dragon Ancestry|Dragon Rider|DR-Altarion|1",
+				"Fighting Style|Dragon Rider|DR-Altarion|2",
+				"Dragon Care|Dragon Rider|DR-Altarion|3",
+				{
+					"classFeature": "Draconic Bond|Dragon Rider|DR-Altarion|3",
+					"gainSubclassFeature": true
+				},
+				"Ability Score Improvement|Dragon Rider|DR-Altarion|4",
+				{
+					"classFeature": "Draconic Bond feature|Dragon Rider|DR-Altarion|4",
+					"gainSubclassFeature": true
+				},
+				"Coordinated Assault|Dragon Rider|DR-Altarion|5",
+				{
+					"classFeature": "Draconic Bond feature|Dragon Rider|DR-Altarion|7",
+					"gainSubclassFeature": true
+				},
+				"Ability Score Improvement|Dragon Rider|DR-Altarion|8",
+				{
+					"classFeature": "Draconic Bond feature|Dragon Rider|DR-Altarion|8",
+					"gainSubclassFeature": true
+				},
+				"Dragon's Breath|Dragon Rider|DR-Altarion|9",
+				{
+					"classFeature": "Draconic Bond feature|Dragon Rider|DR-Altarion|10",
+					"gainSubclassFeature": true
+				},
+				"Draconic Body|Dragon Rider|DR-Altarion|11",
+				"Ability Score Improvement|Dragon Rider|DR-Altarion|12",
+				{
+					"classFeature": "Draconic Bond feature|Dragon Rider|DR-Altarion|13",
+					"gainSubclassFeature": true
+				},
+				"Legacy of the Dragon|Dragon Rider|DR-Altarion|14",
+				{
+					"classFeature": "Draconic Bond feature|Dragon Rider|DR-Altarion|15",
+					"gainSubclassFeature": true
+				},
+				"Ability Score Improvement|Dragon Rider|DR-Altarion|16",
+				"Ancient Connection|Dragon Rider|DR-Altarion|17",
+				{
+					"classFeature": "Draconic Bond feature|Dragon Rider|DR-Altarion|18",
+					"gainSubclassFeature": true
+				},
+				"Ability Score Improvement|Dragon Rider|DR-Altarion|19",
+				"Draconic Enhancement|Dragon Rider|DR-Altarion|20"
+			],
+			"subclassTitle": "Draconic Bond",
+			"hasFluff": true,
+			"hasFluffImages": true
+		}
+	],
+	"subclass": [
+		{
+			"name": "Ancestral Magic",
+			"shortName": "Ancestral Magic",
+			"source": "DR-Altarion",
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"page": 5,
+			"spellcastingAbility": "int",
+			"casterProgression": "1/3",
+			"cantripProgression": [
+				0,
+				0,
+				2,
+				2,
+				2,
+				2,
+				2,
+				2,
+				2,
+				3,
+				3,
+				3,
+				3,
+				3,
+				3,
+				3,
+				3,
+				3,
+				3,
+				3
+			],
+			"spellsKnownProgression": [
+				0,
+				0,
+				3,
+				4,
+				4,
+				4,
+				5,
+				6,
+				6,
+				7,
+				8,
+				8,
+				9,
+				10,
+				10,
+				11,
+				11,
+				11,
+				12,
+				13
+			],
+			"subclassTableGroups": [
+				{
+					"subclasses": [
+						{
+							"name": "Dragon Rider",
+							"source": "DR-Altarion"
+						}
+					],
+					"colLabels": [
+						"{@filter Cantrips Known|spells|level=0|subclass=Dragon Rider: Ancestral Magic}",
+						"{@filter Spells Known|spells|subclass=Dragon Rider: Ancestral Magic}"
+					],
+					"rows": [
+						[
+							0,
+							0
+						],
+						[
+							0,
+							0
+						],
+						[
+							2,
+							3
+						],
+						[
+							2,
+							4
+						],
+						[
+							2,
+							4
+						],
+						[
+							2,
+							4
+						],
+						[
+							2,
+							5
+						],
+						[
+							2,
+							6
+						],
+						[
+							2,
+							6
+						],
+						[
+							3,
+							7
+						],
+						[
+							3,
+							8
+						],
+						[
+							3,
+							8
+						],
+						[
+							3,
+							9
+						],
+						[
+							3,
+							10
+						],
+						[
+							3,
+							10
+						],
+						[
+							3,
+							11
+						],
+						[
+							3,
+							11
+						],
+						[
+							3,
+							11
+						],
+						[
+							3,
+							12
+						],
+						[
+							3,
+							13
+						]
+					]
+				},
+				{
+					"title": "Spell Slots per Spell Level",
+					"subclasses": [
+						{
+							"name": "Ancestral Magic",
+							"source": "DR-Altarion"
+						}
+					],
+					"colLabels": [
+						"{@filter 1st|spells|level=1|subclass=Dragon Rider: Ancestral Magic}",
+						"{@filter 2nd|spells|level=2|subclass=Dragon Rider: Ancestral Magic}",
+						"{@filter 3rd|spells|level=3|subclass=Dragon Rider: Ancestral Magic}",
+						"{@filter 4th|spells|level=4|subclass=Dragon Rider: Ancestral Magic}"
+					],
+					"rowsSpellProgression": [
+						[
+							0,
+							0,
+							0,
+							0
+						],
+						[
+							0,
+							0,
+							0,
+							0
+						],
+						[
+							2,
+							0,
+							0,
+							0
+						],
+						[
+							3,
+							0,
+							0,
+							0
+						],
+						[
+							3,
+							0,
+							0,
+							0
+						],
+						[
+							3,
+							0,
+							0,
+							0
+						],
+						[
+							4,
+							2,
+							0,
+							0
+						],
+						[
+							4,
+							2,
+							0,
+							0
+						],
+						[
+							4,
+							2,
+							0,
+							0
+						],
+						[
+							4,
+							3,
+							0,
+							0
+						],
+						[
+							4,
+							3,
+							0,
+							0
+						],
+						[
+							4,
+							3,
+							0,
+							0
+						],
+						[
+							4,
+							3,
+							2,
+							0
+						],
+						[
+							4,
+							3,
+							2,
+							0
+						],
+						[
+							4,
+							3,
+							2,
+							0
+						],
+						[
+							4,
+							3,
+							3,
+							0
+						],
+						[
+							4,
+							3,
+							3,
+							0
+						],
+						[
+							4,
+							3,
+							3,
+							0
+						],
+						[
+							4,
+							3,
+							3,
+							1
+						],
+						[
+							4,
+							3,
+							3,
+							1
+						]
+					]
+				}
+			],
+			"subclassFeatures": [
+				"Ancestral Magic|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|3",
+				"Ancestral Attacks Small|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|4",
+				"Draconic Focus|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|7",
+				"Ancestral Attacks Medium|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|8",
+				"Ancestral Elevation|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|10",
+				"Ancestral Attacks Large|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|13",
+				"Ancestral Tether|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|15",
+				"Ancestral Form|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|18"
+			]
+		}
+	],
+	"classFeature": [
+		{
+			"name": "Obtaining your Dragon",
+			"source": "DR-Altarion",
+			"page": 10,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"level": 1,
+			"entries": [
+				"At 1st level, you have obtained a dragon companion. You can choose what kind of dragon they are according to the possible options on your campaign.",
+				"You have a permanent telepathic bond with your dragon and share their senses. The dragon obeys your commands as best they can, they share your initiative and acts right after your turn. You freely determine their actions, decisions and attitudes. If you are incapacitated, your dragon acts on their own and if you're absent, they roll their own initiative.",
+				"At 1st level, your dragon is considered Tiny and can't yet take the {@action Attack} action. They increase in size to Small at 4th level, Medium at 8th level, Large at 13th level and Huge at 18th level. Once they reach Small size, they become ready for battle and, as a bonus action on your turn, you can command them to take the {@action Attack} action. If you do so, on their next turn, they can use their action to take the {@action Attack} action.",
+				"For each Dragon Rider level after 1st, your dragon gains hit points equal to their Hit Die roll + their Constitution modifier, and they gain one additional Hit Die. When the dragon is reduced to 0 hit points, they make death saving throws as a player would.",
+				"Your dragon's level is equal to your Dragon Rider level for the purpose of calculating their Proficiency Bonus and spells like polymorph and true polymorph.",
+				"When you die, your dragon also dies after a number of hours equal to your Dragon Rider level. If your dragon is ever slain, the magical bond you share allows you to return them to life. With 8 hours of work and the expenditure of 25 gp worth of precious gems per Dragon Rider level, you can call forth your companion's spirit and use your magic to create a new body for them. You can return your dragon companion to life in this manner even if you do not possess any parts of their body.",
+				"Returning your dragon to life is a grueling process, and you must expend a number of hit dice equal to half your Dragon Rider level (rounded up) to perform this ritual.",
+				"Finally, you can speak, read, and write {@language Draconic} due to the bond you and your dragon share."
+			]
+		},
+		{
+			"name": "Dragon Ancestry",
+			"source": "DR-Altarion",
+			"page": 11,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"level": 1,
+			"entries": [
+				"Your dragon’s ancestry defines the damage type of their abilities and their rider’s. Furthermore, it is related to the Ability Score that represents their Connection to their ancestors and their rider. You can choose an option for both according to the Dragon Ancestry Damage Type and Dragon Ancestry Ability Score tables.",
+				"Furthermore, you gain resistance to the damage type of your Dragon Ancestry Damage Type.",
+				{
+					"type": "table",
+					"caption": "Dragon Ancestry Damage Type",
+					"colLabels": [
+						"Damage Type"
+					],
+					"colStyles": [
+						"col-12 text-center"
+					],
+					"rows": [
+						[
+							"Acid"
+						],
+						[
+							"Cold"
+						],
+						[
+							"Fire"
+						],
+						[
+							"Force"
+						],
+						[
+							"Lightning"
+						],
+						[
+							"Necrotic"
+						],
+						[
+							"Poison"
+						],
+						[
+							"Psychic"
+						],
+						[
+							"Radiant"
+						],
+						[
+							"Thunder"
+						]
+					]
+				},
+				{
+					"type": "table",
+					"caption": "Dragon Ancestry Ability Score",
+					"colLabels": [
+						"Connection",
+						"Ability Score"
+					],
+					"colStyles": [
+						"col-7",
+						"col-5 text-center"
+					],
+					"rows": [
+						[
+							"Arcane/Magical",
+							"Intelligence"
+						],
+						[
+							"Bloodline/Pact",
+							"Charisma"
+						],
+						[
+							"Oath/Nature/Divine",
+							"Wisdom"
+						]
+					]
+				}
+			]
+		},
+		{
+			"name": "Fighting Style",
+			"source": "DR-Altarion",
+			"page": 12,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"level": 2,
+			"entries": [
+				"You adopt a particular style of fighting as your specialty. Choose one of the following options. You can't take the same Fighting Style option more than once, even if you get to choose again.",
+				{
+					"type": "options",
+					"count": 1,
+					"entries": [
+						{
+							"type": "refOptionalfeature",
+							"optionalfeature": "Archery"
+						},
+						{
+							"type": "refOptionalfeature",
+							"optionalfeature": "Defense"
+						},
+						{
+							"type": "refOptionalfeature",
+							"optionalfeature": "Dueling"
+						},
+						{
+							"type": "refOptionalfeature",
+							"optionalfeature": "Great Weapon Fighting"
+						},
+						{
+							"type": "refOptionalfeature",
+							"optionalfeature": "Protection"
+						},
+						{
+							"type": "refOptionalfeature",
+							"optionalfeature": "Two-Weapon Fighting"
+						},
+						{
+							"type": "refOptionalfeature",
+							"optionalfeature": "Blind Fighting|TCE"
+						},
+						{
+							"type": "refOptionalfeature",
+							"optionalfeature": "Interception|TCE"
+						},
+						{
+							"type": "refOptionalfeature",
+							"optionalfeature": "Superior Technique|TCE"
+						},
+						{
+							"type": "refOptionalfeature",
+							"optionalfeature": "Thrown Weapon Fighting|TCE"
+						},
+						{
+							"type": "refOptionalfeature",
+							"optionalfeature": "Unarmed Fighting|TCE"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Dragon Care",
+			"source": "DR-Altarion",
+			"page": 72,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"level": 3,
+			"entries": [
+				"At 3rd level you’ve learned to take special care of your dragon companion. If your dragon ever falls unconscious, you can use your bonus action to touch and stabilize them without making a Wisdom {@skill Medicine} check. When stabilized this way, your dragon recovers 1 hit point after {@dice 1d4} minutes."
+			]
+		},
+		{
+			"name": "Draconic Bond",
+			"source": "DR-Altarion",
+			"page": 72,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"level": 3,
+			"entries": [
+				"At 3rd level you choose what kind of bond you have with your dragon. Your choice determines your interactions with your companion and grants you features at 3rd level and again at 7th, 10th, 15th and 18th level."
+			]
+		},
+		{
+			"name": "Ability Score Improvement",
+			"source": "DR-Altarion",
+			"page": 72,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"level": 4,
+			"entries": [
+				"When you reach 4th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can't increase an ability score above 20 using this feature.",
+				"If your DM allows the use of feats, you may instead take a {@5etools feat|feats.html}."
+			]
+		},
+		{
+			"name": "Draconic Bond feature",
+			"source": "DR-Altarion",
+			"page": 72,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"level": 4,
+			"entries": [
+				"At 4th level, you gain a feature granted by your Draconic Bond."
+			]
+		},
+		{
+			"name": "Coordinated Assault",
+			"source": "DR-Altarion",
+			"page": 72,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"level": 5,
+			"entries": [
+				"Beginning at 5th level, you can attack twice, instead of once, whenever you take the {@action Attack} action on your turn.",
+				"At 10th level, when you miss a weapon attack on your turn, your dragon can use their reaction to make an Opportunity attack."
+			]
+		},
+		{
+			"name": "Draconic Bond feature",
+			"source": "DR-Altarion",
+			"page": 72,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"level": 7,
+			"entries": [
+				"At 7th level, you gain a feature granted by your Draconic Bond."
+			]
+		},
+		{
+			"name": "Ability Score Improvement",
+			"source": "DR-Altarion",
+			"page": 72,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"level": 8,
+			"entries": [
+				"When you reach 8th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can't increase an ability score above 20 using this feature.",
+				"If your DM allows the use of feats, you may instead take a {@5etools feat|feats.html}."
+			]
+		},
+		{
+			"name": "Draconic Bond feature",
+			"source": "DR-Altarion",
+			"page": 72,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"level": 8,
+			"entries": [
+				"At 8th level, you gain a feature granted by your Draconic Bond."
+			]
+		},
+		{
+			"name": "Dragon's Breath",
+			"source": "DR-Altarion",
+			"page": 72,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"level": 9,
+			"entries": [
+				"Upon reaching 9th level, as an action on your turn, you can channel the destructive energy of your dragon’s breath weapon and exhale it forward. Each creature in a 30 foot-cone in front of you takes {@dice 4d10} damage of your Dragon Ancestry Damage Type on a failed save, or half as much damage on a successful one. (Your Dragon's breath save DC = 8 + your Constitution modifier + Proficiency Bonus.)",
+				"You can use this feature a number of times equal to your Constitution modifier and regain all uses when you finish a long rest."
+			]
+		},
+		{
+			"name": "Draconic Bond feature",
+			"source": "DR-Altarion",
+			"page": 72,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"level": 10,
+			"entries": [
+				"At 10th level, you gain a feature granted by your Draconic Bond."
+			]
+		},
+		{
+			"name": "Draconic Body",
+			"source": "DR-Altarion",
+			"page": 72,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"level": 11,
+			"entries": [
+				"At 11th level, your dragon’s scales and eyes fully mature and you take on some of their physical aspects. You gain immunity your Dragon Ancestry Damage Type and the following benefits:",
+				"{@b Scales.} As your dragon’s scales become more rigid, some of them also start to appear on you. Both of you gain a +1 bonus to your AC.",
+				"{@b Eyes.} As your dragon’s eyes become sharper your senses are also enhanced. You and your dragon gain advantage on any (Wisdom) {@skill Perception} or (Intelligence) {@skill Investigation} checks based on sight."
+			]
+		},
+		{
+			"name": "Ability Score Improvement",
+			"source": "DR-Altarion",
+			"page": 72,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"level": 12,
+			"entries": [
+				"When you reach 12th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can't increase an ability score above 20 using this feature.",
+				"If your DM allows the use of feats, you may instead take a {@5etools feat|feats.html}."
+			]
+		},
+		{
+			"name": "Draconic Bond feature",
+			"source": "DR-Altarion",
+			"page": 72,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"level": 13,
+			"entries": [
+				"At 13th level, you gain a feature granted by your Draconic Bond."
+			]
+		},
+		{
+			"name": "Legacy of the Dragon",
+			"source": "DR-Altarion",
+			"page": 72,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"level": 14,
+			"entries": [
+				"At 14th level, you have been blessed with a dragon's extended lifespan. You age only one year for every ten years that pass, and can't be aged magically. "
+			]
+		},
+		{
+			"name": "Draconic Bond feature",
+			"source": "DR-Altarion",
+			"page": 72,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"level": 15,
+			"entries": [
+				"At 15th level, you gain a feature granted by your Draconic Bond."
+			]
+		},
+		{
+			"name": "Ability Score Improvement",
+			"source": "DR-Altarion",
+			"page": 72,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"level": 16,
+			"entries": [
+				"When you reach 16th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can't increase an ability score above 20 using this feature.",
+				"If your DM allows the use of feats, you may instead take a {@5etools feat|feats.html}."
+			]
+		},
+		{
+			"name": "Ancient Connection",
+			"source": "DR-Altarion",
+			"page": 72,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"level": 17,
+			"entries": [
+				"At 17th level, while your dragon is within 30 feet of you, whenever they must make a saving throw, they gain a bonus to the saving throw equal to half your Constitution modifier (rounded up, with a minimum bonus of +1). You must be conscious to grant this bonus.",
+				"Additionally, if your dragon is conscious and you are within 30 feet of them, whenever you must make a saving throw, you gain a bonus to the saving throw equal to half your dragon’s Constitution modifier (rounded up, with a minimum bonus of +1)."
+			]
+		},
+		{
+			"name": "Draconic Bond feature",
+			"source": "DR-Altarion",
+			"page": 72,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"level": 18,
+			"entries": [
+				"At 18th level, you gain a feature granted by your Draconic Bond."
+			]
+		},
+		{
+			"name": "Ability Score Improvement",
+			"source": "DR-Altarion",
+			"page": 72,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"level": 19,
+			"entries": [
+				"When you reach 19th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can't increase an ability score above 20 using this feature.",
+				"If your DM allows the use of feats, you may instead take a {@5etools feat|feats.html}."
+			]
+		},
+		{
+			"name": "Draconic Enhancement",
+			"source": "DR-Altarion",
+			"page": 72,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"level": 20,
+			"entries": [
+				"At 20th level, as a bonus action, you can enhance the draconic characteristics your body has developed, fully embracing a draconic form, granting the following benefits for 10 minutes:",
+				"{@b Scales.} You gain a +1 bonus to your AC.",
+				"{@b Wings.} You grow wings from your back and can fly at the same speed as your dragon.",
+				"{@b Eyes.} You gain Truesight at a range of 30 feet.",
+				"You can use this feature a number of times equal to your proficiency bonus and you regain all expended uses when you finish a long rest."
+			]
+		}
+	],
+	"subclassFeature": [
+		{
+			"name": "Ancestral Magic",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 3,
+			"entries": [
+				"The practitioner of Ancestral Magic channels the primeval arcane energies that seep from their dragon’s lineage into their own soul. By manifesting a magical Ancestral Weapon, these riders weave martial strikes with ancestral power, allowing them to replace traditional weapon attacks with rays of energy, protective shields, or Ancestral Wards that lash out at multiple foes. This bond enables a rider to harmonize their magic with their companion’s nature, altering the elemental damage of their spells to match their dragon’s ancestry while extending the reach of their magic to protect or empower their companion. As their connection matures, the rider and dragon become a single conduit for ancient forces, culminating in a state where the rider fully embodies their dragon’s ancestral form to dominate the battlefield.",
+				{
+					"type": "refSubclassFeature",
+					"subclassFeature": "Spellcasting|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|3"
+				},
+				{
+					"type": "refSubclassFeature",
+					"subclassFeature": "Ancestral Awakening|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|3"
+				},
+				{
+					"type": "refSubclassFeature",
+					"subclassFeature": "Ancestral Attacks|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|3"
+				}
+			]
+		},
+		{
+			"name": "Spellcasting",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 3,
+			"header": 1,
+			"entries": [
+				"At 3rd level, you’ve learned to channel your dragon’s ancestral arcane magic that seeps through you. You may change the damage type of any spell that deals damage to that of your Dragon Ancestry Damage Type. Furthermore, you can make any spell you cast that targets only you to also target your dragon, if they’re within 30 feet of you. You can cast a spell this way a number of times equal to your dragon’s Dragon Ancestry Ability Score modifier and you regain all expended uses when you finish a long rest.",
+				{
+					"type": "entries",
+					"name": "Cantrips",
+					"entries": [
+						"You learn cantrips of your choice from the Ancestral spell list as shown in the Cantrips Known column of the Rider’s Ancestral Spellcasting table.",
+						"Additionally, as a bonus action on your turn, you can command your dragon to use their action to cast an Ancestral cantrip you know on their next turn. They use their Dragon Ancestry Ability Score modifier as their spellcasting ability for these spells and, if that spell deals damage, you may change its damage type to that of your Dragon Ancestry Damage Type."
+					]
+				},
+				{
+					"type": "entries",
+					"entries": [
+						{
+							"type": "entries",
+							"name": "Spell Slots",
+							"entries": [
+								"The Ancestral Magic Spellcasting table shows how many spell slots you have to cast your Ancestral spells of 1st level and higher. To cast one of these Ancestral spells, you must expend a slot of the spell's level or higher. You regain all expended spell slots when you finish a long rest."
+							]
+						}
+					]
+				},
+				{
+					"type": "entries",
+					"entries": [
+						{
+							"type": "entries",
+							"name": "Spells Known",
+							"entries": [
+								"The Spells Known column of the Ancestral Magic Spellcasting table shows how many Ancestral spells you know at a given level and when you learn more Ancestral spells of your choice. Each of these spells must be chosen from the Ancestral spells list and be of a level for which you have spell slots.",
+								"Additionally, whenever you gain a level, you can choose any of the Ancestral spells you know and replace it with another spell from the Ancestral spells list, which also must be of a level for which you have spell slots."
+							]
+						}
+					]
+				},
+				{
+					"type": "entries",
+					"entries": [
+						{
+							"type": "entries",
+							"name": "Spellcasting Ability",
+							"entries": [
+								"Your spellcasting ability for your Ancestral spells is defined by your Dragon Ancestry, since the power of your magic relies on their connection to their ancestors. You use your Dragon Ancestry Ability Score whenever a spell refers to your spellcasting ability. In addition, you use your Dragon Ancestry Ability Score modifier when setting the saving throw DC for an Ancestral spell you cast and when making an attack roll with one.",
+								{
+									"type": "abilityDc",
+									"name": "Spell",
+									"attributes": [
+										"int"
+									]
+								},
+								{
+									"type": "abilityAttackMod",
+									"name": "Spell",
+									"attributes": [
+										"int"
+									]
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Ancestral Awakening",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 3,
+			"header": 1,
+			"entries": [
+				"When you choose this bond at 3rd level, you can use your action to create an Ancestral Weapon, a magical weapon that flows with your dragon's ancestral energies, in your empty hand. You can choose the form that this weapon takes each time you create it. You are proficient with it while you wield it. This weapon's damage type is the same as your Dragon Ancestry Damage Type and you can use it as a spellcasting focus for your Ancestral spells. You can summon this weapon as a bonus action on your turn, causing it to teleport instantly to your hand.",
+				"The weapon disappears if it is more than 5 feet away from you for 1 minute or more. It also disappears if you use this feature again, if you dismiss the weapon (no action required), or if you die."
+			]
+		},
+		{
+			"name": "Ancestral Attacks",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 3,
+			"header": 1,
+			"entries": [
+				"When you take the {@action Attack} action on your turn using your Ancestral Weapon, you can replace an attack with one Ancestral Attack option from among the ones you know.",
+				"The properties of your Ancestral Attacks are enhanced as your dragon grows in size.",
+				"You can only use one Ancestral Attack each turn and you can only use them a number of times equal to your Dragon Ancestry Ability Score modifier. You regain all expended uses when you finish a long rest.",
+				"Alternatively, once per long rest, you can choose to expend a spell slot and recover a number of uses of your Ancestral Attacks equal to the level of the slot. The total number of uses for your Ancestral Attacks can never exceed your Dragon Ancestry Ability Score modifier.",
+				{
+					"type": "refSubclassFeature",
+					"subclassFeature": "Ancestral Ward Tiny|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|3"
+				},
+				{
+					"type": "refSubclassFeature",
+					"subclassFeature": "Ancestral Ray Tiny|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|3"
+				},
+				{
+					"type": "refSubclassFeature",
+					"subclassFeature": "Ancestral Shielding Tiny|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|3"
+				}
+			]
+		},
+		{
+			"name": "Ancestral Ward Tiny",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 3,
+			"header": 1,
+			"entries": [
+				"Instead of making an Attack roll, you coat yourself with Ancestral Energy. You gain temporary hit points equal to {@dice 2d6} plus half your Dragon Ancestry Ability Score modifier rounded up (minimum bonus of +1) for 10 minutes. For the duration, when you hit a creature with your Ancestral weapon, they have to make a Wisdom saving throw against your spell save DC. On a failed save, the creature has disadvantage on all attack rolls made against any creature other than you or your dragon until the end of your next turn, as you attract them through your Ancestral power. This ability ends early if you drop to 0 temporary hit points. The amount of temporary hit points gained from this Ancestral Attack increases as your dragon grows in size."
+			]
+		},
+		{
+			"name": "Ancestral Ray Tiny",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 3,
+			"header": 1,
+			"entries": [
+				"Instead of making an Attack roll, you expel a ray of Ancestral energy from your weapon towards a creature within 30 feet of you. The creature must succeed on a Dexterity saving throw against your spell save DC or take {@dice 4d6} damage of your Dragon Ancestry Damage Type on a failed save, or half as much damage on a successful one. A creature damaged this way gets marked with lingering Ancestral magic. Your dragon has advantage on their next Attack roll against the target until the end of their next turn. The range and damage of this Ancestral Attack increases as your dragon grows in size."
+			]
+		},
+		{
+			"name": "Ancestral Shielding Tiny",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 3,
+			"header": 1,
+			"entries": [
+				"Instead of making an Attack roll, you channel your Ancestral Weapon’s energy around a willing creature you can see within 30 feet of you, for protection. They gain a bonus to their AC equal to half your Dragon Ancestry Ability Score modifier rounded up (minimum bonus of +1) until the start of your next turn or until a creature hits them with an attack. If a creature hits them with an attack, before the start of your next turn, the protected creature gains temporary hit points equal to {@dice 2d6} plus half your Dragon Ancestry Ability Score modifier rounded up (minimum bonus of +1) for 10 minutes. The temporary hit points are applied before the creature receives the damage. The amount of temporary hit points gained from this Ancestral Attack increases as your dragon grows in size."
+			]
+		},
+		{
+			"name": "Ancestral Attacks Small",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 4,
+			"header": 2,
+			"entries": [
+				"The properties of your Ancestral Attacks have been enhanced since your dragon has grown in size.",
+				{
+					"type": "refSubclassFeature",
+					"subclassFeature": "Ancestral Ward Small|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|4"
+				},
+				{
+					"type": "refSubclassFeature",
+					"subclassFeature": "Ancestral Ray Small|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|4"
+				},
+				{
+					"type": "refSubclassFeature",
+					"subclassFeature": "Ancestral Shielding Small|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|4"
+				}
+			]
+		},
+		{
+			"name": "Ancestral Ward Small",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 4,
+			"header": 2,
+			"entries": [
+				"Instead of making an Attack roll, you coat yourself with Ancestral Energy. You gain temporary hit points equal to {@dice 3d6} plus half your Dragon Ancestry Ability Score modifier rounded up (minimum bonus of +1) for 10 minutes. For the duration, when you hit a creature with your Ancestral weapon, they have to make a Wisdom saving throw against your spell save DC. On a failed save, the creature has disadvantage on all attack rolls made against any creature other than you or your dragon until the end of your next turn, as you attract them through your Ancestral power. This ability ends early if you drop to 0 temporary hit points. The amount of temporary hit points gained from this Ancestral Attack increases as your dragon grows in size."
+			]
+		},
+		{
+			"name": "Ancestral Ray Small",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 4,
+			"header": 2,
+			"entries": [
+				"Instead of making an Attack roll, you expel a ray of Ancestral energy from your weapon towards a creature within 45 feet of you. The creature must succeed on a Dexterity saving throw against your spell save DC or take {@dice 5d6} damage of your Dragon Ancestry Damage Type on a failed save, or half as much damage on a successful one. A creature damaged this way gets marked with lingering Ancestral magic. Your dragon has advantage on their next Attack roll against the target until the end of their next turn. The range and damage of this Ancestral Attack increases as your dragon grows in size."
+			]
+		},
+		{
+			"name": "Ancestral Shielding Small",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 4,
+			"header": 2,
+			"entries": [
+				"Instead of making an Attack roll, you channel your Ancestral Weapon’s energy around a willing creature you can see within 30 feet of you, for protection. They gain a bonus to their AC equal to half your Dragon Ancestry Ability Score modifier rounded up (minimum bonus of +1) until the start of your next turn or until a creature hits them with an attack. If a creature hits them with an attack, before the start of your next turn, the protected creature gains temporary hit points equal to {@dice 3d6} plus half your Dragon Ancestry Ability Score modifier rounded up (minimum bonus of +1) for 10 minutes. The temporary hit points are applied before the creature receives the damage. The amount of temporary hit points gained from this Ancestral Attack increases as your dragon grows in size."
+			]
+		},
+		{
+			"name": "Draconic Focus",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 7,
+			"header": 2,
+			"entries": [
+				"Starting at 7th level, your ability to channel Ancestral energy through your dragon is enhanced. Your dragon can add your Dragon Ancestry Ability Score modifier to the damage rolls of cantrips they cast.",
+				"Additionally, as an action on your turn, you can expend a spell slot and channel its energy through your dragon. Your dragon, as an action on their next turn, can cast an Ancestral spell you know of the level of the spell slot you expended this way."
+			]
+		},
+		{
+			"name": "Ancestral Attacks Medium",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 8,
+			"header": 2,
+			"entries": [
+				"The properties of your Ancestral Attacks have been enhanced since your dragon has grown in size.",
+				{
+					"type": "refSubclassFeature",
+					"subclassFeature": "Ancestral Ward Medium|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|8"
+				},
+				{
+					"type": "refSubclassFeature",
+					"subclassFeature": "Ancestral Ray Medium|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|8"
+				},
+				{
+					"type": "refSubclassFeature",
+					"subclassFeature": "Ancestral Shielding Medium|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|8"
+				}
+			]
+		},
+		{
+			"name": "Ancestral Ward Medium",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 8,
+			"header": 2,
+			"entries": [
+				"Instead of making an Attack roll, you coat yourself with Ancestral Energy. You gain temporary hit points equal to {@dice 4d6} plus half your Dragon Ancestry Ability Score modifier rounded up (minimum bonus of +1) for 10 minutes. For the duration, when you hit a creature with your Ancestral weapon, they have to make a Wisdom saving throw against your spell save DC. On a failed save, the creature has disadvantage on all attack rolls made against any creature other than you or your dragon until the end of your next turn, as you attract them through your Ancestral power. This ability ends early if you drop to 0 temporary hit points. The amount of temporary hit points gained from this Ancestral Attack increases as your dragon grows in size."
+			]
+		},
+		{
+			"name": "Ancestral Ray Medium",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 8,
+			"header": 2,
+			"entries": [
+				"Instead of making an Attack roll, you expel a ray of Ancestral energy from your weapon towards a creature within 60 feet of you. The creature must succeed on a Dexterity saving throw against your spell save DC or take {@dice 6d6} damage of your Dragon Ancestry Damage Type on a failed save, or half as much damage on a successful one. A creature damaged this way gets marked with lingering Ancestral magic. Your dragon has advantage on their next Attack roll against the target until the end of their next turn. The range and damage of this Ancestral Attack increases as your dragon grows in size."
+			]
+		},
+		{
+			"name": "Ancestral Shielding Medium",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 8,
+			"header": 2,
+			"entries": [
+				"Instead of making an Attack roll, you channel your Ancestral Weapon’s energy around a willing creature you can see within 30 feet of you, for protection. They gain a bonus to their AC equal to half your Dragon Ancestry Ability Score modifier rounded up (minimum bonus of +1) until the start of your next turn or until a creature hits them with an attack. If a creature hits them with an attack, before the start of your next turn, the protected creature gains temporary hit points equal to {@dice 4d6} plus half your Dragon Ancestry Ability Score modifier rounded up (minimum bonus of +1) for 10 minutes. The temporary hit points are applied before the creature receives the damage. The amount of temporary hit points gained from this Ancestral Attack increases as your dragon grows in size."
+			]
+		},
+		{
+			"name": "Ancestral Elevation",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 10,
+			"header": 2,
+			"entries": [
+				"At 10th level, the connection you and your dragon have to the ancestral energies, channeled from your Ancestral Weapon, increases. Whenever you miss with an attack made by your Ancestral Weapon, your dragon can use their reaction to cast a cantrip.",
+				{
+					"type": "refSubclassFeature",
+					"subclassFeature": "Elevated Ancestral Attacks|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|10"
+				}
+			]
+		},
+		{
+			"name": "Elevated Ancestral Attacks",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 10,
+			"header": 2,
+			"entries": [
+				"Also at 10th level you gain more Ancestral Attack options.",
+				{
+					"type": "refSubclassFeature",
+					"subclassFeature": "Bursting Strike Medium|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|10"
+				},
+				{
+					"type": "refSubclassFeature",
+					"subclassFeature": "Ancestral Surge Medium|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|10"
+				},
+				{
+					"type": "refSubclassFeature",
+					"subclassFeature": "Ancestral Marking Medium|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|10"
+				}
+			]
+		},
+		{
+			"name": "Bursting Strike Medium",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 10,
+			"header": 2,
+			"entries": [
+				"Before making your attack, you can use this Ancestral Attack to teleport up to half your Movement speed to an unoccupied space within 5 feet of a creature you can see and make an Ancestral Weapon attack against that creature. Whether you hit or miss, the target must make a Dexterity saving throw, as Ancestral energies erupt from where you landed. The creature takes {@dice 4d6} damage of your Dragon Ancestry Damage Type on a failed save or half as much damage on a successful one. The damage of this Ancestral Attack increases as your dragon grows in size."
+			]
+		},
+		{
+			"name": "Ancestral Surge Medium",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 10,
+			"header": 2,
+			"entries": [
+				"Instead of making an Attack roll, you channel your dragon’s ancestral energy through your Ancestral Weapon and unleash a 5 feet wide and 30 feet long line of concentrated Ancestral energy. Each creature in that line must make a Dexterity saving throw against your spell save DC. A creature takes {@dice 6d6} damage of your Dragon Ancestry Damage Type on a failed save, or half as much damage on a successful one. The area of effect and the damage of this Ancestral Attack increases as your dragon grows in size."
+			]
+		},
+		{
+			"name": "Ancestral Marking Medium",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 10,
+			"header": 2,
+			"entries": [
+				"Instead of making an attack, you can channel a wave of Ancestral energy that emanates from you and your dragon. A number of creatures of your choice up to your Dragon Ancestry Ability Score modifier, within 15 feet of either you or your dragon, must make a Wisdom saving throw against your spell save DC. On a failed save, a creature is marked for 1 minute. A creature marked by your Ancestral energies has disadvantage on all attack rolls made against any creature other than you or your dragon, as you influence their actions through your Ancestral power. At the end of each of their turns, a marked creature can make another Wisdom saving throw. On a success, the effect ends on them. The range of this Ancestral Attack increases as your dragon grows in size."
+			]
+		},
+		{
+			"name": "Ancestral Attacks Large",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 13,
+			"header": 2,
+			"entries": [
+				"The properties of your Ancestral Attacks have been enhanced since your dragon has grown in size.",
+				{
+					"type": "refSubclassFeature",
+					"subclassFeature": "Ancestral Ward Large|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|13"
+				},
+				{
+					"type": "refSubclassFeature",
+					"subclassFeature": "Ancestral Ray Large|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|13"
+				},
+				{
+					"type": "refSubclassFeature",
+					"subclassFeature": "Ancestral Shielding Large|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|13"
+				},
+				{
+					"type": "refSubclassFeature",
+					"subclassFeature": "Bursting Strike Large|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|13"
+				},
+				{
+					"type": "refSubclassFeature",
+					"subclassFeature": "Ancestral Surge Large|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|13"
+				},
+				{
+					"type": "refSubclassFeature",
+					"subclassFeature": "Ancestral Marking Large|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|13"
+				},
+				{
+					"type": "refSubclassFeature",
+					"subclassFeature": "Dragon's Breath Large|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|13"
+				}
+			]
+		},
+		{
+			"name": "Ancestral Ward Large",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 13,
+			"header": 2,
+			"entries": [
+				"Instead of making an Attack roll, you coat yourself with Ancestral Energy. You gain temporary hit points equal to {@dice 5d6} plus half your Dragon Ancestry Ability Score modifier rounded up (minimum bonus of +1) for 10 minutes. For the duration, when you hit a creature with your Ancestral weapon, they have to make a Wisdom saving throw against your spell save DC. On a failed save, the creature has disadvantage on all attack rolls made against any creature other than you or your dragon until the end of your next turn, as you attract them through your Ancestral power. This ability ends early if you drop to 0 temporary hit points. The amount of temporary hit points gained from this Ancestral Attack increases as your dragon grows in size."
+			]
+		},
+		{
+			"name": "Ancestral Ray Large",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 13,
+			"header": 2,
+			"entries": [
+				"Instead of making an Attack roll, you expel a ray of Ancestral energy from your weapon towards a creature within 75 feet of you. The creature must succeed on a Dexterity saving throw against your spell save DC or take {@dice 7d6} damage of your Dragon Ancestry Damage Type on a failed save, or half as much damage on a successful one. A creature damaged this way gets marked with lingering Ancestral magic. Your dragon has advantage on their next Attack roll against the target until the end of their next turn. The range and damage of this Ancestral Attack increases as your dragon grows in size."
+			]
+		},
+		{
+			"name": "Ancestral Shielding Large",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 13,
+			"header": 2,
+			"entries": [
+				"Instead of making an Attack roll, you channel your Ancestral Weapon’s energy around a willing creature you can see within 30 feet of you, for protection. They gain a bonus to their AC equal to half your Dragon Ancestry Ability Score modifier rounded up (minimum bonus of +1) until the start of your next turn or until a creature hits them with an attack. If a creature hits them with an attack, before the start of your next turn, the protected creature gains temporary hit points equal to {@dice 5d6} plus half your Dragon Ancestry Ability Score modifier rounded up (minimum bonus of +1) for 10 minutes. The temporary hit points are applied before the creature receives the damage. The amount of temporary hit points gained from this Ancestral Attack increases as your dragon grows in size."
+			]
+		},
+		{
+			"name": "Bursting Strike Large",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 13,
+			"header": 2,
+			"entries": [
+				"Before making your attack, you can use this Ancestral Attack to teleport up to half your Movement speed to an unoccupied space within 5 feet of a creature you can see and make an Ancestral Weapon attack against that creature. Whether you hit or miss, the target must make a Dexterity saving throw, as Ancestral energies erupt from where you landed. The creature takes {@dice 5d6} damage of your Dragon Ancestry Damage Type on a failed save or half as much damage on a successful one. The damage of this Ancestral Attack increases as your dragon grows in size."
+			]
+		},
+		{
+			"name": "Ancestral Surge Large",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 13,
+			"header": 2,
+			"entries": [
+				"Instead of making an Attack roll, you channel your dragon’s ancestral energy through your Ancestral Weapon and unleash a 10 feet wide and 45 feet long line of concentrated Ancestral energy. Each creature in that line must make a Dexterity saving throw against your spell save DC. A creature takes {@dice 7d6} damage of your Dragon Ancestry Damage Type on a failed save, or half as much damage on a successful one. The area of effect and the damage of this Ancestral Attack increases as your dragon grows in size."
+			]
+		},
+		{
+			"name": "Ancestral Marking Large",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 13,
+			"header": 2,
+			"entries": [
+				"Instead of making an attack, you can channel a wave of Ancestral energy that emanates from you and your dragon. A number of creatures of your choice up to your Dragon Ancestry Ability Score modifier, within 30 feet of either you or your dragon, must make a Wisdom saving throw against your spell save DC. On a failed save, a creature is marked for 1 minute. A creature marked by your Ancestral energies has disadvantage on all attack rolls made against any creature other than you or your dragon, as you influence their actions through your Ancestral power. At the end of each of their turns, a marked creature can make another Wisdom saving throw. On a success, the effect ends on them. The range of this Ancestral Attack increases as your dragon grows in size."
+			]
+		},
+		{
+			"name": "Dragon's Breath Large",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 13,
+			"header": 2,
+			"entries": [
+				"Upon reaching 13th level, as an action on your turn, you can channel the destructive energy of your dragon’s breath weapon and exhale it forward. Each creature in a 60 foot-cone in front of you takes {@dice 6d10} damage of your Dragon Ancestry Damage Type on a failed save, or half as much damage on a successful one. (Your Dragon's breath save DC = 8 + your Constitution modifier + Proficiency Bonus.)",
+				"You can use this feature a number of times equal to your Constitution modifier and regain all uses when you finish a long rest."
+			]
+		},
+		{
+			"name": "Ancestral Tether",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 15,
+			"header": 2,
+			"entries": [
+				"At 15th level, as an action, you can establish a connection with your dragon by touching them, expending a spell slot of first level or higher, and tethering your Ancestral essence to theirs. This bond lasts for an amount of hours equal to twice the level of the spell slot expended this way, or until you dismiss it with an action.",
+				"While tethered this way, your dragon has resistance to all damage and, each time they take damage, you reduce your current hit points by the same amount. Whenever you take damage while tethered this way, your dragon can use their reaction and expend one Hit Die to heal you both by an amount equal to their Hit Die roll plus their Dragon Ancestry Ability Score modifier.",
+				"Once you use this feature, you can’t do so again until you finish a short or long rest."
+			]
+		},
+		{
+			"name": "Ancestral Form",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 18,
+			"header": 2,
+			"entries": [
+				"At 18th level, you can fully embody your dragon’s ancestral magic. You immediately recover all uses of your Ancestral Attacks and assume an energy form that reflects your connection to your Dragon Ancestry for 10 minutes. While in this form, you can hover, you have no limit on how many attacks from your Attack Action you can replace with Ancestral Attacks on your turn and on how many spell slots you can expend to recover Ancestral Attack uses.",
+				"Additionally, while your current hit points are greater than half your hit point maximum, you can add your dragon’s Dragon Ancestry Ability Score modifier to damage rolls made with your Ancestral Weapon.",
+				"Once you use this feature you can't do so again until you finish a long rest.",
+				{
+					"type": "refSubclassFeature",
+					"subclassFeature": "Ancestral Attacks Huge|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|18"
+				}
+			]
+		},
+		{
+			"name": "Ancestral Attacks Huge",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 18,
+			"header": 2,
+			"entries": [
+				"The properties of your Ancestral Attacks have been enhanced since your dragon has grown in size.",
+				{
+					"type": "refSubclassFeature",
+					"subclassFeature": "Ancestral Ward Huge|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|18"
+				},
+				{
+					"type": "refSubclassFeature",
+					"subclassFeature": "Ancestral Ray Huge|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|18"
+				},
+				{
+					"type": "refSubclassFeature",
+					"subclassFeature": "Ancestral Shielding Huge|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|18"
+				},
+				{
+					"type": "refSubclassFeature",
+					"subclassFeature": "Bursting Strike Huge|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|18"
+				},
+				{
+					"type": "refSubclassFeature",
+					"subclassFeature": "Ancestral Surge Huge|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|18"
+				},
+				{
+					"type": "refSubclassFeature",
+					"subclassFeature": "Ancestral Marking Huge|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|18"
+				},
+				{
+					"type": "refSubclassFeature",
+					"subclassFeature": "Dragon's Breath Huge|Dragon Rider|DR-Altarion|Ancestral Magic|DR-Altarion|18"
+				}
+			]
+		},
+		{
+			"name": "Ancestral Ward Huge",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 18,
+			"header": 2,
+			"entries": [
+				"Instead of making an Attack roll, you coat yourself with Ancestral Energy. You gain temporary hit points equal to {@dice 6d6} plus half your Dragon Ancestry Ability Score modifier rounded up (minimum bonus of +1) for 10 minutes. For the duration, when you hit a creature with your Ancestral weapon, they have to make a Wisdom saving throw against your spell save DC. On a failed save, the creature has disadvantage on all attack rolls made against any creature other than you or your dragon until the end of your next turn, as you attract them through your Ancestral power. This ability ends early if you drop to 0 temporary hit points. The amount of temporary hit points gained from this Ancestral Attack increases as your dragon grows in size."
+			]
+		},
+		{
+			"name": "Ancestral Ray Huge",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 18,
+			"header": 2,
+			"entries": [
+				"Instead of making an Attack roll, you expel a ray of Ancestral energy from your weapon towards a creature within 90 feet of you. The creature must succeed on a Dexterity saving throw against your spell save DC or take {@dice 8d6} damage of your Dragon Ancestry Damage Type on a failed save, or half as much damage on a successful one. A creature damaged this way gets marked with lingering Ancestral magic. Your dragon has advantage on their next Attack roll against the target until the end of their next turn."
+			]
+		},
+		{
+			"name": "Ancestral Shielding Huge",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 18,
+			"header": 2,
+			"entries": [
+				"Instead of making an Attack roll, you channel your Ancestral Weapon’s energy around a willing creature you can see within 30 feet of you, for protection. They gain a bonus to their AC equal to half your Dragon Ancestry Ability Score modifier rounded up (minimum bonus of +1) until the start of your next turn or until a creature hits them with an attack. If a creature hits them with an attack, before the start of your next turn, the protected creature gains temporary hit points equal to {@dice 6d6} plus half your Dragon Ancestry Ability Score modifier rounded up (minimum bonus of +1) for 10 minutes. The temporary hit points are applied before the creature receives the damage. The amount of temporary hit points gained from this Ancestral Attack increases as your dragon grows in size."
+			]
+		},
+		{
+			"name": "Bursting Strike Huge",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 18,
+			"header": 2,
+			"entries": [
+				"Before making your attack, you can use this Ancestral Attack to teleport up to half your Movement speed to an unoccupied space within 5 feet of a creature you can see and make an Ancestral Weapon attack against that creature. Whether you hit or miss, the target must make a Dexterity saving throw, as Ancestral energies erupt from where you landed. The creature takes {@dice 6d6} damage of your Dragon Ancestry Damage Type on a failed save or half as much damage on a successful one."
+			]
+		},
+		{
+			"name": "Ancestral Surge Huge",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 18,
+			"header": 2,
+			"entries": [
+				"Instead of making an Attack roll, you channel your dragon’s ancestral energy through your Ancestral Weapon and unleash a 15 feet wide and 60 feet long line of concentrated Ancestral energy. Each creature in that line must make a Dexterity saving throw against your spell save DC. A creature takes {@dice 8d6} damage of your Dragon Ancestry Damage Type on a failed save, or half as much damage on a successful one."
+			]
+		},
+		{
+			"name": "Ancestral Marking Huge",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 18,
+			"header": 2,
+			"entries": [
+				"Instead of making an attack, you can channel a wave of Ancestral energy that emanates from you and your dragon. A number of creatures of your choice up to your Dragon Ancestry Ability Score modifier, within 60 feet of either you or your dragon, must make a Wisdom saving throw against your spell save DC. On a failed save, a creature is marked for 1 minute. A creature marked by your Ancestral energies has disadvantage on all attack rolls made against any creature other than you or your dragon, as you influence their actions through your Ancestral power. At the end of each of their turns, a marked creature can make another Wisdom saving throw. On a success, the effect ends on them."
+			]
+		},
+		{
+			"name": "Dragon's Breath Huge",
+			"source": "DR-Altarion",
+			"page": 74,
+			"className": "Dragon Rider",
+			"classSource": "DR-Altarion",
+			"subclassShortName": "Ancestral Magic",
+			"subclassSource": "DR-Altarion",
+			"level": 18,
+			"header": 2,
+			"entries": [
+				"Upon reaching 18th level, as an action on your turn, you can channel the destructive energy of your dragon’s breath weapon and exhale it forward. Each creature in a 90 foot-cone in front of you takes {@dice 8d10} damage of your Dragon Ancestry Damage Type on a failed save, or half as much damage on a successful one. (Your Dragon's breath save DC = 8 + your Constitution modifier + Proficiency Bonus.)",
+				"You can use this feature a number of times equal to your Constitution modifier and regain all uses when you finish a long rest."
+			]
+		}
+	]
+}

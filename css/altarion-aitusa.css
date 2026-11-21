@@ -1,0 +1,3437 @@
+/* Estilização para o módulo Altarion & Aitusa */
+
+.altarion-aitusa-class-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0;
+  padding: 4px 8px;
+  background: rgba(20, 25, 40, 0.6);
+  border: 1px solid rgba(180, 140, 60, 0.4);
+  border-radius: 6px;
+  align-items: center;
+}
+
+.altarion-aitusa-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  min-height: 22px;
+  max-height: 22px;
+  padding: 0 8px;
+  box-sizing: border-box;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: bold;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.altarion-aitusa-badge.primary {
+  background: linear-gradient(135deg, #1d4ed8, #1e3a8a);
+  color: #eff6ff;
+  border: 1px solid #3b82f6;
+}
+
+.altarion-aitusa-badge.secondary {
+  background: linear-gradient(135deg, #6b21a8, #3b0764);
+  color: #f3e8ff;
+  border: 1px solid #a855f7;
+}
+
+.altarion-aitusa-badge.companion {
+  background: linear-gradient(135deg, #b45309, #78350f);
+  color: #fef3c7;
+  border: 1px solid #f59e0b;
+}
+
+.altarion-aitusa-badge.resource {
+  background: linear-gradient(135deg, #0f766e, #115e59);
+  color: #ccfbf1;
+  border: 1px solid #14b8a6;
+  gap: 5px;
+}
+
+.altarion-aitusa-badge.ward-active {
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  color: #e0f2fe;
+  border: 1px solid #38bdf8;
+}
+
+.altarion-aitusa-badge.arcane-ward {
+  background: linear-gradient(135deg, #0e7490, #1e3a8a);
+  color: #e0f2fe;
+  border: 1px solid #38bdf8;
+  gap: 5px;
+}
+
+.altarion-aitusa-badge.arcane-ward.is-dormant {
+  opacity: 0.82;
+  border-style: dashed;
+}
+
+.altarion-ward-mini-bar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 56px;
+  height: 15px;
+  padding: 0 5px;
+  border-radius: 3px;
+  background: rgba(15, 23, 42, 0.72);
+  border: 1px solid rgba(56, 189, 248, 0.55);
+  overflow: hidden;
+}
+
+.altarion-ward-mini-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, #0284c7, #38bdf8);
+  transition: width 0.25s ease;
+  pointer-events: none;
+}
+
+.altarion-ward-mini-text {
+  position: relative;
+  z-index: 1;
+  font-size: 10px;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+}
+
+.altarion-aitusa-badge.arcane-armor-active {
+  background: linear-gradient(135deg, #7e22ce, #4c1d95);
+  color: #f3e8ff;
+  border: 1px solid #c084fc;
+}
+
+.altarion-aitusa-badge.kyrion-essence {
+  background: linear-gradient(135deg, #581c87, #2e1065);
+  color: #f3e8ff;
+  border: 1px solid #a855f7;
+  gap: 5px;
+}
+
+.altarion-aitusa-badge.kyrion-storage {
+  background: linear-gradient(135deg, #312e81, #0f172a);
+  color: #e0e7ff;
+  border: 1px solid #818cf8;
+  gap: 5px;
+}
+
+.altarion-res-step,
+.altarion-aitusa-badge .altarion-res-step {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 14px !important;
+  height: 14px !important;
+  min-width: 14px !important;
+  min-height: 14px !important;
+  max-height: 14px !important;
+  padding: 0 !important;
+  margin: 0 1px !important;
+  box-sizing: border-box !important;
+  border-radius: 3px !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  background: rgba(0, 0, 0, 0.25) !important;
+  color: #ffffff !important;
+  font-size: 11px !important;
+  font-weight: bold !important;
+  line-height: 1 !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  box-shadow: none !important;
+}
+
+.altarion-res-step:hover,
+.altarion-aitusa-badge .altarion-res-step:hover {
+  background: rgba(255, 255, 255, 0.25) !important;
+}
+
+.altarion-aitusa-sync-btn {
+  margin-left: auto;
+  background: linear-gradient(135deg, #059669, #047857);
+  color: white;
+  border: none;
+  padding: 3px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  transition: all 0.2s ease;
+}
+
+.altarion-aitusa-sync-btn:hover {
+  background: linear-gradient(135deg, #10b981, #059669);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);
+}
+
+/* Tag no chat para Ancestral Ward ao atacar com Ancestral Weapon */
+.altarion-aitusa-ward-chat-tag {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.08);
+  border: 1px solid #0284c7;
+  border-left: 4px solid #0284c7;
+  font-size: 12px;
+}
+
+.altarion-aitusa-ward-chat-tag .altarion-ward-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: bold;
+  color: #0369a1;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.4px;
+}
+
+.altarion-aitusa-ward-chat-tag .altarion-ward-body {
+  margin-bottom: 6px;
+  line-height: 1.35;
+}
+
+.altarion-aitusa-ward-save-btn,
+.altarion-aitusa-tether-heal-btn {
+  width: 100%;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #0284c7;
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.altarion-aitusa-ward-save-btn:hover,
+.altarion-aitusa-tether-heal-btn:hover {
+  background: linear-gradient(135deg, #0ea5e9, #0284c7);
+}
+
+/* Arcane Ward & Arcane Armor Chat Cards */
+.altarion-arcane-ward-chat-card {
+  border-color: #0284c7;
+  border-left-color: #38bdf8;
+}
+
+.altarion-chat-ward-meter {
+  position: relative;
+  height: 18px;
+  margin-top: 6px;
+  border-radius: 4px;
+  background: rgba(15, 23, 42, 0.82);
+  border: 1px solid rgba(56, 189, 248, 0.6);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.altarion-chat-ward-meter-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, #0369a1, #38bdf8);
+  transition: width 0.25s ease;
+}
+
+.altarion-chat-ward-meter-label {
+  position: relative;
+  z-index: 1;
+  font-size: 11px;
+  font-weight: bold;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+}
+
+.altarion-arcane-armor-chat-card {
+  border-color: #9333ea;
+  border-left-color: #a855f7;
+}
+
+.altarion-arcane-armor-chat-card .altarion-ward-header {
+  color: #7e22ce;
+}
+
+.altarion-arcane-armor-btn-row {
+  display: flex;
+  gap: 6px;
+}
+
+.altarion-arcane-armor-apply-btn,
+.altarion-arcane-armor-undo-btn,
+.altarion-shielding-reapply-btn,
+.altarion-shielding-undo-btn,
+.coria-min-card-btn-primary,
+.coria-min-card-btn-secondary {
+  width: 100%;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.altarion-arcane-armor-apply-btn,
+.altarion-shielding-reapply-btn,
+.coria-min-card-btn-primary {
+  border: 1px solid #7e22ce;
+  background: linear-gradient(135deg, #9333ea, #6b21a8);
+  color: #ffffff;
+}
+
+.altarion-arcane-armor-apply-btn:hover:not(:disabled),
+.altarion-shielding-reapply-btn:hover:not(:disabled),
+.coria-min-card-btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #a855f7, #7e22ce);
+}
+
+.altarion-arcane-armor-undo-btn,
+.altarion-shielding-undo-btn,
+.coria-min-card-btn-secondary {
+  border: 1px solid #475569;
+  background: linear-gradient(135deg, #475569, #334155);
+  color: #f8fafc;
+}
+
+.altarion-arcane-armor-undo-btn:hover:not(:disabled),
+.altarion-shielding-undo-btn:hover:not(:disabled),
+.coria-min-card-btn-secondary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #64748b, #475569);
+}
+
+.altarion-arcane-armor-apply-btn:disabled,
+.altarion-arcane-armor-undo-btn:disabled,
+.altarion-shielding-reapply-btn:disabled,
+.altarion-shielding-undo-btn:disabled,
+.coria-min-card-btn-primary:disabled,
+.coria-min-card-btn-secondary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Textos coloridos com alto contraste e contorno escuro (outline) nos cards minimalistas e banners de rolagem */
+.coria-hl-success,
+.coria-hl-failure,
+.coria-hl-info,
+.coria-hl-gold,
+.altarion-aitusa-ward-chat-tag [style*="color"],
+.coria-roll-mod-banner [style*="color"] {
+  font-weight: 800 !important;
+  text-shadow:
+    -1px -1px 0 #070b14,
+    1px -1px 0 #070b14,
+    -1px 1px 0 #070b14,
+    1px 1px 0 #070b14,
+    0 1px 3px rgba(0, 0, 0, 0.9) !important;
+}
+
+.coria-hl-success {
+  color: #4ade80 !important;
+}
+
+.coria-hl-failure {
+  color: #f87171 !important;
+}
+
+.coria-hl-info {
+  color: #38bdf8 !important;
+}
+
+.coria-hl-gold {
+  color: #facc15 !important;
+}
+
+.coria-mod-orig-line {
+  font-size: 11.5px;
+  color: #e2e8f0 !important;
+  font-weight: 700;
+  margin-bottom: 3px;
+  text-shadow:
+    -1px -1px 0 #050811,
+    1px -1px 0 #050811,
+    -1px 1px 0 #050811,
+    1px 1px 0 #050811 !important;
+}
+
+.coria-mod-step-line {
+  font-size: 11.5px;
+  color: #f8fafc !important;
+  font-weight: 700;
+  line-height: 1.35;
+  text-shadow:
+    -1px -1px 0 #050811,
+    1px -1px 0 #050811,
+    -1px 1px 0 #050811,
+    1px 1px 0 #050811 !important;
+}
+
+.coria-creature-pick-row:hover {
+  border-color: #fbbf24 !important;
+  background: rgba(251, 191, 36, 0.18) !important;
+}
+
+/* Destaque para itens de classe secundária e ancestrais na lista de inventário/features */
+.dnd5e .items-list .item[data-item-secondary="true"] {
+  border-left: 3px solid #a855f7 !important;
+  background: rgba(168, 85, 247, 0.05);
+}
+
+.dnd5e .items-list .item[data-item-ancestral="true"] {
+  border-left: 3px solid #3b82f6 !important;
+  background: rgba(59, 130, 246, 0.05);
+}
+
+/* =========================================================
+   SISTEMA DA PRAGA ARCANA — CABEÇALHO DAS FICHAS & CSS CORIA
+   ========================================================= */
+
+/* 2ª Linha do Cabeçalho nas Fichas (Altarion, Flinn, Parva, Kyrion) */
+.altarion-plague-header-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 6px 0;
+  padding: 4px 8px;
+  background: linear-gradient(135deg, rgba(35, 10, 16, 0.78), rgba(18, 12, 28, 0.82));
+  border: 1px solid rgba(255, 77, 77, 0.45);
+  border-radius: 6px;
+  align-items: center;
+}
+
+.altarion-plague-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  height: 22px !important;
+  min-height: 22px !important;
+  max-height: 22px !important;
+  padding: 0 8px !important;
+  box-sizing: border-box !important;
+  border-radius: 4px !important;
+  font-size: 11px !important;
+  font-weight: bold !important;
+  line-height: 1 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.45px !important;
+  white-space: nowrap !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35) !important;
+}
+
+.altarion-plague-badge.stage {
+  background: linear-gradient(135deg, #450a0a, #260505) !important;
+  color: #fecaca !important;
+  border: 1px solid #ef4444 !important;
+}
+
+.altarion-plague-badge.stage.is-infected {
+  background: linear-gradient(135deg, #7f1d1d, #450a0a) !important;
+  color: #ffffff !important;
+  border: 1px solid #f87171 !important;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.45) !important;
+}
+
+.altarion-plague-badge.clickable {
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.altarion-plague-badge.clickable:hover {
+  filter: brightness(1.22) !important;
+  transform: translateY(-1px) scale(1.03) !important;
+  box-shadow: 0 2px 10px rgba(255, 77, 77, 0.65) !important;
+}
+
+.altarion-plague-badge.dc {
+  background: linear-gradient(135deg, #3f1d38, #1f1024) !important;
+  color: #fbcfe8 !important;
+  border: 1px solid #f472b6 !important;
+}
+
+.altarion-plague-badge.stored {
+  background: linear-gradient(135deg, #0c2d48, #07192b) !important;
+  color: #bae6fd !important;
+  border: 1px solid #38bdf8 !important;
+}
+
+.altarion-plague-badge.pact-blocked {
+  background: linear-gradient(135deg, #4a044e, #2e1065) !important;
+  color: #f5d0fe !important;
+  border: 1px solid #e879f9 !important;
+}
+
+.altarion-plague-badge.is-dormant {
+  background: linear-gradient(135deg, #1e293b, #0f172a) !important;
+  color: #cbd5e1 !important;
+  border: 1px dashed #94a3b8 !important;
+}
+
+.altarion-plague-action-btn {
+  margin-left: auto !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  height: 22px !important;
+  min-height: 22px !important;
+  max-height: 22px !important;
+  padding: 0 10px !important;
+  box-sizing: border-box !important;
+  border-radius: 4px !important;
+  font-size: 11px !important;
+  font-weight: bold !important;
+  line-height: 1 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.45px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  white-space: nowrap !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35) !important;
+}
+
+.altarion-plague-action-btn.absorb {
+  background: linear-gradient(135deg, #0284c7, #1e3a8a) !important;
+  color: #eff6ff !important;
+  border: 1px solid #60a5fa !important;
+}
+
+.altarion-plague-action-btn.absorb:hover {
+  background: linear-gradient(135deg, #0ea5e9, #1d4ed8) !important;
+  filter: brightness(1.15) !important;
+  transform: translateY(-1px) scale(1.03) !important;
+  box-shadow: 0 2px 10px rgba(56, 189, 248, 0.55) !important;
+}
+
+.altarion-plague-action-btn.feed-hunger {
+  background: linear-gradient(135deg, #6b21a8, #3b0764) !important;
+  color: #f3e8ff !important;
+  border: 1px solid #c084fc !important;
+}
+
+.altarion-plague-action-btn.feed-hunger:hover {
+  background: linear-gradient(135deg, #7e22ce, #4c1d95) !important;
+  filter: brightness(1.15) !important;
+  transform: translateY(-1px) scale(1.03) !important;
+  box-shadow: 0 2px 10px rgba(168, 85, 247, 0.6) !important;
+}
+
+/* Dialogs Gerais Coria (identidade visual do Mestre) */
+.coria-dialog {
+  background: rgba(15, 20, 30, 0.96) !important;
+  border: 1px solid rgba(100, 150, 255, 0.3) !important;
+  backdrop-filter: blur(10px);
+  color: #eef !important;
+  font-family: "Inter", sans-serif;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.85) !important;
+  border-radius: 12px !important;
+}
+
+.coria-dialog .window-header {
+  flex: 0 0 42px !important;
+  min-height: 42px !important;
+  height: auto !important;
+  line-height: 1.25 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  border-bottom: 1px solid rgba(100, 150, 255, 0.2);
+  background: transparent !important;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.35rem;
+  padding: 6px 14px !important;
+  color: #eef !important;
+  overflow: visible !important;
+}
+
+.coria-dialog .window-header .window-title {
+  line-height: 1.25 !important;
+  margin: 0 !important;
+  padding: 2px 0 !important;
+}
+
+.coria-dialog .window-header .header-button,
+.coria-dialog .window-header a.header-button.close {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  line-height: 1 !important;
+  padding: 0 6px !important;
+  margin: 0 0 0 8px !important;
+  border-radius: 5px;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.coria-dialog .window-header .header-button:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.coria-dialog .window-content {
+  background: transparent !important;
+  color: #eef !important;
+  padding: 15px;
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+.coria-dialog form.dialog-form {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-height: calc(84vh - 60px);
+  overflow: hidden !important;
+}
+
+.coria-dialog .dialog-content {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding-right: 4px;
+}
+
+.coria-dialog .dialog-buttons {
+  flex: 0 0 auto !important;
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+}
+
+.coria-dialog .dialog-buttons button {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: white;
+  transition: all 0.2s ease;
+  border-radius: 6px;
+  padding: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.coria-dialog .dialog-buttons button:hover:not(:disabled) {
+  background: rgba(100, 150, 255, 0.2);
+  border-color: rgba(100, 150, 255, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
+/* Caixas Temáticas Coria */
+.coria-plague-box {
+  background: linear-gradient(135deg, rgba(43, 10, 10, 0.85), rgba(26, 5, 5, 0.94));
+  border: 1px solid #ff3333;
+  box-shadow: inset 0 0 20px rgba(255, 0, 0, 0.12);
+  padding: 18px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.coria-plague-box h3 {
+  color: #ff4d4d;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.65rem;
+  margin: 0 0 10px 0;
+  text-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+  border-bottom: 1px solid rgba(255, 0, 0, 0.2);
+  padding-bottom: 8px;
+}
+
+.coria-plague-box .stats,
+.coria-plague-stats-row {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.coria-plague-val {
+  display: flex;
+  flex-direction: column;
+  font-size: 1.55rem;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  color: white;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  padding: 8px 16px;
+  min-width: 80px;
+  text-align: center;
+}
+
+.coria-plague-val span {
+  font-size: 0.72rem;
+  font-family: "Inter", sans-serif;
+  color: #ff9999;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 4px;
+}
+
+.coria-arcane-box {
+  background: linear-gradient(135deg, rgba(10, 27, 43, 0.85), rgba(5, 16, 26, 0.94));
+  border: 1px solid #3399ff;
+  box-shadow: inset 0 0 20px rgba(0, 150, 255, 0.12);
+  padding: 18px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.coria-arcane-box h3 {
+  color: #66b3ff;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.65rem;
+  margin: 0 0 10px 0;
+  border-bottom: 1px solid rgba(0, 150, 255, 0.22);
+  padding-bottom: 8px;
+}
+
+.coria-shadow-box {
+  background: linear-gradient(135deg, rgba(27, 10, 43, 0.85), rgba(13, 5, 26, 0.94));
+  border: 1px solid #9933ff;
+  box-shadow: inset 0 0 20px rgba(150, 0, 255, 0.12);
+  padding: 18px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.coria-shadow-box h3 {
+  color: #b366ff;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.65rem;
+  margin: 0 0 10px 0;
+  border-bottom: 1px solid rgba(150, 0, 255, 0.22);
+  padding-bottom: 8px;
+}
+
+.coria-pact-box {
+  background: linear-gradient(135deg, rgba(20, 5, 26, 0.85), rgba(10, 0, 15, 0.94));
+  border: 1px solid #ff33cc;
+  box-shadow: inset 0 0 20px rgba(255, 51, 204, 0.12);
+  padding: 18px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.coria-pact-box h3 {
+  color: #ff66d9;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.65rem;
+  margin: 0 0 10px 0;
+  border-bottom: 1px solid rgba(255, 51, 204, 0.22);
+  padding-bottom: 8px;
+}
+
+/* Botões Temáticos Coria */
+.btn-plague {
+  border-color: #ff3333 !important;
+  color: #ff9999 !important;
+}
+.btn-plague:hover:not(:disabled) {
+  background: rgba(255, 0, 0, 0.15) !important;
+  box-shadow: 0 0 15px rgba(255, 0, 0, 0.4);
+}
+
+.btn-arcane {
+  border-color: #3399ff !important;
+  color: #99ccff !important;
+}
+.btn-arcane:hover:not(:disabled) {
+  background: rgba(0, 150, 255, 0.15) !important;
+  box-shadow: 0 0 15px rgba(0, 150, 255, 0.4);
+}
+
+.btn-shadow {
+  border-color: #9933ff !important;
+  color: #cc99ff !important;
+}
+.btn-shadow:hover:not(:disabled) {
+  background: rgba(150, 0, 255, 0.15) !important;
+  box-shadow: 0 0 15px rgba(150, 0, 255, 0.4);
+}
+
+.btn-pact {
+  border-color: #ff33cc !important;
+  color: #ff99eb !important;
+}
+.btn-pact:hover:not(:disabled) {
+  background: rgba(255, 51, 204, 0.15) !important;
+  box-shadow: 0 0 15px rgba(255, 51, 204, 0.4);
+}
+
+/* Checkboxes Customizados Coria */
+.coria-checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: all 0.2s ease;
+}
+
+.coria-checkbox-wrapper:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.coria-checkbox-wrapper input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #ff4d4d;
+  cursor: pointer;
+}
+
+.coria-checkbox-wrapper span {
+  font-size: 0.9rem;
+  color: #eee;
+}
+
+/* Cartões de Chat Coria */
+.coria-chat-card {
+  background: rgba(15, 20, 30, 0.95);
+  border-radius: 8px;
+  overflow: hidden;
+  font-family: "Inter", sans-serif;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.coria-chat-header {
+  padding: 10px 15px;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.25rem;
+  font-weight: bold;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.coria-chat-body {
+  padding: 14px;
+  text-align: center;
+  color: #ddd;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.coria-chat-body strong {
+  color: white;
+}
+
+.coria-chat-footer {
+  padding: 8px 14px;
+  background: rgba(0, 0, 0, 0.35);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.8rem;
+  color: #bbb;
+  text-align: left;
+}
+
+.chat-success .coria-chat-header {
+  background: linear-gradient(90deg, transparent, rgba(50, 200, 50, 0.3), transparent);
+  color: #55ff55;
+  border-bottom-color: rgba(50, 200, 50, 0.5);
+}
+
+.chat-failure .coria-chat-header {
+  background: linear-gradient(90deg, transparent, rgba(200, 50, 50, 0.3), transparent);
+  color: #ff5555;
+  border-bottom-color: rgba(200, 50, 50, 0.5);
+}
+
+.chat-arcane .coria-chat-header {
+  background: linear-gradient(90deg, transparent, rgba(50, 150, 255, 0.3), transparent);
+  color: #55aaff;
+  border-bottom-color: rgba(50, 150, 255, 0.5);
+}
+
+.chat-shadow .coria-chat-header {
+  background: linear-gradient(90deg, transparent, rgba(150, 50, 255, 0.3), transparent);
+  color: #aa55ff;
+  border-bottom-color: rgba(150, 50, 255, 0.5);
+}
+
+.coria-kyrion-wis-save-btn {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: rgba(27, 10, 43, 0.9);
+  border: 1px solid #9933ff;
+  color: #e9d5ff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.coria-kyrion-wis-save-btn:hover {
+  background: rgba(153, 51, 255, 0.25);
+  box-shadow: 0 0 12px rgba(153, 51, 255, 0.5);
+}
+
+/* Kyrion: Janela "Alimentar a Fome" */
+.coria-feed-plus-btn {
+  width: 64px;
+  height: 64px;
+  margin: 6px auto 12px auto;
+  border-radius: 12px;
+  background: rgba(153, 51, 255, 0.16);
+  border: 2px dashed #b366ff;
+  color: #e9d5ff;
+  font-size: 2.2rem;
+  font-weight: bold;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.coria-feed-plus-btn:hover {
+  background: rgba(153, 51, 255, 0.32);
+  border-style: solid;
+  transform: scale(1.06);
+  box-shadow: 0 0 16px rgba(153, 51, 255, 0.55);
+}
+
+.coria-feed-item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 210px;
+  overflow-y: auto;
+  margin: 8px 0 12px 0;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(153, 51, 255, 0.35);
+  border-radius: 8px;
+  text-align: left;
+}
+
+.coria-feed-empty {
+  color: #cbd5e1;
+  font-size: 0.88rem;
+  text-align: center;
+  margin: 8px 0;
+}
+
+.coria-feed-item-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.coria-feed-item-option:hover,
+.coria-feed-item-option.is-selected {
+  background: rgba(153, 51, 255, 0.22);
+  border-color: #b366ff;
+}
+
+.coria-feed-item-option img {
+  width: 34px;
+  height: 34px;
+  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  object-fit: cover;
+}
+
+.coria-feed-item-meta {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  font-size: 0.86rem;
+}
+
+.coria-feed-item-badge {
+  font-weight: bold;
+  font-size: 0.82rem;
+  color: #e9d5ff;
+  background: rgba(0, 0, 0, 0.45);
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(179, 102, 255, 0.4);
+}
+
+.coria-feed-selected-panel {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(179, 102, 255, 0.5);
+}
+
+.coria-feed-selected-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.coria-feed-selected-item img {
+  width: 42px;
+  height: 42px;
+  border-radius: 6px;
+  border: 1px solid #c084fc;
+}
+
+.coria-feed-selected-name {
+  font-size: 1.05rem;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.coria-feed-selected-effect {
+  font-size: 0.88rem;
+  line-height: 1.4;
+  color: #e2e8f0;
+  margin: 0;
+}
+
+/* Modal de Informações Gerais + Específicas da Praga */
+.coria-plague-info-modal p {
+  margin: 0 0 8px 0;
+  line-height: 1.45;
+  font-size: 0.9rem;
+}
+
+.coria-info-section-title {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.35rem;
+  color: #ff8080;
+  margin: 14px 0 8px 0;
+  border-bottom: 1px solid rgba(255, 80, 80, 0.3);
+  padding-bottom: 4px;
+}
+
+.coria-info-stages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.coria-info-stage-card {
+  background: rgba(0, 0, 0, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.coria-info-stage-card.is-active {
+  border-color: rgba(239, 68, 68, 0.55);
+  background: rgba(60, 12, 12, 0.48);
+}
+
+.coria-info-stage-card.is-current {
+  border-color: #ff4d4d;
+  box-shadow: 0 0 12px rgba(255, 77, 77, 0.28);
+}
+
+.coria-info-stage-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: bold;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.coria-stage-pill {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.coria-stage-pill.active {
+  background: rgba(239, 68, 68, 0.25);
+  border: 1px solid #f87171;
+  color: #fecaca;
+}
+
+.coria-stage-pill.current {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.coria-info-stage-flavor {
+  font-style: italic;
+  color: #cbd5e1;
+  font-size: 0.84rem !important;
+}
+
+.coria-info-stage-card ul {
+  margin: 4px 0 0 18px;
+  padding: 0;
+  font-size: 0.86rem;
+  color: #f1f5f9;
+}
+
+/* Altarion: "Dispersão Contagiosa" na Janela de Rolagem de Dano */
+.altarion-contagious-dispersion-box {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(56, 189, 248, 0.55);
+  background: linear-gradient(135deg, rgba(10, 27, 43, 0.32), rgba(43, 10, 20, 0.28));
+}
+
+.altarion-contagious-dispersion-box legend {
+  font-weight: bold;
+  font-size: 12px;
+  padding: 0 6px;
+  color: #38bdf8;
+}
+
+.coria-dispersion-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.coria-dispersion-label.is-disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+}
+
+.coria-dispersion-label input[type="checkbox"] {
+  margin-top: 2px;
+  width: 16px;
+  height: 16px;
+  accent-color: #38bdf8;
+}
+
+.coria-dispersion-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+}
+
+.coria-dispersion-text span {
+  font-size: 11px;
+  opacity: 0.85;
+}
+
+/* Botão Flutuante Global do Mestre (#coria-plague-floating-btn) & Painel GM */
+#coria-plague-floating-btn {
+  position: fixed;
+  bottom: 330px;
+  left: 15px;
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, rgba(43, 10, 10, 0.92), rgba(26, 5, 5, 1));
+  border: 2px solid #ff3333;
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2147483640;
+  transition: all 0.2s ease;
+}
+
+#coria-plague-floating-btn i {
+  color: #ff6666;
+  font-size: 26px;
+}
+
+#coria-plague-floating-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 25px rgba(255, 50, 50, 1);
+}
+
+/* Botão Flutuante Global do Mestre (#coria-echoes-floating-btn) — Essence Harvest / Arcane Echoes */
+#coria-echoes-floating-btn {
+  position: fixed;
+  bottom: 390px;
+  left: 15px;
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, rgba(30, 16, 66, 0.94), rgba(15, 10, 38, 1));
+  border: 2px solid #a78bfa;
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6), 0 0 10px rgba(139, 92, 246, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2147483640;
+  transition: all 0.2s ease;
+}
+
+#coria-echoes-floating-btn i {
+  color: #ddd6fe;
+  font-size: 24px;
+}
+
+#coria-echoes-floating-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 24px rgba(167, 139, 250, 0.95);
+}
+
+.coria-gm-actor-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.coria-gm-actor-row {
+  background: rgba(0, 0, 0, 0.52);
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 51, 51, 0.32);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.coria-gm-actor-ident {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.coria-gm-actor-ident img {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid #ff9999;
+  object-fit: cover;
+}
+
+.coria-gm-actor-ident div {
+  display: flex;
+  flex-direction: column;
+}
+
+.coria-gm-actor-ident strong {
+  color: #ffffff;
+  font-size: 0.95rem;
+}
+
+.coria-gm-actor-ident small {
+  color: #fca5a5;
+  font-size: 0.75rem;
+}
+
+.coria-gm-actor-inputs {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.coria-gm-actor-inputs > div {
+  text-align: center;
+}
+
+.coria-gm-actor-inputs span {
+  display: block;
+  font-size: 0.68rem;
+  color: #ff9999;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.coria-gm-actor-inputs input[type="number"] {
+  width: 52px;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.85);
+  color: #ffffff;
+  border: 1px solid #ff3333;
+  border-radius: 4px;
+  padding: 3px;
+}
+
+.coria-gm-test-btn {
+  height: 28px;
+  width: 32px;
+  border-radius: 5px;
+  background: rgba(255, 51, 51, 0.15);
+  border: 1px solid #ff3333;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============================================================================
+ * FLINN: Intuitive Arcanum Header Badge & Wizard (Blue) vs Cleric (Yellow/Gold)
+ * ============================================================================ */
+
+.altarion-aitusa-badge.flinn-intuitive-dc {
+  background: linear-gradient(135deg, rgba(88, 28, 135, 0.78), rgba(190, 24, 93, 0.65));
+  border-color: #f472b6;
+  color: #fce7f3;
+  box-shadow: 0 0 8px rgba(244, 114, 182, 0.25);
+}
+
+.altarion-aitusa-badge.flinn-luck-points {
+  background: linear-gradient(135deg, rgba(30, 166, 28, 0.38), rgba(21, 128, 61, 0.28)), rgba(10, 14, 24, 0.88);
+  border: 1px solid #1EA61C;
+  color: #bbf7d0;
+  box-shadow: 0 0 8px rgba(30, 166, 28, 0.32);
+}
+
+.altarion-aitusa-badge.flinn-luck-points i,
+.altarion-aitusa-badge.flinn-luck-points strong {
+  color: #dcfce7;
+}
+
+.altarion-aitusa-badge.parva-tentacle-uses {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.36), rgba(3, 105, 161, 0.28)), rgba(10, 14, 24, 0.88);
+  border: 1px solid #0ea5e9;
+  color: #bae6fd;
+  box-shadow: 0 0 8px rgba(14, 165, 233, 0.30);
+}
+
+.altarion-aitusa-badge.parva-tentacle-uses i,
+.altarion-aitusa-badge.parva-tentacle-uses strong {
+  color: #e0f2fe;
+}
+
+.altarion-aitusa-badge.flinn-prep-wizard {
+  background: linear-gradient(135deg, rgba(12, 74, 110, 0.85), rgba(30, 58, 138, 0.78));
+  border-color: #38bdf8;
+  color: #e0f2fe;
+  box-shadow: 0 0 6px rgba(56, 189, 248, 0.25);
+}
+
+.altarion-aitusa-badge.flinn-prep-cleric {
+  background: linear-gradient(135deg, rgba(113, 63, 18, 0.88), rgba(161, 98, 7, 0.78));
+  border-color: #facc15;
+  color: #fef9c3;
+  box-shadow: 0 0 6px rgba(250, 204, 21, 0.25);
+}
+
+/* ----------------------------------------------------------------------------
+ * Flinn Spellbook Row Color-Coding: WIZARD (Primary Class — Default Arcane Blue, Dynamic via --coria-prim-*)
+ * Targets both outer [data-item-id] and Tidy5e Quadrone inner .tidy-table-row
+ * ---------------------------------------------------------------------------- */
+.tidy-table-row[data-flinn-spell-class="wizard"],
+.tidy5e-sheet.quadrone .tidy-table-row[data-flinn-spell-class="wizard"],
+.tidy5e-sheet.quadrone .tidy-table-row.diminished[data-flinn-spell-class="wizard"],
+[data-flinn-spell-class="wizard"]:not(.tidy-table-row-container) {
+  border-left: 3px solid var(--coria-prim-c1, rgba(56, 189, 248, 0.6)) !important;
+  background: var(--coria-prim-row-bg-unprep, linear-gradient(90deg, rgba(14, 165, 233, 0.14) 0%, rgba(14, 165, 233, 0.04) 65%, transparent 100%)) !important;
+}
+
+/* Prepared / Always / Cantrip Wizard Spell — Overrides Tidy5e white .prepared gradient */
+.tidy-table-row[data-flinn-spell-class="wizard"][data-flinn-spell-prepared="true"],
+.tidy5e-sheet.quadrone .tidy-table-row.prepared[data-flinn-spell-class="wizard"],
+.tidy5e-sheet.quadrone .tidy-table-row.always[data-flinn-spell-class="wizard"],
+.tidy5e-sheet.quadrone .tidy-table-row[data-flinn-spell-class="wizard"][data-flinn-spell-prepared="true"],
+[data-flinn-spell-class="wizard"][data-flinn-spell-prepared="true"]:not(.tidy-table-row-container) {
+  border-left: 4px solid var(--coria-prim-c1, #38bdf8) !important;
+  background: var(--coria-prim-row-bg, linear-gradient(90deg, rgba(14, 165, 233, 0.36) 0%, rgba(37, 99, 235, 0.20) 55%, rgba(14, 165, 233, 0.06) 100%)) !important;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.22) !important;
+}
+
+[data-flinn-spell-class="wizard"][data-flinn-spell-prepared="true"] .cell-name,
+[data-flinn-spell-class="wizard"][data-flinn-spell-prepared="true"] .item-name .title {
+  color: var(--coria-prim-text, #e0f2fe) !important;
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.65);
+}
+
+[data-flinn-context-class="wizard"] {
+  color: var(--coria-prim-text, #7dd3fc) !important;
+}
+
+/* Wizard Prepare Button / Icon (Unprepared vs Prepared) */
+[data-flinn-prep-btn="wizard"][data-flinn-prep-state="unprepared"],
+[data-flinn-prep-btn="wizard"][data-flinn-prep-state="unprepared"] i {
+  color: var(--coria-prim-text, rgba(125, 211, 252, 0.48)) !important;
+  opacity: 0.65;
+}
+
+[data-flinn-prep-btn="wizard"][data-flinn-prep-state="prepared"],
+[data-flinn-prep-btn="wizard"][data-flinn-prep-state="prepared"] i,
+[data-flinn-prep-btn="wizard"][data-flinn-prep-state="always"],
+[data-flinn-prep-btn="wizard"][data-flinn-prep-state="always"] i,
+[data-flinn-spell-class="wizard"][data-flinn-spell-prepared="true"] .item-control[data-action="prepare"],
+[data-flinn-spell-class="wizard"][data-flinn-spell-prepared="true"] [data-action="prepare"] i,
+[data-flinn-spell-class="wizard"][data-flinn-spell-prepared="true"] i.spell-row-icon {
+  color: var(--coria-prim-c1, #38bdf8) !important;
+  opacity: 1;
+  filter: drop-shadow(0 0 5px var(--coria-prim-c1, rgba(56, 189, 248, 0.85)));
+}
+
+/* ----------------------------------------------------------------------------
+ * Flinn Spellbook Row Color-Coding: CLERIC (Secondary Class — Default Divine Yellow/Gold, Dynamic via --coria-sec-*)
+ * Targets both outer [data-item-id] and Tidy5e Quadrone inner .tidy-table-row
+ * ---------------------------------------------------------------------------- */
+.tidy-table-row[data-flinn-spell-class="cleric"],
+.tidy5e-sheet.quadrone .tidy-table-row[data-flinn-spell-class="cleric"],
+.tidy5e-sheet.quadrone .tidy-table-row.diminished[data-flinn-spell-class="cleric"],
+[data-flinn-spell-class="cleric"]:not(.tidy-table-row-container) {
+  border-left: 3px solid var(--coria-sec-c1, rgba(250, 204, 21, 0.6)) !important;
+  background: var(--coria-sec-row-bg-unprep, linear-gradient(90deg, rgba(234, 179, 8, 0.14) 0%, rgba(234, 179, 8, 0.04) 65%, transparent 100%)) !important;
+}
+
+/* Prepared / Always / Domain Cleric Spell — Overrides Tidy5e white .prepared gradient */
+.tidy-table-row[data-flinn-spell-class="cleric"][data-flinn-spell-prepared="true"],
+.tidy5e-sheet.quadrone .tidy-table-row.prepared[data-flinn-spell-class="cleric"],
+.tidy5e-sheet.quadrone .tidy-table-row.always[data-flinn-spell-class="cleric"],
+.tidy5e-sheet.quadrone .tidy-table-row[data-flinn-spell-class="cleric"][data-flinn-spell-prepared="true"],
+[data-flinn-spell-class="cleric"][data-flinn-spell-prepared="true"]:not(.tidy-table-row-container) {
+  border-left: 4px solid var(--coria-sec-c1, #facc15) !important;
+  background: var(--coria-sec-row-bg, linear-gradient(90deg, rgba(234, 179, 8, 0.36) 0%, rgba(202, 138, 4, 0.20) 55%, rgba(234, 179, 8, 0.06) 100%)) !important;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.22) !important;
+}
+
+[data-flinn-spell-class="cleric"][data-flinn-spell-prepared="true"] .cell-name,
+[data-flinn-spell-class="cleric"][data-flinn-spell-prepared="true"] .item-name .title {
+  color: var(--coria-sec-text, #fef9c3) !important;
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.65);
+}
+
+[data-flinn-context-class="cleric"] {
+  color: var(--coria-sec-text, #fde047) !important;
+}
+
+/* Cleric Prepare Button / Icon (Unprepared vs Prepared / Domain) */
+[data-flinn-prep-btn="cleric"][data-flinn-prep-state="unprepared"],
+[data-flinn-prep-btn="cleric"][data-flinn-prep-state="unprepared"] i {
+  color: var(--coria-sec-text, rgba(253, 224, 71, 0.48)) !important;
+  opacity: 0.65;
+}
+
+[data-flinn-prep-btn="cleric"][data-flinn-prep-state="prepared"],
+[data-flinn-prep-btn="cleric"][data-flinn-prep-state="prepared"] i,
+[data-flinn-prep-btn="cleric"][data-flinn-prep-state="always"],
+[data-flinn-prep-btn="cleric"][data-flinn-prep-state="always"] i,
+[data-flinn-spell-class="cleric"][data-flinn-spell-prepared="true"] .item-control[data-action="prepare"],
+[data-flinn-spell-class="cleric"][data-flinn-spell-prepared="true"] [data-action="prepare"] i,
+[data-flinn-spell-class="cleric"][data-flinn-spell-prepared="true"] i.spell-row-icon {
+  color: var(--coria-sec-c1, #facc15) !important;
+  opacity: 1;
+  filter: drop-shadow(0 0 5px var(--coria-sec-c1, rgba(250, 204, 21, 0.85)));
+}
+
+/* ----------------------------------------------------------------------------
+ * Inline Class & Preparation Pill on Flinn's Spell Rows
+ * ---------------------------------------------------------------------------- */
+.flinn-spell-class-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 7px;
+  padding: 1px 7px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  line-height: 1.35;
+  vertical-align: middle;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.12s ease, filter 0.12s ease;
+}
+
+.flinn-spell-class-pill:hover {
+  transform: scale(1.05);
+  filter: brightness(1.15);
+}
+
+.flinn-spell-class-pill.is-wizard.is-unprepared {
+  background: var(--coria-prim-row-bg-unprep, rgba(12, 74, 110, 0.45)) !important;
+  border: 1px dashed var(--coria-prim-c1, rgba(56, 189, 248, 0.55)) !important;
+  color: var(--coria-prim-text, #7dd3fc) !important;
+}
+
+.flinn-spell-class-pill.is-wizard.is-prepared,
+.flinn-spell-class-pill.is-wizard.is-always {
+  background: var(--coria-prim-pill-bg, linear-gradient(135deg, rgba(2, 132, 199, 0.85), rgba(37, 99, 235, 0.85))) !important;
+  border: 1px solid var(--coria-prim-c1, #7dd3fc) !important;
+  border-right-color: var(--coria-prim-c2, #7dd3fc) !important;
+  color: var(--coria-prim-text, #ffffff) !important;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.45);
+}
+
+.flinn-spell-class-pill.is-cleric.is-unprepared {
+  background: var(--coria-sec-row-bg-unprep, rgba(113, 63, 18, 0.45)) !important;
+  border: 1px dashed var(--coria-sec-c1, rgba(250, 204, 21, 0.55)) !important;
+  color: var(--coria-sec-text, #fde047) !important;
+}
+
+.flinn-spell-class-pill.is-cleric.is-prepared,
+.flinn-spell-class-pill.is-cleric.is-always {
+  background: var(--coria-sec-pill-bg, linear-gradient(135deg, rgba(202, 138, 4, 0.9), rgba(161, 98, 7, 0.9))) !important;
+  border: 1px solid var(--coria-sec-c1, #fef08a) !important;
+  border-right-color: var(--coria-sec-c2, #fef08a) !important;
+  color: var(--coria-sec-text, #fffbeb) !important;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.45);
+}
+
+/* ----------------------------------------------------------------------------
+ * Bottom Spellbook Footer Cards across ALL 5 Characters (Primary vs Secondary Class Colors)
+ * ---------------------------------------------------------------------------- */
+.spellcasting-class-card[data-flinn-footer-card="wizard"],
+.spellcasting-class-card[data-coria-footer-tier="primary"] {
+  border-left: 4px solid var(--coria-prim-c1, #38bdf8) !important;
+  border-right: 2px solid var(--coria-prim-c2, #38bdf8) !important;
+  background: var(--coria-prim-footer-bg, linear-gradient(90deg, rgba(14, 165, 233, 0.22) 0%, rgba(15, 23, 42, 0.65) 100%)) !important;
+}
+
+.spellcasting-class-card[data-flinn-footer-card="wizard"] .class-name,
+.spellcasting-class-card[data-flinn-footer-card="wizard"] .preparations,
+.spellcasting-class-card[data-coria-footer-tier="primary"] .class-name,
+.spellcasting-class-card[data-coria-footer-tier="primary"] .preparations,
+.spellcasting-class-card[data-coria-footer-tier="primary"] strong {
+  color: var(--coria-prim-text, #bae6fd) !important;
+}
+
+.spellcasting-class-card[data-flinn-footer-card="cleric"],
+.spellcasting-class-card[data-coria-footer-tier="secondary"] {
+  border-left: 4px solid var(--coria-sec-c1, #facc15) !important;
+  border-right: 2px solid var(--coria-sec-c2, #facc15) !important;
+  background: var(--coria-sec-footer-bg, linear-gradient(90deg, rgba(234, 179, 8, 0.22) 0%, rgba(28, 25, 23, 0.65) 100%)) !important;
+}
+
+.spellcasting-class-card[data-flinn-footer-card="cleric"] .class-name,
+.spellcasting-class-card[data-flinn-footer-card="cleric"] .preparations,
+.spellcasting-class-card[data-coria-footer-tier="secondary"] .class-name,
+.spellcasting-class-card[data-coria-footer-tier="secondary"] .preparations,
+.spellcasting-class-card[data-coria-footer-tier="secondary"] strong {
+  color: var(--coria-sec-text, #fef08a) !important;
+}
+
+/* ============================================================================
+ * FLINN: Spellbook Toolbar ("Esconder Magias Não Preparadas" + "Magias Escondidas")
+ * ============================================================================ */
+
+[data-flinn-hide-unprepared="true"] .tidy-table-row-container[data-flinn-spell-prepared="false"],
+[data-flinn-hide-unprepared="true"] .tidy-table-row[data-flinn-spell-prepared="false"],
+[data-flinn-hide-unprepared="true"] [data-item-id][data-flinn-spell-prepared="false"] {
+  display: none !important;
+}
+
+.flinn-spellbook-toolbar {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  padding: 2px 0 !important;
+  margin: 6px 0 8px 0 !important;
+  width: 100% !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.flinn-toggle-hide-unprepared-btn,
+.flinn-open-hidden-spells-btn,
+.coria-import-spells-btn {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  padding: 7px 16px !important;
+  border-radius: 7px !important;
+  font-size: 12.5px !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+  cursor: pointer !important;
+  outline: none !important;
+  --color-shadow-primary: transparent;
+  transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.18s ease, filter 0.18s ease !important;
+}
+
+.flinn-toggle-hide-unprepared-btn {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.94), rgba(15, 23, 42, 0.96)) !important;
+  border: 1.5px solid rgba(56, 189, 248, 0.65) !important;
+  color: #e0f2fe !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45), 0 0 8px rgba(56, 189, 248, 0.18) !important;
+}
+
+.flinn-toggle-hide-unprepared-btn.is-active {
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.92), rgba(37, 99, 235, 0.92)) !important;
+  border-color: #7dd3fc !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5), 0 0 12px rgba(56, 189, 248, 0.45) !important;
+}
+
+.flinn-open-hidden-spells-btn {
+  background: linear-gradient(135deg, rgba(161, 98, 7, 0.92), rgba(113, 63, 18, 0.95)) !important;
+  border: 1.5px solid #facc15 !important;
+  color: #fef9c3 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45), 0 0 10px rgba(250, 204, 21, 0.25) !important;
+}
+
+.coria-import-spells-btn {
+  background: linear-gradient(135deg, rgba(109, 40, 217, 0.92), rgba(37, 99, 235, 0.92)) !important;
+  border: 1.5px solid #a78bfa !important;
+  color: #f5f3ff !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45), 0 0 10px rgba(167, 139, 250, 0.25) !important;
+}
+
+.flinn-toggle-hide-unprepared-btn:hover,
+.flinn-open-hidden-spells-btn:hover,
+.coria-import-spells-btn:hover {
+  transform: scale(1.06) !important;
+  filter: brightness(1.12) !important;
+}
+
+.flinn-toggle-hide-unprepared-btn:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55), 0 0 16px rgba(56, 189, 248, 0.55) !important;
+}
+
+.flinn-open-hidden-spells-btn:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55), 0 0 16px rgba(250, 204, 21, 0.55) !important;
+}
+
+.coria-import-spells-btn:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55), 0 0 16px rgba(167, 139, 250, 0.55) !important;
+}
+
+.flinn-toggle-hide-unprepared-btn:focus,
+.flinn-toggle-hide-unprepared-btn:focus-visible,
+.flinn-open-hidden-spells-btn:focus,
+.flinn-open-hidden-spells-btn:focus-visible,
+.coria-import-spells-btn:focus,
+.coria-import-spells-btn:focus-visible {
+  outline: none !important;
+}
+
+/* ============================================================================
+ * FLINN & CORIA: Janelas Split-Pane ("Magias Escondidas" & "Importar Magias")
+ * Paleta Sépia Escurecida padrão + Suporte total a CoriaWindowThemeManager
+ * + Supressão total do "backdrop glow" avermelhado do Foundry V13 nos botões
+ * ============================================================================ */
+
+.coria-dialog.flinn-hs-dialog {
+  --color-shadow-primary: transparent;
+  --color-outline-primary: transparent;
+  --button-focus-outline-color: transparent;
+  --button-hover-background-color: transparent;
+  --color-warm-1: transparent;
+  --color-warm-2: transparent;
+  background: var(--coria-win-bg, linear-gradient(135deg, #b8a890 0%, #9c8c74 100%)) !important;
+  border: 2px solid var(--coria-win-border, #4a3019) !important;
+  color: var(--coria-win-text, #1f1209) !important;
+  box-shadow: 0 12px 36px rgba(20, 12, 5, 0.85) !important;
+}
+
+/* Remove Foundry V13 reddish/orange focus/active/hover glow across ALL buttons inside split-pane spell dialogs */
+.coria-dialog.flinn-hs-dialog button,
+.coria-dialog.flinn-hs-dialog button:focus,
+.coria-dialog.flinn-hs-dialog button:focus-visible,
+.coria-dialog.flinn-hs-dialog button:active,
+.coria-dialog.flinn-hs-dialog .window-header button,
+.coria-dialog.flinn-hs-dialog .window-header button:hover,
+.coria-dialog.flinn-hs-dialog .window-header button:focus,
+.coria-dialog.flinn-hs-dialog .window-header button:focus-visible,
+.coria-dialog.flinn-hs-dialog .window-header button:active,
+.coria-dialog.flinn-hs-dialog .dialog-buttons button:focus,
+.coria-dialog.flinn-hs-dialog .dialog-buttons button:focus-visible,
+.coria-dialog.flinn-hs-dialog .dialog-buttons button:active,
+.coria-dialog.flinn-hs-dialog .flinn-hs-tab-btn:focus,
+.coria-dialog.flinn-hs-dialog .flinn-hs-tab-btn:focus-visible,
+.coria-dialog.flinn-hs-dialog .flinn-hs-tab-btn:active,
+.coria-dialog.flinn-hs-dialog .flinn-hs-mini-btn:focus,
+.coria-dialog.flinn-hs-dialog .flinn-hs-mini-btn:focus-visible,
+.coria-dialog.flinn-hs-dialog .flinn-hs-mini-btn:active,
+.coria-dialog.flinn-hs-dialog .flinn-hs-action-prepare:focus,
+.coria-dialog.flinn-hs-dialog .flinn-hs-action-prepare:focus-visible,
+.coria-dialog.flinn-hs-dialog .flinn-hs-action-prepare:active,
+.coria-dialog.flinn-hs-dialog .flinn-hs-action-intuitive:focus,
+.coria-dialog.flinn-hs-dialog .flinn-hs-action-intuitive:focus-visible,
+.coria-dialog.flinn-hs-dialog .flinn-hs-action-intuitive:active {
+  outline: none !important;
+  --color-shadow-primary: transparent !important;
+  --button-focus-outline-color: transparent !important;
+}
+
+.coria-dialog.flinn-hs-dialog .window-header button:hover,
+.coria-dialog.flinn-hs-dialog .window-header button:focus,
+.coria-dialog.flinn-hs-dialog .window-header button:focus-visible,
+.coria-dialog.flinn-hs-dialog .window-header button:active {
+  box-shadow: none !important;
+  text-shadow: none !important;
+  background: rgba(0, 0, 0, 0.14) !important;
+}
+
+.coria-dialog.flinn-hs-dialog .window-header {
+  background: var(--coria-win-header-bg, linear-gradient(90deg, rgba(64, 41, 21, 0.42), rgba(64, 41, 21, 0.25))) !important;
+  border-bottom: 1px solid var(--coria-win-border, rgba(64, 41, 21, 0.6)) !important;
+  color: var(--coria-win-text, #1f1209) !important;
+}
+
+.coria-dialog.flinn-hs-dialog .window-header .window-title,
+.coria-dialog.flinn-hs-dialog .window-header .header-button,
+.coria-dialog.flinn-hs-dialog .window-header .header-control,
+.coria-dialog.flinn-hs-dialog .window-header button[data-action="close"],
+.coria-dialog.flinn-hs-dialog .window-header button {
+  color: var(--coria-win-text, #1f1209) !important;
+  font-weight: 800 !important;
+}
+
+.flinn-hs-dialog .window-content {
+  padding: 10px 12px !important;
+  background: transparent !important;
+  color: var(--coria-win-text, #1e293b) !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+}
+
+.flinn-hs-dialog form.dialog-form {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+.flinn-hs-dialog .dialog-content {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  padding-right: 0 !important;
+}
+
+.flinn-hs-dialog .dialog-buttons {
+  flex: 0 0 auto !important;
+  margin-top: 8px !important;
+}
+
+.flinn-hs-dialog .dialog-buttons button {
+  background: var(--coria-win-btn-bg, linear-gradient(135deg, #9c8b72, #85745b)) !important;
+  border: 1.5px solid var(--coria-win-border, #4a3019) !important;
+  color: var(--coria-win-text, #1f1209) !important;
+  font-weight: 800 !important;
+  padding: 6px 14px !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.28) !important;
+}
+
+.flinn-hs-dialog .dialog-buttons button:hover {
+  background: var(--coria-win-btn-hover-bg, linear-gradient(135deg, #8e7d64, #76664e)) !important;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4) !important;
+}
+
+.flinn-hs-dialog .dialog-buttons button:focus,
+.flinn-hs-dialog .dialog-buttons button:focus-visible,
+.flinn-hs-dialog .dialog-buttons button:active {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35) !important;
+}
+
+.flinn-hs-browser-root {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  gap: 8px;
+  font-family: var(--font-primary, "Signika", sans-serif);
+  color: var(--coria-win-text, #1e293b);
+  overflow: hidden;
+}
+
+.flinn-hs-tabs-bar {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+  border-bottom: 2px solid var(--coria-win-border, rgba(74, 48, 25, 0.48));
+  padding-bottom: 6px;
+}
+
+.flinn-hs-tab-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid var(--coria-win-border, rgba(74, 48, 25, 0.55)) !important;
+  background: var(--coria-win-btn-bg, rgba(164, 148, 125, 0.9)) !important;
+  color: var(--coria-win-text, #1f1209) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22) !important;
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+
+.flinn-hs-tab-btn:hover {
+  filter: brightness(1.06);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.32) !important;
+}
+
+.flinn-hs-tab-btn:focus,
+.flinn-hs-tab-btn:focus-visible,
+.flinn-hs-tab-btn:active {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+.flinn-hs-tab-btn.is-cleric.active {
+  background: var(--coria-sec-btn-bg, linear-gradient(135deg, #eab308, #ca8a04)) !important;
+  border-color: var(--coria-sec-c1, #ca8a04) !important;
+  color: #ffffff !important;
+  text-shadow:
+    -1px -1px 0 #000000,
+    1px -1px 0 #000000,
+    -1px 1px 0 #000000,
+    1px 1px 0 #000000,
+    0 1px 3px rgba(0, 0, 0, 0.85) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
+}
+
+.flinn-hs-tab-btn.is-wizard.active {
+  background: var(--coria-prim-btn-bg, linear-gradient(135deg, #0284c7, #2563eb)) !important;
+  border-color: var(--coria-prim-c1, #0284c7) !important;
+  color: #ffffff !important;
+  text-shadow:
+    -1px -1px 0 #000000,
+    1px -1px 0 #000000,
+    -1px 1px 0 #000000,
+    1px 1px 0 #000000,
+    0 1px 3px rgba(0, 0, 0, 0.85) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
+}
+
+.flinn-hs-tab-badge {
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.88);
+  color: #1f1209 !important;
+  text-shadow: none !important;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+}
+
+/* Barra de Filtros: Nível, Escola e Busca com lupa na mesma linha */
+.flinn-hs-filters-bar {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.flinn-hs-level-select,
+.flinn-hs-school-select {
+  height: 32px;
+  width: 175px;
+  flex: 0 0 175px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--coria-win-border, rgba(74, 48, 25, 0.55));
+  background: var(--coria-win-input-bg, #cbbca5);
+  color: var(--coria-win-text, #1e293b);
+  font-size: 12.5px;
+}
+
+.flinn-hs-search-wrap {
+  flex: 1 1 auto;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 8px !important;
+  height: 32px !important;
+  padding: 0 10px !important;
+  border-radius: 6px !important;
+  border: 1px solid var(--coria-win-border, rgba(74, 48, 25, 0.55)) !important;
+  background: var(--coria-win-input-bg, #cbbca5) !important;
+}
+
+.flinn-hs-search-wrap i {
+  color: var(--coria-win-text-muted, #4a3019);
+  font-size: 13px;
+  flex: 0 0 auto;
+  line-height: 1;
+}
+
+.flinn-hs-name-input {
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  height: 28px !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  color: var(--coria-win-text, #1e293b) !important;
+  font-size: 12.5px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Painel Dividido 50% / 50% com Scroll Independente e Esticamento Vertical Total */
+.flinn-hs-split-pane {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+  flex: 1 1 auto;
+  height: 100%;
+  max-height: none;
+  min-height: 0;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+.flinn-hs-left-list {
+  background: var(--coria-win-list-bg, rgba(148, 133, 111, 0.88));
+  border: 1px solid var(--coria-win-border, rgba(74, 48, 25, 0.55));
+  border-radius: 8px;
+  height: 100%;
+  max-height: none;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* Linha da magia na lista da esquerda (ligeiramente maior verticalmente + mini botões à direita) */
+.flinn-hs-spell-row {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 7px !important;
+  padding: 7px 9px !important;
+  min-height: 38px !important;
+  border-radius: 6px !important;
+  background: var(--coria-win-row-bg, rgba(208, 195, 174, 0.92)) !important;
+  border: 1px solid var(--coria-win-border, rgba(92, 61, 32, 0.48)) !important;
+  border-left: 3px solid transparent !important;
+  cursor: pointer !important;
+  transition: background 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease !important;
+}
+
+.flinn-hs-spell-row:hover {
+  background: var(--coria-win-row-hover-bg, rgba(222, 210, 190, 0.98)) !important;
+}
+
+.flinn-hs-row-right {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  flex: 0 0 auto !important;
+}
+
+.flinn-hs-mini-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 3px !important;
+  height: 22px !important;
+  min-width: 22px !important;
+  padding: 0 6px !important;
+  border-radius: 4px !important;
+  font-size: 10.5px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3) !important;
+  transition: transform 0.12s ease, filter 0.12s ease !important;
+}
+
+.flinn-hs-mini-btn:hover {
+  transform: scale(1.07) !important;
+  filter: brightness(1.12) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4) !important;
+}
+
+.flinn-hs-mini-btn:focus,
+.flinn-hs-mini-btn:focus-visible,
+.flinn-hs-mini-btn:active {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35) !important;
+}
+
+.flinn-hs-mini-btn.is-prepare.is-cleric {
+  background: var(--coria-sec-btn-bg, linear-gradient(135deg, #eab308, #ca8a04)) !important;
+  border: 1px solid var(--coria-sec-c1, #a16207) !important;
+  color: #ffffff !important;
+  text-shadow: -1px -1px 0 #000000, 1px -1px 0 #000000, -1px 1px 0 #000000, 1px 1px 0 #000000 !important;
+}
+
+.flinn-hs-mini-btn.is-prepare.is-wizard {
+  background: var(--coria-prim-btn-bg, linear-gradient(135deg, #0284c7, #2563eb)) !important;
+  border: 1px solid var(--coria-prim-c1, #1d4ed8) !important;
+  color: #ffffff !important;
+  text-shadow: -1px -1px 0 #000000, 1px -1px 0 #000000, -1px 1px 0 #000000, 1px 1px 0 #000000 !important;
+}
+
+.flinn-hs-mini-btn.is-intuitive {
+  background: linear-gradient(135deg, #7e22ce, #be185d) !important;
+  border: 1px solid #9d174d !important;
+  color: #ffffff !important;
+}
+
+.flinn-hs-mini-btn.is-owned,
+.flinn-hs-mini-btn.is-owned:hover {
+  background: linear-gradient(135deg, rgba(22, 163, 74, 0.85), rgba(21, 128, 61, 0.9)) !important;
+  border: 1px solid #4ade80 !important;
+  color: #dcfce7 !important;
+  cursor: default !important;
+  transform: none !important;
+  filter: none !important;
+  opacity: 0.9;
+}
+
+/* Overlay da classe Secundária (Clérigo) para magia selecionada */
+.flinn-hs-spell-row.is-cleric.is-selected {
+  background: var(--coria-sec-sel-bg, linear-gradient(90deg, rgba(250, 204, 21, 0.45), rgba(254, 240, 138, 0.78))) !important;
+  border-color: var(--coria-sec-c1, #eab308) !important;
+  border-left: 4px solid var(--coria-sec-c1, #ca8a04) !important;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.18), 0 1px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Overlay da classe Principal (Mago) para magia selecionada */
+.flinn-hs-spell-row.is-wizard.is-selected {
+  background: var(--coria-prim-sel-bg, linear-gradient(90deg, rgba(56, 189, 248, 0.42), rgba(186, 230, 253, 0.78))) !important;
+  border-color: var(--coria-prim-c1, #38bdf8) !important;
+  border-left: 4px solid var(--coria-prim-c1, #0284c7) !important;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.18), 0 1px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+.flinn-hs-row-icon {
+  width: 22px !important;
+  height: 22px !important;
+  min-width: 22px !important;
+  max-width: 22px !important;
+  min-height: 22px !important;
+  max-height: 22px !important;
+  border-radius: 4px !important;
+  object-fit: cover !important;
+  border: 1px solid #64748b !important;
+  flex: 0 0 22px !important;
+  margin: 0 !important;
+}
+
+.flinn-hs-row-main {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 5px !important;
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+  overflow: hidden !important;
+}
+
+.flinn-hs-row-name {
+  font-weight: 700 !important;
+  font-size: 13px !important;
+  line-height: 1.2 !important;
+  color: var(--coria-win-text, #0f172a) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.flinn-hs-mini-tag {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 3px !important;
+  padding: 1px 5px !important;
+  border-radius: 4px !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  line-height: 1.1 !important;
+  white-space: nowrap !important;
+  flex: 0 0 auto !important;
+}
+
+.flinn-hs-mini-tag.conc {
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #7dd3fc;
+}
+
+.flinn-hs-mini-tag.rit {
+  background: #ffedd5;
+  color: #c2410c;
+  border: 1px solid #fdba74;
+}
+
+.flinn-hs-row-school-pill {
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+  font-size: 10.5px !important;
+  font-weight: 700 !important;
+  background: #f3e8ff !important;
+  color: #6b21a8 !important;
+  border: 1px solid #d8b4fe !important;
+  white-space: nowrap !important;
+  flex: 0 0 auto !important;
+}
+
+/* Painel Direito: esticado verticalmente até o botão Fechar, com scroll próprio independente */
+.flinn-hs-right-detail {
+  background: var(--coria-win-panel-bg, #cbbca5);
+  border: 1px solid var(--coria-win-border, rgba(74, 48, 25, 0.55));
+  border-radius: 8px;
+  padding: 12px 14px;
+  height: 100%;
+  max-height: none;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.flinn-hs-detail-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.flinn-hs-detail-top {
+  border-bottom: 1px solid var(--coria-win-border, rgba(124, 77, 37, 0.25));
+  padding-bottom: 8px;
+}
+
+.flinn-hs-detail-header-row {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+.flinn-hs-detail-icon {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  max-width: 36px !important;
+  min-height: 36px !important;
+  max-height: 36px !important;
+  border-radius: 6px !important;
+  object-fit: cover !important;
+  border: 2px solid #6b21a8 !important;
+  flex: 0 0 36px !important;
+  margin: 0 !important;
+}
+
+.flinn-hs-detail-card.is-cleric .flinn-hs-detail-icon {
+  border-color: var(--coria-sec-c1, #ca8a04) !important;
+}
+
+.flinn-hs-detail-card.is-wizard .flinn-hs-detail-icon {
+  border-color: var(--coria-prim-c1, #0284c7) !important;
+}
+
+.flinn-hs-detail-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.flinn-hs-detail-name-line {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.flinn-hs-detail-name-line h3 {
+  margin: 0 !important;
+  font-size: 17px !important;
+  font-weight: 800 !important;
+  color: var(--coria-win-text, #0f172a) !important;
+  border: none !important;
+  line-height: 1.2 !important;
+}
+
+.flinn-hs-detail-subtitle {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--coria-win-text-muted, #6b21a8);
+}
+
+.flinn-hs-detail-source {
+  font-size: 11.5px;
+  color: var(--coria-win-text-muted, #64748b);
+}
+
+.flinn-hs-detail-meta-box {
+  background: var(--coria-win-meta-bg, rgba(182, 166, 143, 0.78));
+  border: 1px solid var(--coria-win-border, rgba(74, 48, 25, 0.45));
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--coria-win-text, #1e293b);
+}
+
+.flinn-hs-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  align-items: center;
+}
+
+.flinn-hs-meta-row i {
+  color: var(--coria-win-text-muted, #6b21a8);
+  margin-right: 2px;
+}
+
+.flinn-hs-detail-body {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--coria-win-text, #1e293b);
+  padding: 2px 0;
+}
+
+.flinn-hs-detail-body p {
+  margin: 0 0 8px 0;
+}
+
+/* "At Higher Levels" & 5etools / Plutonium / dnd5e subheadings inside Magias Escondidas & Importar Magias -> readable accent purple */
+.flinn-hs-detail-body .rd__h,
+.flinn-hs-detail-body .rd__h--0,
+.flinn-hs-detail-body .rd__h--1,
+.flinn-hs-detail-body .rd__h--2,
+.flinn-hs-detail-body .rd__h--3,
+.flinn-hs-detail-body .rd__h--4,
+.flinn-hs-detail-body .ve-rd__h,
+.flinn-hs-detail-body .ve-rd__h--0,
+.flinn-hs-detail-body .ve-rd__h--1,
+.flinn-hs-detail-body .ve-rd__h--2,
+.flinn-hs-detail-body .ve-rd__h--3,
+.flinn-hs-detail-body .ve-rd__h--4,
+.ve-night-mode .flinn-hs-detail-body .ve-rd__h,
+.ve-night-mode .flinn-hs-detail-body .ve-rd__h--0,
+.ve-night-mode .flinn-hs-detail-body .ve-rd__h--1,
+.ve-night-mode .flinn-hs-detail-body .ve-rd__h--2,
+.ve-night-mode .flinn-hs-detail-body .ve-rd__h--3,
+.ve-night-mode .flinn-hs-detail-body .ve-rd__h--4,
+.flinn-hs-detail-body .entry-title-inner,
+.flinn-hs-detail-body .ve-entry-title-inner,
+.flinn-hs-detail-body .rd__h .entry-title-inner,
+.flinn-hs-detail-body .ve-rd__h .ve-entry-title-inner,
+.flinn-hs-detail-body .ve-rd__h .entry-title-inner,
+.flinn-hs-detail-body .rd__h span,
+.flinn-hs-detail-body .ve-rd__h span,
+.flinn-hs-detail-body [data-roll-name-ancestor="At Higher Levels"] .entry-title-inner,
+.flinn-hs-detail-body [data-roll-name-ancestor="At Higher Levels"] .ve-entry-title-inner,
+.flinn-hs-detail-body [data-roll-name-ancestor="At Higher Levels"] > .rd__h,
+.flinn-hs-detail-body [data-roll-name-ancestor="At Higher Levels"] > .ve-rd__h,
+.flinn-hs-detail-body h3,
+.flinn-hs-detail-body h4,
+.flinn-hs-detail-body h5 {
+  color: #6b21a8 !important;
+  font-weight: 800 !important;
+  text-shadow: none !important;
+  border-color: rgba(107, 33, 168, 0.35) !important;
+}
+
+/* Botões de Ação ("Preparar Magia", "Conjurar via Intuitive Arcanum" e "Importar Magia") */
+.flinn-hs-detail-actions {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 8px;
+  margin-top: 4px;
+  border-top: 1px solid var(--coria-win-border, rgba(124, 77, 37, 0.25));
+}
+
+.flinn-hs-action-prepare,
+.flinn-hs-action-intuitive {
+  flex: 1 1 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+
+.flinn-hs-action-prepare.is-cleric {
+  background: var(--coria-sec-btn-bg, linear-gradient(135deg, #eab308, #ca8a04)) !important;
+  border: 1px solid var(--coria-sec-c1, #a16207) !important;
+  color: #ffffff !important;
+  text-shadow: -1px -1px 0 #000000, 1px -1px 0 #000000, -1px 1px 0 #000000, 1px 1px 0 #000000 !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35) !important;
+}
+
+.flinn-hs-action-prepare.is-wizard {
+  background: var(--coria-prim-btn-bg, linear-gradient(135deg, #0284c7, #2563eb)) !important;
+  border: 1px solid var(--coria-prim-c1, #1d4ed8) !important;
+  color: #ffffff !important;
+  text-shadow: -1px -1px 0 #000000, 1px -1px 0 #000000, -1px 1px 0 #000000, 1px 1px 0 #000000 !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35) !important;
+}
+
+.flinn-hs-action-intuitive {
+  background: linear-gradient(135deg, #7e22ce, #be185d) !important;
+  border: 1px solid #9d174d !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35) !important;
+}
+
+.flinn-hs-action-prepare:hover,
+.flinn-hs-action-intuitive:hover {
+  transform: scale(1.03);
+  filter: brightness(1.08);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.42) !important;
+}
+
+.flinn-hs-action-prepare:focus,
+.flinn-hs-action-prepare:focus-visible,
+.flinn-hs-action-prepare:active,
+.flinn-hs-action-intuitive:focus,
+.flinn-hs-action-intuitive:focus-visible,
+.flinn-hs-action-intuitive:active {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35) !important;
+}
+
+.coria-imp-detail-btn:disabled,
+.coria-imp-detail-btn:disabled:hover {
+  background: linear-gradient(135deg, rgba(22, 163, 74, 0.88), rgba(21, 128, 61, 0.92)) !important;
+  border-color: #4ade80 !important;
+  color: #dcfce7 !important;
+  text-shadow: none !important;
+  cursor: default !important;
+  transform: none !important;
+  filter: none !important;
+  opacity: 0.92;
+}
+
+.flinn-hs-empty-list,
+.flinn-hs-empty-detail {
+  text-align: center;
+  padding: 32px 14px;
+  color: var(--coria-win-text-muted, #5c3a21);
+  font-style: italic;
+}
+
+/* ============================================================================
+ * FLINN: Botão Flutuante de Cena "Flinn's Portent Rolls" & Janela Sépia de d20
+ * ============================================================================ */
+
+#flinn-portent-floating-btn {
+  position: fixed;
+  bottom: 270px;
+  left: 15px;
+  height: 44px;
+  padding: 0 12px;
+  background: linear-gradient(135deg, #f3e5c8, #dfc89e);
+  border: 2px solid #6b4226;
+  border-radius: 999px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55), 0 0 10px rgba(180, 130, 70, 0.45);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  z-index: 2147483640;
+  color: #3b2314;
+  font-size: 12.5px;
+  font-weight: 800;
+  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+#flinn-portent-floating-btn i {
+  color: #5c3317;
+  font-size: 18px;
+}
+
+#flinn-portent-floating-btn .flinn-portent-btn-label {
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  margin: 0;
+  transition: max-width 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.22s ease, margin 0.22s ease;
+}
+
+#flinn-portent-floating-btn:hover {
+  padding: 0 14px;
+  box-shadow: 0 0 20px rgba(217, 119, 6, 0.75);
+}
+
+#flinn-portent-floating-btn:hover .flinn-portent-btn-label {
+  max-width: 185px;
+  opacity: 1;
+  margin: 0 3px;
+}
+
+#flinn-portent-floating-btn .flinn-portent-btn-count {
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  background: #4a2e1b;
+  border: 1px solid #8b5a2b;
+  color: #f7ebd4;
+}
+
+/* Paleta Sépia Claro com Letras e Dados em Marrom Escuro */
+.coria-dialog.flinn-portent-dialog {
+  background: linear-gradient(135deg, #f6ecd9 0%, #ead8b8 100%) !important;
+  border: 2px solid #7c4d25 !important;
+  color: #3b2314 !important;
+  box-shadow: 0 12px 36px rgba(35, 20, 8, 0.75) !important;
+}
+
+.coria-dialog.flinn-portent-dialog .window-header {
+  background: linear-gradient(90deg, rgba(124, 77, 37, 0.18), rgba(124, 77, 37, 0.08)) !important;
+  border-bottom: 1px solid rgba(124, 77, 37, 0.4) !important;
+  color: #3b2314 !important;
+}
+
+.coria-dialog.flinn-portent-dialog .window-header .window-title,
+.coria-dialog.flinn-portent-dialog .window-header .header-button,
+.coria-dialog.flinn-portent-dialog .window-header .header-control,
+.coria-dialog.flinn-portent-dialog .window-header button[data-action="close"],
+.coria-dialog.flinn-portent-dialog .window-header button {
+  color: #3b2314 !important;
+  font-weight: 800 !important;
+}
+
+.coria-dialog.flinn-portent-dialog .window-content {
+  background: transparent !important;
+  color: #3b2314 !important;
+  padding: 14px !important;
+}
+
+.coria-dialog.flinn-portent-dialog .dialog-buttons button {
+  background: linear-gradient(135deg, #e5cfa8, #d5b887) !important;
+  border: 1.5px solid #7c4d25 !important;
+  color: #3b2314 !important;
+  font-weight: 800 !important;
+}
+
+.coria-dialog.flinn-portent-dialog .dialog-buttons button:hover {
+  background: linear-gradient(135deg, #dcc090, #caa66e) !important;
+  box-shadow: 0 3px 10px rgba(74, 46, 27, 0.3) !important;
+}
+
+.flinn-portent-modal-root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.flinn-portent-prompt-banner {
+  background: rgba(234, 212, 173, 0.9);
+  border: 1.5px solid #8b5a2b;
+  border-radius: 8px;
+  padding: 9px 12px;
+  color: #3b2314;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  box-shadow: inset 0 0 10px rgba(139, 90, 43, 0.15);
+}
+
+/* Layout Principal: Legenda à Esquerda + Dados Lado a Lado Centralizados à Direita */
+.flinn-portent-main-layout {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: stretch !important;
+  gap: 16px !important;
+  background: rgba(242, 228, 201, 0.75);
+  border: 1.5px solid rgba(124, 77, 37, 0.45);
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.flinn-portent-legend {
+  flex: 0 0 220px !important;
+  width: 220px !important;
+  background: rgba(230, 211, 177, 0.85);
+  border: 1px solid rgba(124, 77, 37, 0.4);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: #3b2314;
+}
+
+.flinn-portent-legend h4 {
+  margin: 0 0 2px 0;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #4a2e1b;
+  border-bottom: 1px solid rgba(124, 77, 37, 0.35);
+  padding-bottom: 5px;
+}
+
+.flinn-portent-legend-item {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+/* Caixas de cores visíveis na legenda */
+.flinn-portent-color-box {
+  display: inline-block !important;
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
+  border-radius: 4px !important;
+  flex: 0 0 18px !important;
+}
+
+.flinn-portent-color-box.is-green {
+  background: #22c55e !important;
+  border: 1.5px solid #14532d !important;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.85) !important;
+}
+
+.flinn-portent-color-box.is-red {
+  background: #ef4444 !important;
+  border: 1.5px solid #7f1d1d !important;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.85) !important;
+}
+
+.flinn-portent-color-box.is-yellow {
+  background: #eab308 !important;
+  border: 1.5px solid #713f12 !important;
+  box-shadow: 0 0 8px rgba(234, 179, 8, 0.85) !important;
+}
+
+.flinn-portent-legend-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  font-size: 12px;
+  color: #3b2314;
+}
+
+.flinn-portent-legend-text strong {
+  color: #2b180d;
+  font-size: 12.5px;
+}
+
+.flinn-portent-legend-text span {
+  color: #5c3a21;
+  font-size: 11.5px;
+}
+
+.flinn-portent-legend-note {
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(124, 77, 37, 0.35);
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: #4a2e1b;
+}
+
+/* Palco Central à direita da legenda: Dados um ao lado do outro e centralizados */
+.flinn-portent-center-stage {
+  flex: 1 1 auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 190px;
+  padding: 10px;
+}
+
+.flinn-portent-dice-row {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 28px !important;
+  flex-wrap: wrap !important;
+  width: 100%;
+}
+
+.flinn-portent-die-card {
+  width: 136px;
+  height: 156px;
+  border-radius: 14px;
+  background: radial-gradient(circle at center, #fbf4e6 0%, #e7d4b2 100%);
+  border: 2.5px solid #8b5a2b;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease;
+  user-select: none;
+  position: relative;
+}
+
+.flinn-portent-die-card:hover {
+  transform: scale(1.12);
+}
+
+.flinn-portent-die-card.is-selectable {
+  cursor: pointer;
+}
+
+/* Ícone do d20 4x maior (64px) em marrom escuro com brilho colorido intenso */
+.flinn-portent-die-emblem {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 86px;
+  height: 86px;
+}
+
+.flinn-portent-die-emblem i {
+  font-size: 64px !important;
+  line-height: 1 !important;
+  color: #3b2314 !important;
+  transition: filter 0.2s ease, transform 0.2s ease;
+}
+
+/* Brilho Verde (Maior valor) */
+.flinn-portent-die-card.is-green {
+  border-color: #16a34a !important;
+  background: radial-gradient(circle at center, rgba(74, 222, 128, 0.42) 0%, rgba(246, 236, 217, 0.95) 72%) !important;
+  box-shadow: 0 0 22px rgba(22, 163, 74, 0.65), inset 0 0 18px rgba(34, 197, 94, 0.38) !important;
+}
+
+.flinn-portent-die-card.is-green .flinn-portent-die-emblem i {
+  color: #2d1a0e !important;
+  filter: drop-shadow(0 0 8px #22c55e) drop-shadow(0 0 16px rgba(22, 163, 74, 0.95)) !important;
+}
+
+/* Brilho Vermelho (Menor valor) */
+.flinn-portent-die-card.is-red {
+  border-color: #dc2626 !important;
+  background: radial-gradient(circle at center, rgba(248, 113, 113, 0.42) 0%, rgba(246, 236, 217, 0.95) 72%) !important;
+  box-shadow: 0 0 22px rgba(220, 38, 38, 0.65), inset 0 0 18px rgba(239, 68, 68, 0.38) !important;
+}
+
+.flinn-portent-die-card.is-red .flinn-portent-die-emblem i {
+  color: #2d1a0e !important;
+  filter: drop-shadow(0 0 8px #ef4444) drop-shadow(0 0 16px rgba(220, 38, 38, 0.95)) !important;
+}
+
+/* Brilho Amarelo (Valor intermediário / igual) */
+.flinn-portent-die-card.is-yellow {
+  border-color: #d97706 !important;
+  background: radial-gradient(circle at center, rgba(250, 204, 21, 0.48) 0%, rgba(246, 236, 217, 0.95) 72%) !important;
+  box-shadow: 0 0 22px rgba(234, 179, 8, 0.7), inset 0 0 18px rgba(250, 204, 21, 0.42) !important;
+}
+
+.flinn-portent-die-card.is-yellow .flinn-portent-die-emblem i {
+  color: #2d1a0e !important;
+  filter: drop-shadow(0 0 8px #facc15) drop-shadow(0 0 16px rgba(217, 119, 6, 0.95)) !important;
+}
+
+.flinn-portent-die-number {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #f6ecd9;
+  border: 2px solid #3b2314;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 900;
+  color: #2b180d;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+.flinn-portent-die-caption {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #3b2314;
+}
+
+.flinn-portent-empty {
+  text-align: center;
+  color: #4a2e1b;
+  padding: 20px;
+}
+
+.flinn-portent-empty i {
+  font-size: 38px;
+  color: #7c4d25;
+  margin-bottom: 6px;
+}
+
+/* ============================================================================
+ * REAÇÕES DE D20 & DANO NO CHAT — ALTO CONTRASTE, FUNDO ESCURO, CONTORNO NA FONTE & QUEBRA DE LINHA
+ * ============================================================================ */
+
+.coria-d20-reactions-bar,
+.coria-damage-reactions-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(56, 189, 248, 0.4);
+}
+
+.coria-d20-react-btn,
+.coria-dmg-react-btn,
+.coria-paths-choice-btn,
+.altarion-arcane-armor-btn-row button {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  height: auto !important;
+  min-height: 28px !important;
+  line-height: 1.25 !important;
+  text-align: center !important;
+  padding: 6px 10px !important;
+  border-radius: 5px !important;
+  font-size: 0.78rem !important;
+  font-weight: 800 !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  text-shadow:
+    -1px -1px 0 #000000,
+    1px -1px 0 #000000,
+    -1px 1px 0 #000000,
+    1px 1px 0 #000000,
+    0 2px 4px rgba(0, 0, 0, 0.95) !important;
+}
+
+.coria-d20-react-btn,
+.coria-dmg-react-btn {
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  background: linear-gradient(135deg, #070d19 0%, #111c33 100%) !important;
+  border: 1.5px solid #38bdf8 !important;
+  color: #7dd3fc !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.65), inset 0 0 8px rgba(56, 189, 248, 0.18) !important;
+}
+
+.coria-d20-react-btn.btn-arcane,
+.coria-dmg-react-btn.btn-arcane {
+  background: linear-gradient(135deg, #061224 0%, #0f2544 100%) !important;
+  border: 1.5px solid #38bdf8 !important;
+  color: #7dd3fc !important;
+}
+
+.coria-d20-react-btn.btn-cleric-gold,
+.coria-dmg-react-btn.btn-cleric-gold {
+  background: linear-gradient(135deg, #1c1304 0%, #362306 100%) !important;
+  border: 1.5px solid #facc15 !important;
+  color: #fde047 !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7), inset 0 0 8px rgba(250, 204, 21, 0.22) !important;
+}
+
+.coria-d20-react-btn.btn-pact,
+.coria-dmg-react-btn.btn-pact {
+  background: linear-gradient(135deg, #1f0826 0%, #3b0f47 100%) !important;
+  border: 1.5px solid #e879f9 !important;
+  color: #f5d0fe !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7), inset 0 0 8px rgba(232, 121, 249, 0.22) !important;
+}
+
+.coria-d20-react-btn.btn-shadow,
+.coria-dmg-react-btn.btn-shadow {
+  background: linear-gradient(135deg, #17082a 0%, #2b104d 100%) !important;
+  border: 1.5px solid #c084fc !important;
+  color: #e9d5ff !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7), inset 0 0 8px rgba(192, 132, 252, 0.22) !important;
+}
+
+.coria-d20-react-btn i,
+.coria-dmg-react-btn i {
+  color: inherit !important;
+}
+
+.coria-d20-react-btn:hover,
+.coria-dmg-react-btn:hover {
+  transform: translateY(-1px) !important;
+  filter: brightness(1.18) !important;
+}
+
+/* ============================================================================
+ * UNIVERSAL SPELLBOOK CLASS HIGHLIGHTING (Altarion, Aitusa, Parva, Kyrion & Custom Flinn Colors)
+ * ============================================================================ */
+
+/* Primary Class Spells (Altarion Dragon Rider Ancestral Magic, Aitusa Dragon Companion, Parva Warlock) */
+.tidy-table-row[data-coria-spell-tier="primary"],
+.tidy5e-sheet.quadrone .tidy-table-row[data-coria-spell-tier="primary"],
+.tidy5e-sheet.quadrone .tidy-table-row.prepared[data-coria-spell-tier="primary"],
+.tidy5e-sheet.quadrone .tidy-table-row.always[data-coria-spell-tier="primary"],
+[data-coria-spell-tier="primary"]:not(.tidy-table-row-container) {
+  border-left: 4px solid var(--coria-prim-c1, #3b82f6) !important;
+  background: var(--coria-prim-row-bg, linear-gradient(90deg, rgba(59, 130, 246, 0.28) 0%, rgba(59, 130, 246, 0.08) 100%)) !important;
+}
+
+[data-coria-spell-tier="primary"] .cell-name,
+[data-coria-spell-tier="primary"] .item-name .title {
+  color: var(--coria-prim-text, #dbeafe) !important;
+}
+
+/* Secondary Class Spells (Altarion Wizard, Parva Sorcerer/Divine Soul, Kyrion Warlock) */
+.tidy-table-row[data-coria-spell-tier="secondary"],
+.tidy5e-sheet.quadrone .tidy-table-row[data-coria-spell-tier="secondary"],
+.tidy5e-sheet.quadrone .tidy-table-row.prepared[data-coria-spell-tier="secondary"],
+.tidy5e-sheet.quadrone .tidy-table-row.always[data-coria-spell-tier="secondary"],
+[data-coria-spell-tier="secondary"]:not(.tidy-table-row-container) {
+  border-left: 4px solid var(--coria-sec-c1, #a855f7) !important;
+  background: var(--coria-sec-row-bg, linear-gradient(90deg, rgba(168, 85, 247, 0.28) 0%, rgba(168, 85, 247, 0.08) 100%)) !important;
+}
+
+[data-coria-spell-tier="secondary"] .cell-name,
+[data-coria-spell-tier="secondary"] .item-name .title {
+  color: var(--coria-sec-text, #f3e8ff) !important;
+}
+
+/* Prepared Spell Icon Class Highlighting (Altarion, Aitusa, Parva, Kyrion) */
+[data-coria-prep-tier="primary"][data-coria-prep-state="unprepared"],
+[data-coria-prep-tier="primary"][data-coria-prep-state="unprepared"] i {
+  color: var(--coria-prim-text, rgba(147, 197, 253, 0.5)) !important;
+  opacity: 0.55 !important;
+}
+
+[data-coria-prep-tier="primary"][data-coria-prep-state="prepared"],
+[data-coria-prep-tier="primary"][data-coria-prep-state="prepared"] i,
+[data-coria-spell-tier="primary"][data-coria-spell-prepared="true"] .item-control[data-action="prepare"],
+[data-coria-spell-tier="primary"][data-coria-spell-prepared="true"] [data-action="prepare"] i,
+[data-coria-spell-tier="primary"][data-coria-spell-prepared="true"] i.spell-row-icon {
+  color: var(--coria-prim-c1, #3b82f6) !important;
+  opacity: 1 !important;
+  filter: drop-shadow(0 0 5px var(--coria-prim-c1, rgba(59, 130, 246, 0.85)));
+}
+
+[data-coria-prep-tier="secondary"][data-coria-prep-state="unprepared"],
+[data-coria-prep-tier="secondary"][data-coria-prep-state="unprepared"] i {
+  color: var(--coria-sec-text, rgba(216, 180, 254, 0.5)) !important;
+  opacity: 0.55 !important;
+}
+
+[data-coria-prep-tier="secondary"][data-coria-prep-state="prepared"],
+[data-coria-prep-tier="secondary"][data-coria-prep-state="prepared"] i,
+[data-coria-spell-tier="secondary"][data-coria-spell-prepared="true"] .item-control[data-action="prepare"],
+[data-coria-spell-tier="secondary"][data-coria-spell-prepared="true"] [data-action="prepare"] i,
+[data-coria-spell-tier="secondary"][data-coria-spell-prepared="true"] i.spell-row-icon {
+  color: var(--coria-sec-c1, #a855f7) !important;
+  opacity: 1 !important;
+  filter: drop-shadow(0 0 5px var(--coria-sec-c1, rgba(168, 85, 247, 0.85)));
+}
+
+.coria-spell-class-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 7px;
+  padding: 1px 7px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  line-height: 1.35;
+  vertical-align: middle;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.12s ease, filter 0.12s ease;
+}
+
+.coria-spell-class-pill:hover {
+  transform: scale(1.05);
+  filter: brightness(1.15);
+}
+
+.coria-spell-class-pill.is-primary {
+  background: var(--coria-prim-pill-bg, rgba(30, 58, 138, 0.75)) !important;
+  border: 1px solid var(--coria-prim-c1, #60a5fa) !important;
+  border-right-color: var(--coria-prim-c2, #60a5fa) !important;
+  color: var(--coria-prim-text, #eff6ff) !important;
+}
+
+.coria-spell-class-pill.is-secondary {
+  background: var(--coria-sec-pill-bg, rgba(88, 28, 135, 0.75)) !important;
+  border: 1px solid var(--coria-sec-c1, #c084fc) !important;
+  border-right-color: var(--coria-sec-c2, #c084fc) !important;
+  color: var(--coria-sec-text, #f3e8ff) !important;
+}
+
+/* When Flinn's Primary (Wizard) or Secondary (Cleric) header indicator color is customized, sync his Spellbook too */
+[data-coria-custom-prim-color] .tidy-table-row[data-flinn-spell-class="wizard"],
+[data-coria-custom-prim-color] [data-flinn-spell-class="wizard"]:not(.tidy-table-row-container) {
+  border-left: 3px solid var(--coria-prim-c1, #38bdf8) !important;
+  background: var(--coria-prim-row-bg-unprep) !important;
+}
+
+[data-coria-custom-prim-color] .tidy-table-row[data-flinn-spell-class="wizard"][data-flinn-spell-prepared="true"],
+[data-coria-custom-prim-color] [data-flinn-spell-class="wizard"][data-flinn-spell-prepared="true"]:not(.tidy-table-row-container) {
+  border-left: 4px solid var(--coria-prim-c1, #38bdf8) !important;
+  background: var(--coria-prim-row-bg) !important;
+}
+
+[data-coria-custom-prim-color] .flinn-spell-class-pill.is-wizard {
+  background: var(--coria-prim-pill-bg) !important;
+  border-color: var(--coria-prim-c1) !important;
+  border-right-color: var(--coria-prim-c2) !important;
+  color: var(--coria-prim-text) !important;
+}
+
+[data-coria-custom-sec-color] .tidy-table-row[data-flinn-spell-class="cleric"],
+[data-coria-custom-sec-color] [data-flinn-spell-class="cleric"]:not(.tidy-table-row-container) {
+  border-left: 3px solid var(--coria-sec-c1, #facc15) !important;
+  background: var(--coria-sec-row-bg-unprep) !important;
+}
+
+[data-coria-custom-sec-color] .tidy-table-row[data-flinn-spell-class="cleric"][data-flinn-spell-prepared="true"],
+[data-coria-custom-sec-color] [data-flinn-spell-class="cleric"][data-flinn-spell-prepared="true"]:not(.tidy-table-row-container) {
+  border-left: 4px solid var(--coria-sec-c1, #facc15) !important;
+  background: var(--coria-sec-row-bg) !important;
+}
+
+[data-coria-custom-sec-color] .flinn-spell-class-pill.is-cleric {
+  background: var(--coria-sec-pill-bg) !important;
+  border-color: var(--coria-sec-c1) !important;
+  border-right-color: var(--coria-sec-c2) !important;
+  color: var(--coria-sec-text) !important;
+}
+
+/* ============================================================================
+ * SUMMON ATTACK DAMAGE BREAKDOWN (Spiritual Weapon & Tentacle of the Deeps)
+ * Crisp dark font with zero text-shadow/outline for maximum legibility
+ * ============================================================================ */
+.coria-summon-roll-breakdown,
+.altarion-aitusa-ward-chat-tag .coria-summon-roll-breakdown {
+  margin-top: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #111827 !important;
+  text-shadow: none !important;
+  -webkit-text-stroke: 0 !important;
+}
+
+.coria-summon-roll-breakdown code,
+.altarion-aitusa-ward-chat-tag .coria-summon-roll-breakdown code {
+  display: inline-block;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(15, 23, 42, 0.1) !important;
+  border: 1px solid rgba(15, 23, 42, 0.22) !important;
+  color: #0f172a !important;
+  font-weight: 700 !important;
+  font-size: 0.78rem;
+  text-shadow: none !important;
+  -webkit-text-stroke: 0 !important;
+}
+
+.coria-summon-roll-breakdown .coria-summon-dmg-val {
+  color: #0f172a !important;
+  font-weight: 800 !important;
+  text-shadow: none !important;
+  -webkit-text-stroke: 0 !important;
+}
+
+/* ============================================================================
+ * DUAL RACES & DUAL CREATURE TYPES IN TIDY5E CHARACTER TAB (Kyrion, Flinn, Parva)
+ * ============================================================================ */
+.coria-dual-race-entry .coria-dual-race-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+[data-coria-dual-ctype="true"] > a[data-config="creatureType"] {
+  display: none !important;
+}
+
+.coria-dual-ctype-display {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  cursor: pointer;
+}
+
+.coria-dual-ctype-stack {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+}
+
+.coria-dual-ctype-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.coria-dual-ctype-sep {
+  opacity: 0.65;
+  margin-right: 2px;
+}
+
+/* ============================================================================
+ * SLOT-BASED MAGIC ITEM ATTUNEMENT INTERFACE (CoriaAttunementSlots)
+ * ============================================================================ */
+.coria-attunement-slots-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  margin: 4px 0 8px 0;
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(107, 33, 168, 0.22);
+}
+
+.coria-attunement-slots-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 6px;
+  border: 1px solid rgba(168, 85, 247, 0.65);
+  background: linear-gradient(135deg, #581c87 0%, #3b0764 100%);
+  color: #f8fafc !important;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  transition: transform 0.12s ease, filter 0.12s ease;
+}
+
+.coria-attunement-slots-btn:hover {
+  filter: brightness(1.12);
+  transform: translateY(-1px);
+}
+
+.coria-attune-summary-pills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  flex: 1 1 200px;
+}
+
+.coria-attune-empty-hint {
+  font-size: 11.5px;
+  opacity: 0.72;
+  font-style: italic;
+}
+
+.coria-attune-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(107, 33, 168, 0.14);
+  border: 1px solid rgba(107, 33, 168, 0.35);
+  color: inherit;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.coria-attune-pill:hover {
+  background: rgba(107, 33, 168, 0.25);
+}
+
+.coria-attune-pill i {
+  color: #7e22ce;
+  font-size: 10px;
+}
+
+.coria-attune-pill-slot {
+  opacity: 0.78;
+}
+
+.coria-attune-pill-name {
+  font-weight: 700;
+}
+
+/* DialogV2 Window Body */
+.coria-attune-root {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+  min-height: 520px;
+  color: var(--coria-win-text, #1f1209);
+}
+
+.coria-attune-header-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--coria-win-panel-bg, #cbbca5);
+  border: 1px solid var(--coria-win-border, rgba(74, 48, 25, 0.38));
+}
+
+.coria-attune-counter-box {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 240px;
+  flex: 1 1 240px;
+}
+
+.coria-attune-counter-text {
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.coria-attune-counter-text i {
+  color: #6b21a8;
+}
+
+.coria-attune-progress-track {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.18);
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.22);
+}
+
+.coria-attune-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #7e22ce 0%, #c084fc 100%);
+  transition: width 0.2s ease;
+}
+
+.coria-attune-header-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.coria-attune-toggle-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.coria-attune-autosort-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(107, 33, 168, 0.55);
+  background: linear-gradient(135deg, #6b21a8 0%, #4c1d95 100%);
+  color: #f8fafc !important;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.coria-attune-autosort-btn:hover {
+  filter: brightness(1.1);
+}
+
+.coria-attune-alert-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: rgba(180, 83, 9, 0.16);
+  border: 1px solid rgba(180, 83, 9, 0.55);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.coria-attune-alert-banner i {
+  color: #b45309;
+  font-size: 15px;
+}
+
+.coria-attune-scroll-area {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding-right: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.coria-attune-group-title {
+  margin: 0 0 8px 0;
+  padding-bottom: 4px;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b21a8;
+  border-bottom: 1.5px solid rgba(107, 33, 168, 0.35);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.coria-attune-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.coria-attune-slot-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 9px 10px;
+  border-radius: 7px;
+  background: var(--coria-win-row-bg, #d0c3ae);
+  border: 1px solid var(--coria-win-border, rgba(74, 48, 25, 0.35));
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.coria-attune-slot-card.is-occupied {
+  border-color: rgba(107, 33, 168, 0.65);
+  box-shadow: inset 3px 0 0 #7e22ce;
+}
+
+.coria-attune-slot-card.is-highlighted {
+  border-color: #d97706;
+  box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.35);
+}
+
+.coria-attune-slot-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.coria-attune-slot-title {
+  font-size: 12.5px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.coria-attune-slot-title i {
+  color: #6b21a8;
+  width: 15px;
+  text-align: center;
+}
+
+.coria-attune-status-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 999px;
+}
+
+.coria-attune-status-badge.is-active {
+  background: rgba(107, 33, 168, 0.18);
+  color: #581c87;
+  border: 1px solid rgba(107, 33, 168, 0.4);
+}
+
+.coria-attune-status-badge.is-empty {
+  background: rgba(15, 23, 42, 0.1);
+  color: var(--coria-win-text-muted, #473320);
+  border: 1px solid rgba(15, 23, 42, 0.18);
+}
+
+.coria-attune-slot-hint {
+  font-size: 11px;
+  opacity: 0.78;
+}
+
+.coria-attune-slot-item-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.coria-attune-item-img {
+  width: 36px;
+  height: 36px;
+  border-radius: 5px;
+  object-fit: cover;
+  border: 1.5px solid #7e22ce;
+  flex-shrink: 0;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.coria-attune-item-info {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.coria-attune-item-name {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--coria-win-text, #1f1209);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.coria-attune-item-name:hover {
+  text-decoration: underline;
+  color: #6b21a8;
+}
+
+.coria-attune-item-meta {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.coria-attune-mini-tag {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #166534;
+}
+
+.coria-attune-mini-tag.is-muted {
+  color: var(--coria-win-text-muted, #574534);
+  font-weight: 600;
+}
+
+.coria-attune-remove-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 5px;
+  border: 1px solid rgba(185, 28, 28, 0.55);
+  background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%);
+  color: #fff !important;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.coria-attune-remove-btn:hover {
+  filter: brightness(1.15);
+}
+
+.coria-attune-assign-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.coria-attune-select {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 28px;
+  padding: 2px 6px;
+  border-radius: 5px;
+  font-size: 11.5px;
+  background: var(--coria-win-input-bg, rgba(255, 255, 255, 0.65));
+  color: var(--coria-win-text, #1f1209);
+  border: 1px solid var(--coria-win-border, rgba(74, 48, 25, 0.4));
+}
+
+.coria-attune-assign-btn {
+  height: 28px;
+  padding: 0 9px;
+  border-radius: 5px;
+  border: 1px solid rgba(107, 33, 168, 0.6);
+  background: linear-gradient(135deg, #6b21a8 0%, #4c1d95 100%);
+  color: #f8fafc !important;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.coria-attune-assign-btn:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.coria-attune-assign-btn:not(:disabled):hover {
+  filter: brightness(1.12);
+}
+
+.coria-attune-readonly-note {
+  font-size: 11px;
+  font-style: italic;
+  opacity: 0.7;
+}
+
+
+
+
+
+

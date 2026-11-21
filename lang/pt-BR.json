@@ -1,0 +1,32 @@
+{
+  "ALTARION_AITUSA": {
+    "Title": "Altarion & Aitusa",
+    "PrimaryClassBadge": "Classe Primária: Cavaleiro de Dragão (Nível {level})",
+    "SecondaryClassBadge": "Classe Secundária: Mago (Abjuração) (Nível {level})",
+    "CompanionBadge": "Companheiro Dragão: Aitusa (Tamanho: {size}, Nível {level})",
+    "SyncButton": "Sincronizar Recursos de Classe",
+    "SyncSuccess": "Recursos das fichas de Altarion e Aitusa sincronizados com sucesso!",
+    "Settings": {
+      "AltarionName": "Nome do Ator (Cavaleiro)",
+      "AltarionNameHint": "Nome exato da ficha do Cavaleiro de Dragão Altarion no FoundryVTT.",
+      "AitusaName": "Nome do Ator (Dragão)",
+      "AitusaNameHint": "Nome exato da ficha da companheira Dragão Aitusa no FoundryVTT.",
+      "AutoSync": "Sincronização Automática ao Abrir a Ficha",
+      "AutoSyncHint": "Adiciona automaticamente os recursos de classe correspondentes ao nível atual dos personagens ao abrir a ficha."
+    },
+    "Features": {
+      "ObtainingDragon": "Obter o Dragão",
+      "DragonAncestry": "Ancestralidade do Dragão (Força / INT)",
+      "FightingStyleDefense": "Estilo de Luta: Defesa",
+      "DragonCare": "Cuidado com Dragão",
+      "AncestralAwakening": "Despertar Ancestral (Arma Ancestral)",
+      "AncestralWard": "Ataque Ancestral: Proteção Ancestral",
+      "AncestralRay": "Ataque Ancestral: Rio Ancestral",
+      "AncestralShielding": "Ataque Ancestral: Escudo Ancestral",
+      "ClawAttack": "Ataque de Garra (Aitusa)",
+      "BiteAttack": "Ataque de Mordida (Aitusa - Dano de Força)",
+      "DragonFood": "Alimentação de Dragão (Pequeno: 2x Humano)",
+      "DragonFlight": "Voo de Dragão (Velocidade: 15ft)"
+    }
+  }
+}
