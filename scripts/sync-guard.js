@@ -35,8 +35,171 @@ export function isIgnoredBackupActor(actorOrName) {
   const norm = String(raw || "").trim().toLowerCase();
   if (!norm) return false;
   if (EXACT_BACKUP_ACTOR_NAMES.has(norm)) return true;
-  if (/(?:_|\s|-)(?:backup|bakcup)(?:\b|_|$)/i.test(norm)) return true;
+  if (/(?:_|\s|-|\()(?:backup|bakcup)(?:\b|_|\)|$)/i.test(norm)) return true;
   return false;
+}
+
+/**
+ * Reconcile Foundry User <-> Character assignments & Actor ownerships on the active GM client:
+ * - Completely UNLINKS all Backup sheets (`Altarion_Backup`, `Aitusa_Backup` / `Aitusa_Bakcup`,
+ *   `Parva_Backup`, `Kyrion_Backup`, `Flinn_Backup`, etc.) from ALL non-GM player users
+ *   (clears `user.character` if pointing to a Backup, sets Backup actor ownership to NONE for players).
+ * - Strictly binds each player user to their exact live character(s):
+ *   - User "Altarion" -> Primary: `Altarion Talendris`, Owner of: `Altarion Talendris` & `Aitusa`
+ *   - User "Parva"    -> Primary: `Parva`, Owner of: `Parva`
+ *   - User "Kyrion"   -> Primary: `Kyrion`, Owner of: `Kyrion`
+ *   - User "Flinn"    -> Primary: `Flinn Encantor`, Owner of: `Flinn Encantor`
+ */
+export async function reconcilePartyUserAssignments({ silent = true } = {}) {
+  if (!game?.user?.isGM || !game?.users || !game?.actors) return { changed: false };
+  const activeGM = game.users.activeGM;
+  if (activeGM && activeGM.id !== game.user.id) return { changed: false };
+
+  const OWNER = CONST.DOCUMENT_OWNERSHIP_LEVELS?.OWNER ?? 3;
+  const NONE = CONST.DOCUMENT_OWNERSHIP_LEVELS?.NONE ?? 0;
+
+  const findLiveActor = (exactNames = [], prefix = "") => {
+    const liveActors = Array.from(game.actors).filter(a => a && !isIgnoredBackupActor(a));
+    for (const exact of exactNames) {
+      const hit = liveActors.find(a => String(a.name || "").trim().toLowerCase() === exact);
+      if (hit) return hit;
+    }
+    if (prefix) {
+      return (
+        liveActors.find(a => String(a.name || "").trim().toLowerCase().startsWith(prefix)) ||
+        null
+      );
+    }
+    return null;
+  };
+
+  const findPlayerUser = (exactName) => {
+    const players = Array.from(game.users).filter(u => u && !u.isGM);
+    return (
+      players.find(u => String(u.name || "").trim().toLowerCase() === exactName) ||
+      players.find(u => String(u.name || "").trim().toLowerCase().startsWith(`${exactName} `)) ||
+      null
+    );
+  };
+
+  const altarionActor = findLiveActor(["altarion talendris", "altarion"], "altarion ");
+  const aitusaActor = findLiveActor(["aitusa"], "aitusa ");
+  const parvaActor = findLiveActor(["parva"], "parva ");
+  const kyrionActor = findLiveActor(["kyrion"], "kyrion ");
+  const flinnActor = findLiveActor(["flinn encantor", "flinn"], "flinn ");
+
+  const bindings = [
+    {
+      userKey: "altarion",
+      user: findPlayerUser("altarion"),
+      primaryActor: altarionActor,
+      ownedActors: [altarionActor, aitusaActor].filter(Boolean)
+    },
+    {
+      userKey: "parva",
+      user: findPlayerUser("parva"),
+      primaryActor: parvaActor,
+      ownedActors: [parvaActor].filter(Boolean)
+    },
+    {
+      userKey: "kyrion",
+      user: findPlayerUser("kyrion"),
+      primaryActor: kyrionActor,
+      ownedActors: [kyrionActor].filter(Boolean)
+    },
+    {
+      userKey: "flinn",
+      user: findPlayerUser("flinn"),
+      primaryActor: flinnActor,
+      ownedActors: [flinnActor].filter(Boolean)
+    }
+  ];
+
+  const nonGmUsers = Array.from(game.users).filter(u => u && !u.isGM);
+  let changesCount = 0;
+
+  // 1. Completely unlink ALL Backup actors from non-GM users (remove ownership & default owner!)
+  for (const actor of game.actors) {
+    if (!isIgnoredBackupActor(actor)) continue;
+    const curOwnership = foundry.utils.deepClone(actor.ownership || {});
+    let dirty = false;
+
+    if (Number(curOwnership.default ?? 0) > NONE) {
+      curOwnership.default = NONE;
+      dirty = true;
+    }
+    for (const u of nonGmUsers) {
+      if (u.id in curOwnership && Number(curOwnership[u.id]) !== NONE) {
+        curOwnership[u.id] = NONE;
+        dirty = true;
+      }
+    }
+    if (dirty) {
+      try {
+        await actor.update({ ownership: curOwnership });
+        changesCount++;
+      } catch (err) {
+        console.warn(`[CoriaSyncGuard] Could not unlink backup actor ${actor.name}:`, err);
+      }
+    }
+  }
+
+  // 2. Bind each of the 4 player users strictly to their real live character(s)
+  const boundUserIds = new Set();
+  for (const b of bindings) {
+    if (!b.user) continue;
+    boundUserIds.add(b.user.id);
+
+    // 2a. Ensure primary `user.character` points to their live character (never a Backup!)
+    if (b.primaryActor) {
+      const curCharId =
+        typeof b.user._source?.character === "string"
+          ? b.user._source.character
+          : b.user.character?.id || "";
+      if (curCharId !== b.primaryActor.id) {
+        try {
+          await b.user.update({ character: b.primaryActor.id });
+          changesCount++;
+        } catch (err) {
+          console.warn(`[CoriaSyncGuard] Could not assign ${b.primaryActor.name} to user ${b.user.name}:`, err);
+        }
+      }
+    }
+
+    // 2b. Ensure OWNER permission on their assigned live actor(s)
+    for (const liveActor of b.ownedActors) {
+      const curLevel = Number(liveActor.ownership?.[b.user.id] ?? -1);
+      if (curLevel !== OWNER) {
+        try {
+          await liveActor.update({ [`ownership.${b.user.id}`]: OWNER });
+          changesCount++;
+        } catch (err) {
+          console.warn(`[CoriaSyncGuard] Could not set OWNER on ${liveActor.name} for ${b.user.name}:`, err);
+        }
+      }
+    }
+  }
+
+  // 3. Safety net: if any other non-GM user's `character` still points to a Backup actor, clear it
+  for (const u of nonGmUsers) {
+    if (boundUserIds.has(u.id)) continue;
+    if (u.character && isIgnoredBackupActor(u.character)) {
+      try {
+        await u.update({ character: null });
+        changesCount++;
+      } catch (_e) {}
+    }
+  }
+
+  if (changesCount > 0) {
+    console.log(`[CoriaSyncGuard] Reconciled party user assignments & unlinked Backup actors (${changesCount} update(s)).`);
+    if (!silent) {
+      ui.notifications?.info?.(
+        `[Altarion & Aitusa] Vínculos dos jogadores atualizados e fichas Backup desvinculadas (${changesCount} ajuste(s)).`
+      );
+    }
+  }
+  return { changed: changesCount > 0, changesCount };
 }
 
 /**
@@ -73,5 +236,6 @@ export function shouldThisClientRunAutoSync(
 // Expose globally for convenience & debugging
 globalThis.CoriaSyncGuard = {
   isIgnoredBackupActor,
-  shouldThisClientRunAutoSync
+  shouldThisClientRunAutoSync,
+  reconcilePartyUserAssignments
 };

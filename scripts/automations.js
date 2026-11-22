@@ -203,7 +203,12 @@ export class AltarionAutomationManager {
   }
 
   static getAltarionActor() {
-    return game.actors?.find(a => this.isAltarion(a)) || null;
+    const candidates = (game.actors ? Array.from(game.actors) : []).filter(a => this.isAltarion(a));
+    return (
+      candidates.find(a => String(a.name || "").trim().toLowerCase() === "altarion talendris") ||
+      candidates[0] ||
+      null
+    );
   }
 
   static getAitusaActor() {
@@ -219,7 +224,12 @@ export class AltarionAutomationManager {
   }
 
   static getFlinnActor() {
-    return game.actors?.find(a => this.isFlinn(a)) || null;
+    const candidates = (game.actors ? Array.from(game.actors) : []).filter(a => this.isFlinn(a));
+    return (
+      candidates.find(a => String(a.name || "").trim().toLowerCase() === "flinn encantor") ||
+      candidates[0] ||
+      null
+    );
   }
 
   static getRiderLevel(altarion = null) {
@@ -1421,6 +1431,8 @@ export class AltarionAutomationManager {
             itemNameLower === "spirit shroud" ||
             itemNameLower === "spiritual weapon" ||
             itemNameLower === "aid" ||
+            itemNameLower === "ajuda" ||
+            Boolean(item.flags?.["altarion-aitusa"]?.isAutomatedAidSpell) ||
             itemNameLower === "warding bond" ||
             itemNameLower === "blur" ||
             itemNameLower === "mirror image" ||
@@ -1455,6 +1467,13 @@ export class AltarionAutomationManager {
           if (actor.isOwner) {
             if (itemNameLower === "spiritual weapon") {
               await globalThis.FlinnManager?.ensureSpiritualWeaponConfigured?.(actor);
+            } else if (
+              (itemNameLower === "aid" ||
+                itemNameLower === "ajuda" ||
+                Boolean(item.flags?.["altarion-aitusa"]?.isAutomatedAidSpell)) &&
+              this.isFlinn(actor)
+            ) {
+              await globalThis.FlinnManager?.ensureAidSpellConfigured?.(actor);
             } else if (itemNameLower === "tentacle of the deeps") {
               await globalThis.ParvaManager?.ensureTentacleOfTheDeepsConfigured?.(actor);
             } else if (itemNameLower.includes("abjurer's echo")) {
@@ -2005,7 +2024,12 @@ export class AltarionAutomationManager {
       }
 
       // 0d. Aid Spell Automation (+5 * (Slot Level - 1) Max HP & Current HP for 8 hours)
-      if (item.type === "spell" && itemNameLower === "aid") {
+      if (
+        item.type === "spell" &&
+        (itemNameLower === "aid" ||
+          itemNameLower === "ajuda" ||
+          Boolean(item.flags?.["altarion-aitusa"]?.isAutomatedAidSpell))
+      ) {
         await this.handleAidSpellCast(actor, item, usageConfig, results, activity);
       }
 
@@ -4568,72 +4592,22 @@ export class AltarionAutomationManager {
     }
 
     for (const targetActor of recipients) {
-      if (!targetActor.isOwner) continue;
-
-      // Check if target already had an Aid buff so we enforce "Combining Magical Effects":
-      // - If a higher-level Aid is already active (prevBonus > aidHpBonus), keep the higher-level Aid and do not add extra HP.
-      // - If an equal or higher-level Aid is cast (aidHpBonus >= prevBonus), upgrade the effect and heal only the net difference (aidHpBonus - prevBonus).
-      const prevAidEff = targetActor.effects?.find(
-        e =>
-          !e.disabled &&
-          (e.flags?.["altarion-aitusa"]?.isAidBuffEffect ||
-            e.statuses?.has?.("aid-buff") ||
-            e.flags?.["altarion-aitusa"]?.statusId === "aid-buff")
-      );
-      const prevBonus = Number(prevAidEff?.flags?.["altarion-aitusa"]?.aidHpBonus || 0);
-
-      await this.applyOrUpdateStatusEffect(targetActor, {
-        statusId: "aid-buff",
-        name: `Aid (+${aidHpBonus} Max HP)`,
+      const aidPayload = {
+        targetActorId: targetActor.id,
+        targetUuid: targetActor.uuid,
+        aidHpBonus,
+        slotLevel,
         img: item.img || "icons/magic/life/heart-cross-strong-flame-blue.webp",
-        description: `<p><strong>Aid (Slot Level ${slotLevel}):</strong> Your hit point maximum and current hit points increase by <strong>+${aidHpBonus}</strong> for 8 hours.</p>`,
-        changes: [
-          {
-            key: "system.attributes.hp.tempmax",
-            mode: CONST.ACTIVE_EFFECT_MODES.ADD,
-            value: `+${aidHpBonus}`,
-            priority: 20
-          }
-        ],
-        durationSeconds: 28800,
-        durationRounds: 4800,
-        extraFlags: {
-          isAidBuffEffect: true,
-          potency: aidHpBonus,
-          aidHpBonus,
-          slotLevel,
-          casterId: actor.id
-        }
-      });
-
-      const activeBonus = Math.max(prevBonus, aidHpBonus);
-      const curHp = Number(targetActor.system?.attributes?.hp?.value ?? 0);
-      const baseMax = Number(targetActor.system?.attributes?.hp?.max ?? curHp);
-      const netGain = Math.max(0, aidHpBonus - prevBonus);
-      const effectiveMax = baseMax + activeBonus;
-      const nextHp = Math.min(effectiveMax, curHp + netGain);
-
-      if (nextHp !== curHp) {
-        await targetActor.update(
-          { "system.attributes.hp.value": nextHp },
-          { altarionBypassWard: true, wardingBondTransfer: true, altarionTetherTransfer: true }
-        );
-      }
-
-      // Ensure all canvas tokens of this recipient have Bar 1 tracking `attributes.hp` and redraw their HP bar
-      // so the Aid temporary Max HP indicator appears on ALL affected tokens (Altarion, Aitusa, Kyrion, NPCs, etc.)
-      if (canvas?.ready) {
-        for (const tok of canvas.tokens?.placeables || []) {
-          if (tok?.actor?.id !== targetActor.id) continue;
-          try {
-            if (tok.document?.isOwner && tok.document.bar1?.attribute !== "attributes.hp") {
-              await tok.document.update({ "bar1.attribute": "attributes.hp" });
-            }
-            tok.drawBars?.();
-          } catch (_e) {
-            // ignore
-          }
-        }
+        casterId: actor.id
+      };
+      if (targetActor.isOwner) {
+        await this._applyAidBuffToTargetActor(targetActor, aidPayload);
+      } else if (game.socket && game.users?.activeGM) {
+        // Relay to the active GM so player-cast Aid cleanly buffs non-owned party allies!
+        game.socket.emit("module.altarion-aitusa", {
+          type: "coriaApplyAidBuff",
+          params: aidPayload
+        });
       }
     }
 
@@ -4644,17 +4618,98 @@ export class AltarionAutomationManager {
           <span>Aid (Slot Level ${slotLevel}) — +${aidHpBonus} Max &amp; Current HP</span>
         </div>
         <div class="altarion-ward-body">
-          <strong>${recipients.map(r => r.name).join(", ")}</strong> gained <strong>+${aidHpBonus} Maximum HP</strong> and <strong>+${aidHpBonus} Current HP</strong> for 8 hours!
+          <strong>${recipients.map(r => foundry.utils.escapeHTML(r.name)).join(", ")}</strong> gained <strong>+${aidHpBonus} Maximum HP</strong> and <strong>+${aidHpBonus} Current HP</strong> for 8 hours!
         </div>
       </div>
     `;
     await ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor }),
-      content
+      content,
+      flags: {
+        "altarion-aitusa": {
+          isAidCard: true,
+          chatChannel: "combat"
+        }
+      }
     });
     ui.notifications.info(
       `[Aid — Level ${slotLevel}] Granted +${aidHpBonus} Max HP and +${aidHpBonus} Current HP to ${recipients.map(r => r.name).join(", ")}!`
     );
+  }
+
+  /**
+   * Apply the `Aid (+X Max HP)` status effect, net Current HP gain, and token Bar 1 update on a single recipient.
+   * Invoked directly if the local client owns `targetActor`, or on the active GM client via `coriaApplyAidBuff` socket relay.
+   */
+  static async _applyAidBuffToTargetActor(
+    targetActor,
+    { aidHpBonus = 5, slotLevel = 2, img = "icons/magic/life/heart-cross-strong-flame-blue.webp", casterId = "" } = {}
+  ) {
+    if (!targetActor || !targetActor.isOwner) return;
+
+    // Enforce "Combining Magical Effects":
+    // - If a higher-level Aid is already active (prevBonus > aidHpBonus), keep the higher-level Aid and do not add extra HP.
+    // - If an equal or higher-level Aid is cast (aidHpBonus >= prevBonus), upgrade the effect and heal only the net difference.
+    const prevAidEff = targetActor.effects?.find(
+      e =>
+        !e.disabled &&
+        (e.flags?.["altarion-aitusa"]?.isAidBuffEffect ||
+          e.statuses?.has?.("aid-buff") ||
+          e.flags?.["altarion-aitusa"]?.statusId === "aid-buff")
+    );
+    const prevBonus = Number(prevAidEff?.flags?.["altarion-aitusa"]?.aidHpBonus || 0);
+
+    await this.applyOrUpdateStatusEffect(targetActor, {
+      statusId: "aid-buff",
+      name: `Aid (+${aidHpBonus} Max HP)`,
+      img: img || "icons/magic/life/heart-cross-strong-flame-blue.webp",
+      description: `<p><strong>Aid (Slot Level ${slotLevel}):</strong> Your hit point maximum and current hit points increase by <strong>+${aidHpBonus}</strong> for 8 hours.</p>`,
+      changes: [
+        {
+          key: "system.attributes.hp.tempmax",
+          mode: CONST.ACTIVE_EFFECT_MODES.ADD,
+          value: `+${aidHpBonus}`,
+          priority: 20
+        }
+      ],
+      durationSeconds: 28800,
+      durationRounds: 4800,
+      extraFlags: {
+        isAidBuffEffect: true,
+        potency: aidHpBonus,
+        aidHpBonus,
+        slotLevel,
+        casterId
+      }
+    });
+
+    const activeBonus = Math.max(prevBonus, aidHpBonus);
+    const curHp = Number(targetActor.system?.attributes?.hp?.value ?? 0);
+    const baseMax = Number(targetActor.system?.attributes?.hp?.max ?? curHp);
+    const netGain = Math.max(0, aidHpBonus - prevBonus);
+    const effectiveMax = baseMax + activeBonus;
+    const nextHp = Math.min(effectiveMax, curHp + netGain);
+
+    if (nextHp !== curHp) {
+      await targetActor.update(
+        { "system.attributes.hp.value": nextHp },
+        { altarionBypassWard: true, wardingBondTransfer: true, altarionTetherTransfer: true }
+      );
+    }
+
+    if (canvas?.ready) {
+      for (const tok of canvas.tokens?.placeables || []) {
+        if (tok?.actor?.id !== targetActor.id) continue;
+        try {
+          if (tok.document?.isOwner && tok.document.bar1?.attribute !== "attributes.hp") {
+            await tok.document.update({ "bar1.attribute": "attributes.hp" });
+          }
+          tok.drawBars?.();
+        } catch (_e) {
+          // ignore
+        }
+      }
+    }
   }
 
   static async handleSpiritShroudSpellCast(actor, item, usageConfig, results, activity) {
@@ -7783,6 +7838,32 @@ export class AltarionAutomationManager {
             await this._gmApplySummonAttackEffectPayload(payload.params || {});
           } else if (payload?.type === "coriaUndoSummonAttackEffect") {
             await this._gmUndoSummonAttackEffectPayload(payload.params || {});
+          } else if (payload?.type === "coriaApplyAidBuff") {
+            const p = payload.params || {};
+            const targetActor = await this.resolveActorFromUuidOrId?.(p.targetUuid, p.targetActorId);
+            if (targetActor) {
+              await this._applyAidBuffToTargetActor(targetActor, p);
+            }
+          } else if (payload?.type === "coriaApplyHeroismBuff") {
+            const p = payload.params || {};
+            const targetActor = await this.resolveActorFromUuidOrId?.(p.targetUuid, p.targetActorId);
+            if (targetActor) {
+              await this._applyHeroismBuffToTargetActor(targetActor, p);
+            }
+          } else if (payload?.type === "coriaApplyTempHp") {
+            const p = payload.params || {};
+            const targetActor = await this.resolveActorFromUuidOrId?.(p.targetUuid, p.targetActorId);
+            const amt = Math.max(0, Number(p.amount || 0));
+            if (targetActor?.isOwner && amt > 0) {
+              if (typeof targetActor.applyTempHP === "function") {
+                await targetActor.applyTempHP(amt);
+              } else if (amt > Number(targetActor.system?.attributes?.hp?.temp ?? 0)) {
+                await targetActor.update(
+                  { "system.attributes.hp.temp": amt },
+                  { altarionBypassWard: true, coriaDamageReactionInternal: true, coriaDarkVitalityBypass: true }
+                );
+              }
+            }
           } else if (payload?.type === "coriaUpdateSummonCardMessages") {
             const p = payload.params || {};
             const cardMsg = p.cardMsgId ? game.messages?.get(p.cardMsgId) : null;
@@ -10305,28 +10386,22 @@ export class AltarionAutomationManager {
     const casterIntMod = Math.max(0, Number(actor.system?.abilities?.int?.mod ?? 0));
 
     for (const targetActor of recipients) {
-      await this.applyOrUpdateStatusEffect(targetActor, {
-        statusId: "heroism",
-        name: `Heroism (+${casterIntMod} PV Temp./Turno)`,
-        img: item.img || "icons/magic/holy/barrier-shield-winged-cross.webp",
-        description: `<p><strong>Heroism (1 Minuto, Concentração):</strong> Conjurado por <strong>${foundry.utils.escapeHTML(actor.name)}</strong>. A criatura é imune à condição <strong>Amedrontado (Frightened)</strong> e recebe automaticamente <strong>${casterIntMod} PV Temporários</strong> (Modificador de Inteligência do conjurador) no <strong>início de cada um dos seus turnos</strong> enquanto este status estiver ativo.</p>`,
-        changes: [
-          {
-            key: "system.traits.ci.value",
-            mode: CONST.ACTIVE_EFFECT_MODES.ADD,
-            value: "frightened",
-            priority: 20
-          }
-        ],
-        durationSeconds: 60,
-        durationRounds: 10,
-        extraFlags: {
-          isHeroismEffect: true,
-          casterActorId: actor.id,
-          casterActorName: actor.name,
-          casterIntMod
-        }
-      });
+      const heroismPayload = {
+        targetActorId: targetActor.id,
+        targetUuid: targetActor.uuid,
+        casterActorId: actor.id,
+        casterActorName: actor.name,
+        casterIntMod,
+        img: item.img || "icons/magic/holy/barrier-shield-winged-cross.webp"
+      };
+      if (targetActor.isOwner) {
+        await this._applyHeroismBuffToTargetActor(targetActor, heroismPayload);
+      } else if (game.socket && game.users?.activeGM) {
+        game.socket.emit("module.altarion-aitusa", {
+          type: "coriaApplyHeroismBuff",
+          params: heroismPayload
+        });
+      }
     }
 
     await this.sendMinimalistFeatureCard(actor, {
@@ -10339,6 +10414,35 @@ export class AltarionAutomationManager {
       flags: {
         isHeroismCard: true,
         chatChannel: "combat"
+      }
+    });
+  }
+
+  static async _applyHeroismBuffToTargetActor(
+    targetActor,
+    { casterActorId = "", casterActorName = "Conjurador", casterIntMod = 0, img = "icons/magic/holy/barrier-shield-winged-cross.webp" } = {}
+  ) {
+    if (!targetActor || !targetActor.isOwner) return;
+    await this.applyOrUpdateStatusEffect(targetActor, {
+      statusId: "heroism",
+      name: `Heroism (+${casterIntMod} PV Temp./Turno)`,
+      img: img || "icons/magic/holy/barrier-shield-winged-cross.webp",
+      description: `<p><strong>Heroism (1 Minuto, Concentração):</strong> Conjurado por <strong>${foundry.utils.escapeHTML(casterActorName)}</strong>. A criatura é imune à condição <strong>Amedrontado (Frightened)</strong> e recebe automaticamente <strong>${casterIntMod} PV Temporários</strong> (Modificador de Inteligência do conjurador) no <strong>início de cada um dos seus turnos</strong> enquanto este status estiver ativo.</p>`,
+      changes: [
+        {
+          key: "system.traits.ci.value",
+          mode: CONST.ACTIVE_EFFECT_MODES.ADD,
+          value: "frightened",
+          priority: 20
+        }
+      ],
+      durationSeconds: 60,
+      durationRounds: 10,
+      extraFlags: {
+        isHeroismEffect: true,
+        casterActorId,
+        casterActorName,
+        casterIntMod
       }
     });
   }

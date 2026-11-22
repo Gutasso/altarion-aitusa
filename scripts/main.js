@@ -14,7 +14,7 @@ import { PartyJsonSyncManager } from "./party-json-sync.js";
 import { CoriaAttunementSlots } from "./attunement-slots.js";
 import { CoriaChatTabs } from "./chat-tabs.js";
 import { CoriaResonantArcana } from "./resonant-arcana.js";
-import { isIgnoredBackupActor, shouldThisClientRunAutoSync } from "./sync-guard.js";
+import { isIgnoredBackupActor, shouldThisClientRunAutoSync, reconcilePartyUserAssignments } from "./sync-guard.js";
 
 function setupCoriaHubFloatingButtonGuard() {
   if (globalThis._coriaHubFloatingGuardBound) return;
@@ -339,6 +339,11 @@ Hooks.once("ready", async () => {
   // Ensure SecondaryClassManager is initialized and recalculate actor data safely
   SecondaryClassManager.init();
 
+  // Reconcile Foundry User <-> Live Character bindings & completely unlink Backup actors (GM only)
+  if (game.user?.isGM) {
+    await reconcilePartyUserAssignments({ silent: true });
+  }
+
   // Seed 2014 School of Abjuration subclass and features into Compendium pack
   await FeatureSyncManager.ensureCompendiumContent();
 
@@ -366,7 +371,8 @@ Hooks.once("ready", async () => {
       ...(mod.api || {}),
       syncPartyFromJson: (opts = {}) => PartyJsonSyncManager.syncAllPartyActors(opts),
       syncActorFromJson: (actor, opts = {}) => PartyJsonSyncManager.syncActorFromJson(actor, opts),
-      openAttunementSlots: (actor) => CoriaAttunementSlots.openAttunementSlotsDialog(actor)
+      openAttunementSlots: (actor) => CoriaAttunementSlots.openAttunementSlotsDialog(actor),
+      reconcilePartyUserAssignments: (opts = { silent: false }) => reconcilePartyUserAssignments(opts)
     };
   }
 

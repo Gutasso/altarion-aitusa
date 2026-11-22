@@ -3625,13 +3625,24 @@ export class CoriaRollLedger {
         });
       }
     } else {
-      if (typeof target.applyTempHP === "function") {
-        await target.applyTempHP(rolledTempHp);
-      } else if (rolledTempHp > prevTemp) {
-        await target.update(
-          { "system.attributes.hp.temp": rolledTempHp },
-          { altarionBypassWard: true, coriaDamageReactionInternal: true, coriaDarkVitalityBypass: true }
-        );
+      if (target.isOwner) {
+        if (typeof target.applyTempHP === "function") {
+          await target.applyTempHP(rolledTempHp);
+        } else if (rolledTempHp > prevTemp) {
+          await target.update(
+            { "system.attributes.hp.temp": rolledTempHp },
+            { altarionBypassWard: true, coriaDamageReactionInternal: true, coriaDarkVitalityBypass: true }
+          );
+        }
+      } else if (game.users?.activeGM && game.socket) {
+        game.socket.emit(`module.${MODULE_ID}`, {
+          type: "coriaApplyTempHp",
+          params: {
+            targetActorId: target.id,
+            targetUuid: target.uuid || "",
+            amount: rolledTempHp
+          }
+        });
       }
     }
 

@@ -214,6 +214,7 @@ export class CoriaChatTabs {
       modFlags.isMirrorImageCard ||
       modFlags.isBlurCard ||
       modFlags.isHeroismCard ||
+      modFlags.isAidCard ||
       modFlags.isPortentBlindRoll ||
       modFlags.isD20ReactionCard ||
       modFlags.isPathsOfDestinyCard ||

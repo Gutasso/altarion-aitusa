@@ -293,6 +293,7 @@ export class FlinnManager {
         if (flinn && shouldThisClientRunAutoSync(flinn)) {
           await this.ensureSpiritualWeaponConfigured(flinn);
           await this.ensureHarnessDivinePowerConfigured(flinn);
+          await this.ensureAidSpellConfigured(flinn);
         }
       } catch (_e) {
         // ignore
@@ -308,31 +309,87 @@ export class FlinnManager {
   }
 
   static getFlinnActor() {
-    return game.actors?.find(a => this.isFlinn(a)) || null;
+    const candidates = (game.actors ? Array.from(game.actors) : []).filter(a => this.isFlinn(a));
+    return (
+      candidates.find(a => String(a.name || "").trim().toLowerCase() === "flinn encantor") ||
+      candidates[0] ||
+      null
+    );
   }
 
   /**
    * Check whether the current connected user (`game.user`) is the GM or the player who controls `actor`.
    * Used to restrict scene widgets and chat reaction buttons to ONLY the GM and the involved player(s).
+   * Explicitly ignores Backup actors (`*_Backup` / `*_Bakcup`) even if a user's `character` still pointed to one!
    */
   static isUserControllerOf(actor) {
     if (!actor || !game.user) return false;
+    if (isIgnoredBackupActor(actor)) return false;
     if (game.user.isGM) return true;
-    const assignedChar = game.user.character;
+
+    const actorLower = String(actor.name || "").trim().toLowerCase();
+
+    // 1. Check Foundry user's assigned character (ignoring any Backup sheet assignment!)
+    const rawAssigned = game.user.character;
+    const assignedChar = rawAssigned && !isIgnoredBackupActor(rawAssigned) ? rawAssigned : null;
     if (assignedChar) {
       if (assignedChar.id === actor.id) return true;
-      // Allow Altarion's controller to also control companion Aitusa
+      // Allow Altarion's controller to control BOTH Altarion (Talendris) & companion Aitusa
       const assignedLower = String(assignedChar.name || "").trim().toLowerCase();
-      const actorLower = String(actor.name || "").trim().toLowerCase();
-      if (
-        (assignedLower === "altarion" || assignedLower.startsWith("altarion ")) &&
-        (actorLower === "aitusa" || actorLower.startsWith("aitusa "))
-      ) {
+      const assignedIsAltarionPair =
+        assignedLower === "altarion" ||
+        assignedLower.startsWith("altarion ") ||
+        assignedLower === "aitusa" ||
+        assignedLower.startsWith("aitusa ");
+      const actorIsAltarionPair =
+        actorLower === "altarion" ||
+        actorLower.startsWith("altarion ") ||
+        actorLower === "aitusa" ||
+        actorLower.startsWith("aitusa ");
+      if (assignedIsAltarionPair && actorIsAltarionPair) {
         return true;
       }
-      return false;
     }
-    return Boolean(actor.isOwner);
+
+    // 2. Match explicit Foundry User Name -> Live Character binding
+    //    (guarantees player users "Altarion", "Parva", "Kyrion", "Flinn" ALWAYS see their buttons even if user.character was stale!)
+    const userLower = String(game.user.name || "").trim().toLowerCase();
+    const isAltarionUser = userLower === "altarion" || userLower.startsWith("altarion ");
+    const isParvaUser = userLower === "parva" || userLower.startsWith("parva ");
+    const isKyrionUser = userLower === "kyrion" || userLower.startsWith("kyrion ");
+    const isFlinnUser = userLower === "flinn" || userLower.startsWith("flinn ");
+
+    if (
+      isAltarionUser &&
+      (actorLower === "altarion" ||
+        actorLower.startsWith("altarion ") ||
+        actorLower === "aitusa" ||
+        actorLower.startsWith("aitusa "))
+    ) {
+      return true;
+    }
+    if (isParvaUser && (actorLower === "parva" || actorLower.startsWith("parva "))) {
+      return true;
+    }
+    if (isKyrionUser && (actorLower === "kyrion" || actorLower.startsWith("kyrion "))) {
+      return true;
+    }
+    if (isFlinnUser && (actorLower === "flinn" || actorLower.startsWith("flinn "))) {
+      return true;
+    }
+
+    // 3. Direct per-user OWNER permission on the actor (not merely world default)
+    const directPerm = Number(actor.ownership?.[game.user.id] ?? -1);
+    if (directPerm >= (CONST.DOCUMENT_OWNERSHIP_LEVELS?.OWNER ?? 3)) {
+      return true;
+    }
+
+    // 4. Fallback when user has no live assigned character at all
+    if (!assignedChar) {
+      return Boolean(actor.isOwner);
+    }
+
+    return false;
   }
 
   static isUserFlinnController(flinn = null) {
@@ -2165,6 +2222,7 @@ export class FlinnManager {
       if (qualifiesForSilveryBarbs) {
         for (const candidateActor of game.actors || []) {
           if (candidateActor.type !== "character") continue;
+          if (isIgnoredBackupActor(candidateActor)) continue;
           if (!this.isUserControllerOf(candidateActor)) continue;
 
           const sbInfo = this.getReadyReactionSpellInfo(candidateActor, "silvery barbs");
@@ -3680,6 +3738,7 @@ export class FlinnManager {
     }
 
     await this.ensureSpiritualWeaponConfigured(actor);
+    await this.ensureAidSpellConfigured(actor);
   }
 
   static configureSpiritualWeaponDoc(doc) {
@@ -3776,6 +3835,198 @@ export class FlinnManager {
       [`flags.${MODULE_ID}.syncSchemaVersion`]: 4
     });
     return item;
+  }
+
+  /**
+   * Build / normalize our automated `Aid` spell document (2nd-level Abjuration, Cleric / INT on Flinn)
+   * with a single clean 16-char `utility` activity (`aidCastUtil00001`) and ZERO healing-roll activities
+   * or raw compendium ActiveEffects, so casting Aid ALWAYS triggers our automated 3-target dialog & +Max/Current HP buff.
+   */
+  static configureAidSpellDoc(doc = null, { preservePrepared = null } = {}) {
+    const base = doc ? foundry.utils.deepClone(doc) : { name: "Aid", type: "spell", system: {}, flags: {} };
+    base.name = "Aid";
+    base.type = "spell";
+    base.img =
+      base.img && !String(base.img).includes("mystery-man")
+        ? base.img
+        : "icons/magic/life/heart-cross-strong-flame-blue.webp";
+    base.effects = [];
+    base.system = base.system || {};
+    base.system.level = 2;
+    base.system.school = "abj";
+    base.system.method = "spell";
+    base.system.ability = "int";
+    base.system.sourceItem = "class:cleric";
+    if (preservePrepared !== null && preservePrepared !== undefined) {
+      base.system.prepared = Number(preservePrepared);
+    }
+    base.system.properties = ["vocal", "somatic", "material"];
+    base.system.materials = {
+      value: "a tiny strip of white cloth",
+      consumed: false,
+      cost: 0,
+      supply: 0
+    };
+    base.system.activation = { type: "action", value: 1, condition: "" };
+    base.system.duration = { value: "8", units: "hour", concentration: false };
+    base.system.range = { value: 30, units: "ft", special: "" };
+    base.system.target = {
+      template: { count: "", contiguous: false, type: "", size: "", width: "", height: "", units: "ft" },
+      affects: { count: "3", type: "creature", choice: false, special: "" }
+    };
+    if (!String(base.system.description?.value || "").trim()) {
+      base.system.description = {
+        value:
+          "<p>Your spell bolsters your allies with toughness and resolve. Choose up to three creatures within range. Each target's hit point maximum and current hit points increase by 5 for the duration (8 hours).</p><p><strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, a target's hit points increase by an additional 5 for each slot level above 2nd.</p>"
+      };
+    }
+    base.system.activities = {
+      aidCastUtil00001: {
+        _id: "aidCastUtil00001",
+        type: "utility",
+        name: "Cast Aid (+5 Max & Current HP, 8 Hours)",
+        activation: {
+          type: "action",
+          value: 1,
+          condition: "",
+          override: false
+        },
+        consumption: {
+          targets: [],
+          scaling: { allowed: false, max: "" },
+          spellSlot: true
+        },
+        description: {
+          chatFlavor:
+            "Choose up to 3 creatures within 30 feet to gain +5 Maximum HP and +5 Current HP (+5 per slot level above 2nd) for 8 hours."
+        },
+        duration: {
+          concentration: false,
+          value: "8",
+          units: "hour",
+          special: "",
+          override: false
+        },
+        effects: [],
+        range: {
+          value: 30,
+          units: "ft",
+          special: "",
+          override: false
+        },
+        target: {
+          template: { count: "", contiguous: false, type: "", size: "", width: "", height: "", units: "ft" },
+          affects: { count: "3", type: "creature", choice: false, special: "" },
+          prompt: false,
+          override: false
+        },
+        uses: { spent: 0, max: "", recovery: [] },
+        roll: { prompt: false, visible: false, name: "", formula: "" },
+        sort: 0
+      }
+    };
+    base.flags = foundry.utils.mergeObject(base.flags || {}, {
+      [MODULE_ID]: {
+        isAutomatedAidSpell: true,
+        aidSchemaVersion: 2,
+        flinnSpellOrigin: "cleric",
+        isClericSpellListImport: true,
+        isSecondaryClassItem: true
+      }
+    });
+    return base;
+  }
+
+  /**
+   * Inspect Flinn's sheet for any `Aid` (or `Ajuda`) spell. If it differs from our automated version
+   * (e.g. still has a legacy `heal` activity, raw compendium ActiveEffects, or older schema),
+   * replace its activities/effects/configuration in-place (preserving Prepared state) so Aid automation works cleanly.
+   */
+  static async ensureAidSpellConfigured(actor) {
+    if (!actor || !actor.isOwner || isIgnoredBackupActor(actor)) return null;
+    const aidMatches = actor.items.filter(i => {
+      if (i.type !== "spell") return false;
+      const n = String(i.name || "").trim().toLowerCase();
+      return (
+        Boolean(i.flags?.[MODULE_ID]?.isAutomatedAidSpell) ||
+        n === "aid" ||
+        n === "ajuda" ||
+        n.startsWith("aid (") ||
+        n.startsWith("aid -")
+      );
+    });
+    if (aidMatches.length === 0) return null;
+
+    // If duplicates exist, keep the prepared one (or first) and remove extras
+    aidMatches.sort((a, b) => Number(b.system?.prepared || 0) - Number(a.system?.prepared || 0));
+    const primaryItem = aidMatches[0];
+    if (aidMatches.length > 1) {
+      await actor.deleteEmbeddedDocuments(
+        "Item",
+        aidMatches.slice(1).map(i => i.id)
+      );
+    }
+
+    const rawObj = primaryItem.toObject();
+    const rawActs = rawObj.system?.activities || {};
+    const actKeys = Object.keys(rawActs);
+    const hasOnlyAutomatedUtility =
+      actKeys.length === 1 &&
+      actKeys[0] === "aidCastUtil00001" &&
+      rawActs.aidCastUtil00001?.type === "utility";
+    const hasRawEffects = (primaryItem.effects?.size || 0) > 0;
+    const isAlreadyClean =
+      primaryItem.name === "Aid" &&
+      Boolean(primaryItem.flags?.[MODULE_ID]?.isAutomatedAidSpell) &&
+      Number(primaryItem.flags?.[MODULE_ID]?.aidSchemaVersion || 0) >= 2 &&
+      hasOnlyAutomatedUtility &&
+      !hasRawEffects &&
+      primaryItem.system?.ability === "int" &&
+      primaryItem.system?.sourceItem === "class:cleric";
+
+    if (isAlreadyClean) return primaryItem;
+
+    // Delete any raw compendium ActiveEffects embedded on the Aid spell item
+    if (hasRawEffects) {
+      const rawEffIds = Array.from(primaryItem.effects || []).map(e => e.id).filter(Boolean);
+      if (rawEffIds.length > 0) {
+        await primaryItem.deleteEmbeddedDocuments("ActiveEffect", rawEffIds);
+      }
+    }
+
+    const preservedPrepared = Number(primaryItem.system?.prepared ?? 0);
+    const stub = this.configureAidSpellDoc(rawObj, { preservePrepared: preservedPrepared });
+    const actPatch = foundry.utils.deepClone(stub.system.activities);
+    for (const oldKey of actKeys) {
+      if (!(oldKey in actPatch)) {
+        actPatch[`-=${oldKey}`] = null;
+      }
+    }
+
+    await primaryItem.update({
+      name: stub.name,
+      img: stub.img,
+      "system.level": stub.system.level,
+      "system.school": stub.system.school,
+      "system.method": stub.system.method,
+      "system.ability": stub.system.ability,
+      "system.sourceItem": stub.system.sourceItem,
+      "system.prepared": preservedPrepared,
+      "system.properties": stub.system.properties,
+      "system.materials": stub.system.materials,
+      "system.activation": stub.system.activation,
+      "system.duration": stub.system.duration,
+      "system.range": stub.system.range,
+      "system.target": stub.system.target,
+      "system.description.value": stub.system.description.value,
+      "system.activities": actPatch,
+      [`flags.${MODULE_ID}.isAutomatedAidSpell`]: true,
+      [`flags.${MODULE_ID}.aidSchemaVersion`]: 2,
+      [`flags.${MODULE_ID}.flinnSpellOrigin`]: "cleric",
+      [`flags.${MODULE_ID}.isClericSpellListImport`]: true,
+      [`flags.${MODULE_ID}.isSecondaryClassItem`]: true
+    });
+    return primaryItem;
   }
 
   /**
