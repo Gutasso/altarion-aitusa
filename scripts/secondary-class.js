@@ -7,6 +7,8 @@
  * - Secondary class levels DO count toward Class/Subclass Features and Spellcasting Slot Progression (`_prepareSpellcasting`).
  */
 
+import { isIgnoredBackupActor } from "./sync-guard.js";
+
 export class SecondaryClassManager {
   static _initialized = false;
 
@@ -99,7 +101,7 @@ export class SecondaryClassManager {
    * @returns {boolean}
    */
   static isAitusa(actor) {
-    if (!actor) return false;
+    if (!actor || isIgnoredBackupActor(actor)) return false;
     let targetName = "Aitusa";
     try {
       if (game?.settings?.settings?.has("altarion-aitusa.aitusaName")) {
@@ -151,7 +153,7 @@ export class SecondaryClassManager {
    * @returns {boolean}
    */
   static isAltarion(actor) {
-    if (!actor || actor.type !== "character") return false;
+    if (!actor || actor.type !== "character" || isIgnoredBackupActor(actor)) return false;
     let targetName = "Altarion";
     try {
       if (game?.settings?.settings?.has("altarion-aitusa.altarionName")) {

@@ -13,6 +13,7 @@
  */
 
 import { createV2Dialog, CoriaHeaderColorManager } from "./dialog-v2.js";
+import { isIgnoredBackupActor, shouldThisClientRunAutoSync } from "./sync-guard.js";
 
 const MODULE_ID = "altarion-aitusa";
 
@@ -79,15 +80,16 @@ export class CoriaAttunementSlots {
       }
     },
     flinn: {
-      img: "modules/altarion-aitusa/party_idle/flinn-idle.png",
+      img: "modules/altarion-aitusa/party_idle/flinn-idle-v2.png",
+      isSmallStature: true,
       anchors: {
-        head: { x: 33, y: 9 },
-        cloak: { x: 34, y: 26 },
-        hands: { x: 16, y: 51 },
-        feet: { x: 32, y: 91 },
-        neck: { x: 52, y: 21 },
-        armor: { x: 53, y: 33 },
-        belt: { x: 51, y: 43 }
+        head: { x: 32, y: 13 },
+        cloak: { x: 26, y: 31 },
+        hands: { x: 11, y: 56 },
+        feet: { x: 31, y: 90 },
+        neck: { x: 47, y: 26 },
+        armor: { x: 49, y: 40 },
+        belt: { x: 48, y: 52 }
       }
     },
     parva: {
@@ -131,6 +133,12 @@ export class CoriaAttunementSlots {
   }
 
   static getIdleProfileForActor(actor) {
+    if (!actor || isIgnoredBackupActor(actor)) {
+      return {
+        img: actor?.img || "icons/svg/mystery-man.svg",
+        anchors: this.PARTY_IDLE_PROFILES.altarion.anchors
+      };
+    }
     const n = String(actor?.name || "").trim().toLowerCase();
     if (n === "aitusa" || n.startsWith("aitusa ")) return this.PARTY_IDLE_PROFILES.aitusa;
     if (n === "altarion" || n === "altarion talendris" || n.startsWith("altarion ")) return this.PARTY_IDLE_PROFILES.altarion;
@@ -257,7 +265,7 @@ export class CoriaAttunementSlots {
   }
 
   static async syncActorAttunementSlots(actor) {
-    if (!actor || actor.type !== "character" || !actor.isOwner) return;
+    if (!actor || actor.type !== "character" || !actor.isOwner || isIgnoredBackupActor(actor)) return;
 
     const totalSlots = this.getTotalSlotCount();
     const curMax = Number(actor.system?.attributes?.attunement?.max ?? 3);
@@ -687,8 +695,9 @@ export class CoriaAttunementSlots {
 
   static registerHooks() {
     Hooks.once("ready", async () => {
+      if (!shouldThisClientRunAutoSync(null)) return;
       for (const actor of game.actors || []) {
-        if (actor.type === "character" && actor.isOwner) {
+        if (actor.type === "character" && actor.isOwner && !isIgnoredBackupActor(actor)) {
           await this.syncActorAttunementSlots(actor);
         }
       }
@@ -698,7 +707,7 @@ export class CoriaAttunementSlots {
       if (game.user?.id !== userId) return;
       if (this._internalAttuneBypass.has(item.id)) return;
       const actor = item?.parent;
-      if (!actor || actor.documentName !== "Actor" || actor.type !== "character") return;
+      if (!actor || actor.documentName !== "Actor" || actor.type !== "character" || isIgnoredBackupActor(actor)) return;
       if (!foundry.utils.hasProperty(changed, "system.attuned")) return;
 
       const nextAttuned = Boolean(foundry.utils.getProperty(changed, "system.attuned"));
@@ -748,7 +757,7 @@ export class CoriaAttunementSlots {
 
     const onRenderSheet = (app, htmlOrEl) => {
       const actor = app?.actor || app?.document;
-      if (!actor || actor.type !== "character") return;
+      if (!actor || actor.type !== "character" || isIgnoredBackupActor(actor)) return;
       const rootEl = htmlOrEl instanceof HTMLElement ? htmlOrEl : htmlOrEl?.[0] || app?.element;
       if (!rootEl) return;
 
@@ -1246,9 +1255,9 @@ export class CoriaAttunementSlots {
                 </div>
 
                 <div class="coria-pd-col-center">
-                  <div class="coria-pd-figure-box">
+                  <div class="coria-pd-figure-box ${idleProfile.isSmallStature ? "is-small-stature" : ""}">
                     <div class="coria-pd-figure-aura"></div>
-                    <img class="coria-pd-idle-img" src="${idleProfile.img}" alt="${foundry.utils.escapeHTML(actor.name)}" />
+                    <img class="coria-pd-idle-img ${idleProfile.isSmallStature ? "is-small-stature" : ""}" src="${idleProfile.img}" alt="${foundry.utils.escapeHTML(actor.name)}" />
                   </div>
                   <div class="coria-pd-hands-section">
                     <div class="coria-pd-group-heading">

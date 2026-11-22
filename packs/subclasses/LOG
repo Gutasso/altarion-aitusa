@@ -1,5 +1,5 @@
-2026/11/21-14:46:48.931 7e58 Recovering log #80
-2026/11/21-14:46:48.931 7e58 Level-0 table #83: started
-2026/11/21-14:46:48.933 7e58 Level-0 table #83: 7401 bytes OK
-2026/11/21-14:46:48.938 7e58 Delete type=0 #80
-2026/11/21-14:46:48.938 7e58 Delete type=3 #78
+2026/11/22-15:17:56.246 98fc Recovering log #87
+2026/11/22-15:17:56.246 98fc Level-0 table #89: started
+2026/11/22-15:17:56.248 98fc Level-0 table #89: 19657 bytes OK
+2026/11/22-15:17:56.251 98fc Delete type=0 #87
+2026/11/22-15:17:56.251 98fc Delete type=3 #85

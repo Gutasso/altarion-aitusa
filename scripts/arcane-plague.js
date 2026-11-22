@@ -23,6 +23,7 @@
 
 import { createV2Dialog } from "./dialog-v2.js";
 import { CoriaRollLedger } from "./roll-ledger.js";
+import { isIgnoredBackupActor } from "./sync-guard.js";
 
 const MODULE_ID = "altarion-aitusa";
 const SOCKET_NAME = `module.${MODULE_ID}`;
@@ -211,7 +212,7 @@ export class ArcanePlagueManager {
    * "altarion" | "flinn" | "parva" | "kyrion" | "infected-npc" | null
    */
   static getPlagueRole(actor) {
-    if (!actor || !actor.name) return null;
+    if (!actor || !actor.name || isIgnoredBackupActor(actor)) return null;
     const norm = actor.name.trim().toLowerCase();
     if (norm === this.getAitusaName().toLowerCase() || norm === "aitusa" || norm.startsWith("aitusa ")) return null;
     if (norm === this.getAltarionName().toLowerCase() || norm === "altarion" || norm.startsWith("altarion ")) return "altarion";

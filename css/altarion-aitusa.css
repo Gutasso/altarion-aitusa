@@ -4145,6 +4145,148 @@
   cursor: pointer;
 }
 
+/* ============================================================================
+ * 1. Hide Floating HUD Buttons when Coria Hub Menu Screen is Active
+ * ============================================================================ */
+
+body:has(#coria-hub-app, #coria-hub-wrapper) #coria-echoes-floating-btn,
+body:has(#coria-hub-app, #coria-hub-wrapper) #flinn-portent-floating-btn,
+body.coria-hub-menu-open #coria-echoes-floating-btn,
+body.coria-hub-menu-open #flinn-portent-floating-btn {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* ============================================================================
+ * 2. Halfling / Small-Stature Paper-Doll Visual Proportions (Flinn ~1m tall)
+ *    Keeps all equipment slot buttons in the exact same positions!
+ * ============================================================================ */
+
+.coria-pd-figure-box.is-small-stature {
+  align-items: flex-end;
+  padding-bottom: 10px;
+}
+
+.coria-pd-idle-img.is-small-stature {
+  max-height: 74%;
+}
+
+/* ============================================================================
+ * 3. Dual Chat Tabs (`General Chat` & `Combat Log`) — Full-Width Sepia Theme
+ * ============================================================================ */
+
+#sidebar-content #chat {
+  padding-top: 0 !important;
+}
+
+.coria-chat-tabs-bar {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  width: 100%;
+  max-width: var(--sidebar-width, 100%);
+  align-self: stretch;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 6px 6px 6px 6px;
+  flex: 0 0 auto;
+  pointer-events: all !important;
+  position: relative;
+  z-index: 25;
+  background: linear-gradient(180deg, #3b2b1d 0%, #271b11 100%);
+  border-bottom: 1px solid #8c6a43;
+  box-shadow: 0 3px 10px rgba(15, 9, 4, 0.55), inset 0 1px 0 rgba(235, 206, 160, 0.14);
+}
+
+#chat-popout .coria-chat-tabs-bar,
+.chat-popout .coria-chat-tabs-bar {
+  max-width: 100%;
+}
+
+.coria-chat-tab-btn {
+  flex: 1 1 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  border: 1px solid #6e5235;
+  background: linear-gradient(180deg, #4b3826 0%, #332417 100%);
+  color: #dbc5a4;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.25px;
+  cursor: pointer;
+  pointer-events: all !important;
+  transition: all 0.16s ease;
+  box-shadow: inset 0 1px 0 rgba(244, 222, 185, 0.12);
+  text-shadow: 0 1px 2px rgba(18, 10, 4, 0.85);
+}
+
+.coria-chat-tab-btn:hover {
+  background: linear-gradient(180deg, #624930 0%, #45311e 100%);
+  border-color: #c29b64;
+  color: #fbf0db;
+  box-shadow: 0 0 8px rgba(194, 155, 100, 0.32), inset 0 1px 0 rgba(255, 236, 202, 0.22);
+}
+
+.coria-chat-tab-btn[data-coria-tab="general"].is-active {
+  background: linear-gradient(135deg, #9d7140 0%, #6e4b26 100%);
+  border-color: #edd09a;
+  color: #fff9ed;
+  box-shadow: 0 0 10px rgba(214, 170, 104, 0.45), inset 0 1px 0 rgba(255, 245, 222, 0.35);
+}
+
+.coria-chat-tab-btn[data-coria-tab="combat"].is-active {
+  background: linear-gradient(135deg, #8b5630 0%, #5b3319 100%);
+  border-color: #e6be83;
+  color: #fff8eb;
+  box-shadow: 0 0 10px rgba(196, 134, 72, 0.48), inset 0 1px 0 rgba(255, 238, 206, 0.32);
+}
+
+.coria-chat-tab-btn i {
+  font-size: 11px;
+  opacity: 0.94;
+  pointer-events: none;
+}
+
+.coria-chat-tab-btn span {
+  pointer-events: none;
+}
+
+.coria-chat-tab-badge {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #a9241b;
+  border: 1px solid #f2b79f;
+  color: #fff7ed;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 0 6px rgba(169, 36, 27, 0.65);
+}
+
+.coria-chat-tab-badge.is-visible {
+  display: inline-flex;
+}
+
+[data-coria-chat-tab="general"] li.chat-message[data-coria-chat-channel="combat"] {
+  display: none !important;
+}
+
+[data-coria-chat-tab="combat"] li.chat-message[data-coria-chat-channel="general"] {
+  display: none !important;
+}
+
+
 
 
 

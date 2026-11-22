@@ -12,9 +12,11 @@ import {
   PARTY_JSON_SYNC_VERSION,
   EXTERNAL_IMG_MIGRATION_MAP
 } from "./party-json-data.js";
+import { isIgnoredBackupActor, shouldThisClientRunAutoSync } from "./sync-guard.js";
 
 const MODULE_ID = "altarion-aitusa";
 const FALLBACK_CARD_IMG = "icons/sundries/gaming/rune-card.webp";
+const FLINN_GRIMOIRE_TOPHAT_IMG = "modules/altarion-aitusa/flinn_icons/arcane-grimoire-tophat.jpg";
 
 export class PartyJsonSyncManager {
   static _syncInFlight = new Set();
@@ -24,6 +26,7 @@ export class PartyJsonSyncManager {
   }
 
   static getCharKeyForActor(actor) {
+    if (!actor || isIgnoredBackupActor(actor)) return null;
     const n = String(actor?.name || "").trim().toLowerCase();
     if (!n) return null;
     if (n === "aitusa" || n.startsWith("aitusa ")) return "aitusa";
@@ -55,16 +58,33 @@ export class PartyJsonSyncManager {
     return s;
   }
 
+  static _getResonantCardTemplate(itemName = "") {
+    const low = String(itemName || "").trim().toLowerCase();
+    if (!low.startsWith("card of the resonant arcana")) return null;
+    let charKey = null;
+    if (low.includes("high priestess")) charKey = "aitusa";
+    else if (low.includes("hierophant")) charKey = "altarion";
+    else if (low.includes("the fool") || low.includes("(fool)")) charKey = "flinn";
+    else if (low.includes("strength")) charKey = "kyrion";
+    else if (low.includes("the moon") || low.includes("(moon)")) charKey = "parva";
+    if (!charKey) return null;
+    const entry = (PARTY_JSON_DATA[charKey]?.items || []).find(x =>
+      String(x.doc?.name || "").trim().toLowerCase().startsWith("card of the resonant arcana")
+    );
+    return entry?.doc || null;
+  }
+
   /**
    * Lightweight idempotent migration that runs on existing actors to:
    * 1. Replace third-party `cdn.5e.tools` / `raw.githubusercontent.com` / missing local image URLs
    *    on items & active effects with verified local Foundry icons (stops Chrome third-party cookie console spam).
    * 2. Convert any "Card of the Resonant Arcana (...)" item stored as `type: "feat"` into an attunable
-   *    `type: "equipment"` (trinket) so it shows up in the actor's Inventory and works natively with Attunement Slots!
+   *    `type: "equipment"` (trinket) with 1/Long Rest charge, activity, and fixed description.
    */
   static async migrateExistingActorItems(actor) {
-    if (!actor || !actor.isOwner) return;
+    if (!actor || !actor.isOwner || isIgnoredBackupActor(actor)) return;
 
+    const isFlinn = this.getCharKeyForActor(actor) === "flinn";
     const itemUpdates = [];
     const legacyCardFeats = [];
 
@@ -83,19 +103,69 @@ export class PartyJsonSyncManager {
       if (cleanImg !== item.img) {
         patch.img = cleanImg;
       }
+
+      // 2b. Replace Flinn's Arcane Grimoire icon with his custom Top Hat Grimoire icon
+      if (isFlinn && nameLow.includes("arcane grimoire") && item.img !== FLINN_GRIMOIRE_TOPHAT_IMG) {
+        patch.img = FLINN_GRIMOIRE_TOPHAT_IMG;
+      }
       if (nameLow.startsWith("card of the resonant arcana") && item.type === "equipment") {
         if (item.img !== FALLBACK_CARD_IMG) patch.img = FALLBACK_CARD_IMG;
         if (item.system?.attunement !== "required") patch["system.attunement"] = "required";
         if (item.system?.type?.value !== "trinket") patch["system.type.value"] = "trinket";
+
+        const tpl = this._getResonantCardTemplate(item.name);
+        if (tpl) {
+          // Ensure 1/LR uses (preserving spent!)
+          const curMax = String(item.system?.uses?.max || "");
+          const curRec = Array.isArray(item.system?.uses?.recovery) ? item.system.uses.recovery : [];
+          if (curMax !== "1" || curRec.length === 0 || curRec[0]?.period !== "lr") {
+            patch["system.uses"] = {
+              spent: Math.min(1, Math.max(0, Number(item.system?.uses?.spent || 0))),
+              max: "1",
+              recovery: [{ period: "lr", type: "recoverAll" }]
+            };
+          }
+
+          // Ensure utility activity exists
+          const tplActs = tpl.system?.activities || {};
+          const tplActId = Object.keys(tplActs)[0];
+          const existingActs = item.toObject().system?.activities || {};
+          if (tplActId && !existingActs[tplActId]) {
+            const nextActs = foundry.utils.deepClone(tplActs);
+            for (const oldKey of Object.keys(existingActs)) {
+              if (!(oldKey in nextActs)) nextActs[`-=${oldKey}`] = null;
+            }
+            patch["system.activities"] = nextActs;
+          }
+
+          // Fix typo in The Hierophant description ("If the target success against the save" -> "succeeds", "Ilusion" -> "Illusion")
+          const curDesc = String(item.system?.description?.value || "");
+          if (/If the target success against the save/i.test(curDesc) || /\bIlusion\b/.test(curDesc)) {
+            patch["system.description.value"] = curDesc
+              .replace(/If the target success against the save/gi, "If the target succeeds against the save")
+              .replace(/\bIlusion\b/g, "Illusion");
+          }
+
+          const tplKey = tpl.flags?.[MODULE_ID]?.resonantArcanaKey;
+          if (!item.flags?.[MODULE_ID]?.isResonantArcanaCard) {
+            patch[`flags.${MODULE_ID}.isResonantArcanaCard`] = true;
+          }
+          if (tplKey && item.flags?.[MODULE_ID]?.resonantArcanaKey !== tplKey) {
+            patch[`flags.${MODULE_ID}.resonantArcanaKey`] = tplKey;
+          }
+        }
       }
 
       if (Object.keys(patch).length > 0) {
         itemUpdates.push({ _id: item.id, ...patch });
       }
 
-      // Also fix any embedded ActiveEffect img that references external cdn.5e.tools
+      // Also fix any embedded ActiveEffect img (external URLs + Flinn's Arcane Grimoire Top Hat icon)
       for (const eff of item.effects || []) {
-        const cleanEffImg = this._sanitizeItemImg(eff.img, item.name);
+        let cleanEffImg = this._sanitizeItemImg(eff.img, item.name);
+        if (isFlinn && nameLow.includes("arcane grimoire")) {
+          cleanEffImg = FLINN_GRIMOIRE_TOPHAT_IMG;
+        }
         if (cleanEffImg !== eff.img) {
           try {
             await eff.update({ img: cleanEffImg });
@@ -128,36 +198,43 @@ export class PartyJsonSyncManager {
           i => i.type === "equipment" && String(i.name || "").trim().toLowerCase() === nameLow
         );
         if (!alreadyEquip) {
-          const oldObj = oldFeat.toObject();
-          toCreateEquip.push({
-            name: oldObj.name,
-            type: "equipment",
-            img: FALLBACK_CARD_IMG,
-            system: {
-              description: oldObj.system?.description || { value: "", chat: "" },
-              quantity: 1,
-              weight: { value: 0, units: "lb" },
-              price: { value: 0, denomination: "gp" },
-              rarity: "veryRare",
-              identified: true,
-              attunement: "required",
-              attuned: false,
-              equipped: false,
-              properties: ["mgc"],
-              type: { value: "trinket", baseItem: "" },
-              armor: { value: null, magicalBonus: null, dex: null },
-              uses: { spent: 0, max: "", recovery: [] },
-              activities: {},
-              source: { custom: "Coria Homebrew", rules: "2014" }
-            },
-            flags: {
-              ...(oldObj.flags || {}),
-              [MODULE_ID]: {
-                ...(oldObj.flags?.[MODULE_ID] || {}),
-                isResonantArcanaCard: true
+          const tpl = this._getResonantCardTemplate(oldFeat.name);
+          if (tpl) {
+            const clone = foundry.utils.deepClone(tpl);
+            clone.system.uses.spent = Math.min(1, Math.max(0, Number(oldFeat.system?.uses?.spent || 0)));
+            toCreateEquip.push(clone);
+          } else {
+            const oldObj = oldFeat.toObject();
+            toCreateEquip.push({
+              name: oldObj.name,
+              type: "equipment",
+              img: FALLBACK_CARD_IMG,
+              system: {
+                description: oldObj.system?.description || { value: "", chat: "" },
+                quantity: 1,
+                weight: { value: 0, units: "lb" },
+                price: { value: 0, denomination: "gp" },
+                rarity: "veryRare",
+                identified: true,
+                attunement: "required",
+                attuned: false,
+                equipped: false,
+                properties: ["mgc"],
+                type: { value: "trinket", baseItem: "" },
+                armor: { value: null, magicalBonus: null, dex: null },
+                uses: { spent: 0, max: "1", recovery: [{ period: "lr", type: "recoverAll" }] },
+                activities: {},
+                source: { custom: "Coria Homebrew", rules: "2014" }
+              },
+              flags: {
+                ...(oldObj.flags || {}),
+                [MODULE_ID]: {
+                  ...(oldObj.flags?.[MODULE_ID] || {}),
+                  isResonantArcanaCard: true
+                }
               }
-            }
-          });
+            });
+          }
         }
         toDeleteIds.push(oldFeat.id);
       }
@@ -171,11 +248,122 @@ export class PartyJsonSyncManager {
     }
   }
 
+  /**
+   * Sync Ability Scores, Skill Proficiencies/Expertise, and Curated Player Spells from GM JSON.
+   * Respects custom module spells (never duplicates them) and preserves Flinn's Cleric/Wizard tagging.
+   */
+  static async _syncAbilitiesSkillsAndSpells(actor, charKey, data, { force = false } = {}) {
+    if (!actor || !data) return { spellsCreated: 0, actorUpdates: {} };
+    const actorUpdates = {};
+
+    // 1. Ability Scores (STR, DEX, CON, INT, WIS, CHA)
+    if (data.abilities && typeof data.abilities === "object") {
+      for (const ab of ["str", "dex", "con", "int", "wis", "cha"]) {
+        const src = data.abilities[ab];
+        if (!src || !Number.isFinite(Number(src.value))) continue;
+        const incomingVal = Number(src.value);
+        const curVal = Number(actor.system?.abilities?.[ab]?.value ?? 10);
+        if (force || curVal !== incomingVal) {
+          actorUpdates[`system.abilities.${ab}.value`] = incomingVal;
+        }
+        const incomingProf = Number(src.proficient ?? 0);
+        const curProf = Number(actor.system?.abilities?.[ab]?.proficient ?? 0);
+        if (incomingProf > curProf) {
+          actorUpdates[`system.abilities.${ab}.proficient`] = incomingProf;
+        }
+      }
+    }
+
+    // 2. Skill Proficiencies & Expertise
+    if (data.skills && typeof data.skills === "object") {
+      for (const [sk, rawVal] of Object.entries(data.skills)) {
+        const incomingVal = Number(rawVal ?? 0);
+        if (incomingVal <= 0) continue;
+        const curVal = Number(actor.system?.skills?.[sk]?.value ?? 0);
+        if (force ? curVal !== incomingVal : curVal < incomingVal) {
+          actorUpdates[`system.skills.${sk}.value`] = incomingVal;
+        }
+      }
+    }
+
+    // 2b. Pre-seed inferred class choice flags from GM JSON so initial sync never shows unnecessary popups
+    if (charKey === "kyrion") {
+      const curExp = actor.getFlag(MODULE_ID, "rogueExpertiseChosen");
+      if (!Array.isArray(curExp) || curExp.length === 0) {
+        actorUpdates[`flags.${MODULE_ID}.rogueExpertiseChosen`] = ["ins", "prc"];
+      }
+    } else if (charKey === "flinn") {
+      const curBok = actor.getFlag(MODULE_ID, "blessingsOfKnowledgeChosen");
+      if (!Array.isArray(curBok) || curBok.length === 0) {
+        actorUpdates[`flags.${MODULE_ID}.blessingsOfKnowledgeChosen`] = ["his", "rel"];
+      }
+    } else if (charKey === "parva") {
+      if (!actor.getFlag(MODULE_ID, "divineSoulAffinity")) {
+        actorUpdates[`flags.${MODULE_ID}.divineSoulAffinity`] = "good";
+      }
+    }
+
+    // 3. Curated Player Spells (deduplicated by lowercase name; upgrades `prepared` if JSON prepared >= 1 and current === 0)
+    let spellsCreated = 0;
+    const rawSpells = Array.isArray(data.spells) ? data.spells : [];
+    if (rawSpells.length > 0) {
+      const toCreateSpells = [];
+      const toUpdateSpells = [];
+
+      for (const entry of rawSpells) {
+        if (!entry?.doc?.name) continue;
+        const spNameLow = String(entry.doc.name).trim().toLowerCase();
+        const existing = actor.items.find(
+          i => i.type === "spell" && String(i.name || "").trim().toLowerCase() === spNameLow
+        );
+        if (existing) {
+          const patch = {};
+          const incomingPrep = Number(entry.doc.system?.prepared ?? 0);
+          const curPrep = Number(existing.system?.prepared ?? 0);
+          if (incomingPrep > curPrep && curPrep === 0) {
+            patch["system.prepared"] = incomingPrep;
+          }
+          if (charKey === "flinn") {
+            const desiredOrigin = entry.doc.flags?.[MODULE_ID]?.flinnSpellOrigin;
+            if (desiredOrigin && !existing.flags?.[MODULE_ID]?.flinnSpellOrigin) {
+              patch[`flags.${MODULE_ID}.flinnSpellOrigin`] = desiredOrigin;
+              patch["system.sourceItem"] = desiredOrigin === "cleric" ? "class:cleric" : "class:wizard";
+            }
+          }
+          if (Object.keys(patch).length > 0) {
+            toUpdateSpells.push({ _id: existing.id, ...patch });
+          }
+          continue;
+        }
+
+        const clone = foundry.utils.deepClone(entry.doc);
+        clone.img = this._sanitizeItemImg(clone.img, clone.name);
+        clone.flags ??= {};
+        clone.flags[MODULE_ID] = {
+          ...(clone.flags[MODULE_ID] || {}),
+          partyJsonSpellKey: `${charKey}:${entry.origId}`
+        };
+        toCreateSpells.push(clone);
+      }
+
+      if (toCreateSpells.length > 0) {
+        const created = await actor.createEmbeddedDocuments("Item", toCreateSpells);
+        spellsCreated = created?.length || 0;
+      }
+      if (toUpdateSpells.length > 0) {
+        await actor.updateEmbeddedDocuments("Item", toUpdateSpells);
+      }
+    }
+
+    return { spellsCreated, actorUpdates };
+  }
+
   static async syncAllPartyActors({ force = false, silent = false } = {}) {
     if (!game.actors) return [];
+    if (!force && !shouldThisClientRunAutoSync(null)) return [];
     const results = [];
     for (const actor of game.actors) {
-      if (!actor.isOwner) continue;
+      if (!actor.isOwner || isIgnoredBackupActor(actor)) continue;
       // Clean third-party cookie image URLs & migrate Resonant Arcana cards on all owned PCs/companions
       if (actor.type === "character" || this.getCharKeyForActor(actor)) {
         try {
@@ -191,7 +379,7 @@ export class PartyJsonSyncManager {
   }
 
   static async syncActorFromJson(actor, { force = false, silent = false } = {}) {
-    if (!actor || !actor.isOwner) return null;
+    if (!actor || !actor.isOwner || isIgnoredBackupActor(actor)) return null;
     const charKey = this.getCharKeyForActor(actor);
     if (!charKey) return null;
     const data = PARTY_JSON_DATA[charKey];
@@ -234,14 +422,30 @@ export class PartyJsonSyncManager {
             await actor.createEmbeddedDocuments("Item", [clone]);
           }
         }
+
+        // Sync Abilities, Skills, and Curated Spells (added in v3) WITHOUT touching currency or professions progress!
+        const { spellsCreated, actorUpdates: v3Updates } = await this._syncAbilitiesSkillsAndSpells(
+          actor,
+          charKey,
+          data,
+          { force: false }
+        );
+
         await actor.update(
-          { [`flags.${MODULE_ID}.partyJsonSyncVersion`]: PARTY_JSON_SYNC_VERSION },
+          {
+            ...v3Updates,
+            [`flags.${MODULE_ID}.partyJsonSyncVersion`]: PARTY_JSON_SYNC_VERSION
+          },
           { altarionBypassWard: true, coriaDamageReactionInternal: true }
         );
         try {
           await globalThis.CoriaAttunementSlots?.syncActorAttunementSlots?.(actor);
         } catch (_e) {}
-        return { actorName: actor.name, charKey, migratedToV2: true };
+        try {
+          actor.prepareData?.();
+          if (actor.sheet?.rendered) actor.sheet.render(false);
+        } catch (_e) {}
+        return { actorName: actor.name, charKey, migratedToV3: true, spellsCreated };
       }
 
       const origIdToRealId = new Map();
@@ -453,6 +657,16 @@ export class PartyJsonSyncManager {
         }
       }
 
+      // 6. Sync Abilities, Skill Proficiencies/Expertise, and Curated Spells
+      const { spellsCreated, actorUpdates: statsAndSkillsUpdates } = await this._syncAbilitiesSkillsAndSpells(
+        actor,
+        charKey,
+        data,
+        { force }
+      );
+      Object.assign(actorUpdates, statsAndSkillsUpdates);
+      createdCount += spellsCreated;
+
       actorUpdates[`flags.${MODULE_ID}.partyJsonSyncVersion`] = PARTY_JSON_SYNC_VERSION;
 
       await actor.update(actorUpdates, { altarionBypassWard: true, coriaDamageReactionInternal: true });
@@ -460,16 +674,20 @@ export class PartyJsonSyncManager {
       try {
         await globalThis.CoriaAttunementSlots?.syncActorAttunementSlots?.(actor);
       } catch (_e) {}
+      try {
+        actor.prepareData?.();
+        if (actor.sheet?.rendered) actor.sheet.render(false);
+      } catch (_e) {}
 
       console.log(
-        `[Altarion & Aitusa] Party JSON Sync completed for ${actor.name} (+${createdCount} items synced).`
+        `[Altarion & Aitusa] Party JSON Sync completed for ${actor.name} (+${createdCount} items/spells synced).`
       );
       if (!silent && createdCount > 0) {
         ui.notifications?.info?.(
-          `[Sync JSON] ${actor.name}: ${createdCount} itens, moedas, proficiências e dados de profissões sincronizados!`
+          `[Sync JSON] ${actor.name}: ${createdCount} itens/magias, atributos, perícias, moedas e profissões sincronizados!`
         );
       }
-      return { actorName: actor.name, charKey, createdCount };
+      return { actorName: actor.name, charKey, createdCount, spellsCreated };
     } catch (err) {
       console.error(`[Altarion & Aitusa] Party JSON Sync failed for ${actor.name}:`, err);
       return null;

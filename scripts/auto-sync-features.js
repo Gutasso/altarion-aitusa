@@ -14,12 +14,14 @@ import {
 } from "./dragon-rider-data.js";
 import { DragonScalingManager } from "./dragon-scaling.js";
 import { SecondaryClassManager } from "./secondary-class.js";
+import { isIgnoredBackupActor } from "./sync-guard.js";
 
 export class FeatureSyncManager {
   /**
    * Set of Actor IDs currently undergoing synchronization to prevent recursive hook triggers.
    */
   static _syncing = new Set();
+  static _syncCooldownUntil = new Map();
 
   /**
    * Guard to prevent recursive spell mirroring between Altarion and Aitusa.
@@ -27,9 +29,9 @@ export class FeatureSyncManager {
   static _mirroringSpells = false;
 
   /**
-   * Cached Compendium UUIDs for 2014 PHB Wizard & School of Abjuration features seeded in altarion-aitusa.subclasses
+   * Cached Compendium UUIDs for 2014 PHB/TCE Wizard & School of Abjuration features seeded in altarion-aitusa.subclasses
    */
-  static _wizardFeatureUuidsByLevel = { 1: [], 18: [], 20: [] };
+  static _wizardFeatureUuidsByLevel = { 1: [], 3: [], 18: [], 20: [] };
   static _abjurationFeatureUuidsByLevel = { 2: [], 6: [], 10: [], 14: [] };
   static _abjurationSubclassUuid = null;
 
@@ -449,7 +451,7 @@ export class FeatureSyncManager {
       // Non-GM users cannot mutate Compendium packs, so read existing seeded UUIDs in read-only mode
       if (!game.user?.isGM) {
         const roDocs = await modulePack.getDocuments();
-        this._wizardFeatureUuidsByLevel = { 1: [], 18: [], 20: [] };
+        this._wizardFeatureUuidsByLevel = { 1: [], 3: [], 18: [], 20: [] };
         this._abjurationFeatureUuidsByLevel = { 2: [], 6: [], 10: [], 14: [] };
         for (const d of roDocs) {
           if (d.flags?.["altarion-aitusa"]?.otherPlayersCompendiumFeat) continue;
@@ -524,7 +526,7 @@ export class FeatureSyncManager {
           }
 
           const currentDocs = await modulePack.getDocuments();
-          this._wizardFeatureUuidsByLevel = { 1: [], 18: [], 20: [] };
+          this._wizardFeatureUuidsByLevel = { 1: [], 3: [], 18: [], 20: [] };
           this._abjurationFeatureUuidsByLevel = { 2: [], 6: [], 10: [], 14: [] };
 
           if (wizBundle) {
@@ -1820,8 +1822,9 @@ export class FeatureSyncManager {
   /**
    * Synchronize Altarion's sheet
    */
-  static async syncAltarion(actor) {
-    if (!actor || this._syncing.has(actor.id)) return;
+  static async syncAltarion(actor, { force = false } = {}) {
+    if (!actor || isIgnoredBackupActor(actor) || this._syncing.has(actor.id)) return;
+    if (!force && (this._syncCooldownUntil.get(actor.id) || 0) > Date.now()) return;
     this._syncing.add(actor.id);
 
     try {
@@ -1834,7 +1837,9 @@ export class FeatureSyncManager {
       await this.cleanupDuplicateFeatures(actor);
 
       const aitusaName = game.settings.get("altarion-aitusa", "aitusaName") || "Aitusa";
-      const aitusaActor = game.actors.find(a => a.name?.trim().toLowerCase() === aitusaName.trim().toLowerCase());
+      const aitusaActor = game.actors.find(
+        a => !isIgnoredBackupActor(a) && a.name?.trim().toLowerCase() === aitusaName.trim().toLowerCase()
+      );
       const aitusaLevel = aitusaActor?.items.find(i => i.type === "class")?.system?.levels || 4;
 
       // Determine current levels on Altarion before syncing
@@ -2336,6 +2341,7 @@ export class FeatureSyncManager {
     } catch (err) {
       console.error(`[Altarion & Aitusa] Failed to synchronize ${actor.name}:`, err);
     } finally {
+      this._syncCooldownUntil.set(actor.id, Date.now() + 1800);
       this._syncing.delete(actor.id);
     }
   }
@@ -2343,8 +2349,9 @@ export class FeatureSyncManager {
   /**
    * Synchronize Aitusa's sheet
    */
-  static async syncAitusa(actor) {
-    if (!actor || this._syncing.has(actor.id)) return;
+  static async syncAitusa(actor, { force = false } = {}) {
+    if (!actor || isIgnoredBackupActor(actor) || this._syncing.has(actor.id)) return;
+    if (!force && (this._syncCooldownUntil.get(actor.id) || 0) > Date.now()) return;
     this._syncing.add(actor.id);
 
     try {
@@ -2529,6 +2536,7 @@ export class FeatureSyncManager {
     } catch (err) {
       console.error(`[Altarion & Aitusa] Failed to synchronize ${actor.name}:`, err);
     } finally {
+      this._syncCooldownUntil.set(actor.id, Date.now() + 1800);
       this._syncing.delete(actor.id);
     }
   }
@@ -2539,14 +2547,15 @@ export class FeatureSyncManager {
   static async syncAll() {
     const aitusaName = game.settings.get("altarion-aitusa", "aitusaName") || "Aitusa";
 
-    const altarion = game.actors.find(a => SecondaryClassManager.isAltarion(a));
+    const altarion = game.actors.find(a => !isIgnoredBackupActor(a) && SecondaryClassManager.isAltarion(a));
     const aitusa = game.actors.find(a => {
+      if (isIgnoredBackupActor(a)) return false;
       const n = a.name?.trim().toLowerCase() || "";
       return n === aitusaName.trim().toLowerCase() || n === "aitusa" || n.startsWith("aitusa ");
     });
 
-    if (aitusa) await this.syncAitusa(aitusa);
-    if (altarion) await this.syncAltarion(altarion);
+    if (aitusa) await this.syncAitusa(aitusa, { force: true });
+    if (altarion) await this.syncAltarion(altarion, { force: true });
   }
 }
 

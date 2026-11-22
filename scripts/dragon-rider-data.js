@@ -750,18 +750,19 @@ export class PlutoniumDataBridge {
     delete abjurationSubclassData._id;
     this._ensureSubclassFluffDescription(abjurationSubclassData, scAbjurationRaw);
 
-    // 3. 2014 PHB Wizard Class Features
+    // 3. 2014 PHB & TCE Optional Wizard Class Features
     const wizardFeatureDefs = [
-      { name: "Spellcasting", level: 1 },
-      { name: "Arcane Recovery", level: 1 },
-      { name: "Spell Mastery", level: 18 },
-      { name: "Signature Spells", level: 20 }
+      { name: "Spellcasting", level: 1, source: "PHB" },
+      { name: "Arcane Recovery", level: 1, source: "PHB" },
+      { name: "Cantrip Formulas", level: 3, source: "TCE" },
+      { name: "Spell Mastery", level: 18, source: "PHB" },
+      { name: "Signature Spells", level: 20, source: "PHB" }
     ];
     const wizardFeatures = [];
     for (const def of wizardFeatureDefs) {
       const stub = {
         name: def.name,
-        source: "PHB",
+        source: def.source || "PHB",
         className: "Wizard",
         classSource: "PHB",
         level: def.level,

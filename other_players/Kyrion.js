@@ -4,7 +4,7 @@
  *   - Custom Racial Trait: "Legacy of Cania" links directly to Kyrion's custom "Shadow Hands" (Lvl 3, as 2nd-level 1/LR)
  *     and "Shadow Blade" (Lvl 5, 1/LR), both with dual Innate (1/LR) + Pact Magic / Spell Slot casting activities
  * - Primary Class: Rogue (Default Level 4) — Subclass: Swashbuckler (XGE)
- * - Secondary Class: Warlock (Default Level 2) — Subclass: The Hexblade (XGE)
+ * - Secondary Class: Warlock (Default Level 1) — Subclass: The Hexblade (XGE)
  * - Custom Necrotic Spells: Shadow Blast (Eldritch Blast + Invocations), Dark Blade (Booming Blade),
  *   Shadow Hands (Burning Hands), Shadow Armor (Armor of Agathys), Shadow Rebuke (Hellish Rebuke), Shadow Blade
  * - Special Features & Resources: Shadow Essence (Essence Points = PB + CHA mod, LR),
@@ -13,6 +13,7 @@
  */
 
 import { OtherPlayersBase } from "./OtherPlayersBase.js";
+import { isIgnoredBackupActor, shouldThisClientRunAutoSync } from "../scripts/sync-guard.js";
 
 export class KyrionManager {
   static CHARACTER_NAME = "Kyrion";
@@ -35,7 +36,7 @@ export class KyrionManager {
     name: "Warlock",
     identifier: "warlock",
     source: "PHB",
-    defaultLevel: 2,
+    defaultLevel: 1,
     subclass: {
       name: "The Hexblade",
       shortName: "Hexblade",
@@ -50,6 +51,7 @@ export class KyrionManager {
     { name: "Thieves' Cant", level: 1, source: "PHB" },
     { name: "Cunning Action", level: 2, source: "PHB" },
     { name: "Roguish Archetype", level: 3, source: "PHB" },
+    { name: "Steady Aim", level: 3, source: "TCE" },
     { name: "Ability Score Improvement", level: 4, source: "PHB" },
     { name: "Uncanny Dodge", level: 5, source: "PHB" },
     { name: "Expertise", level: 6, source: "PHB" },
@@ -80,6 +82,7 @@ export class KyrionManager {
     { name: "Eldritch Invocations", level: 2, source: "PHB" },
     { name: "Pact Boon", level: 3, source: "PHB" },
     { name: "Ability Score Improvement", level: 4, source: "PHB" },
+    { name: "Eldritch Versatility", level: 4, source: "TCE" },
     { name: "Ability Score Improvement", level: 8, source: "PHB" },
     { name: "Mystic Arcanum (6th level)", level: 11, source: "PHB" },
     { name: "Ability Score Improvement", level: 12, source: "PHB" },
@@ -116,11 +119,13 @@ export class KyrionManager {
     OtherPlayersBase.registerCharacterHandler(this.CHARACTER_NAME, this);
     Hooks.once("ready", async () => {
       try {
+        if (!shouldThisClientRunAutoSync(null)) return;
         const kyrion = game.actors?.find(a => {
+          if (isIgnoredBackupActor(a)) return false;
           const n = String(a.name || "").trim().toLowerCase();
           return n === "kyrion" || n.startsWith("kyrion ");
         });
-        if (kyrion?.isOwner) {
+        if (kyrion && shouldThisClientRunAutoSync(kyrion)) {
           await this.syncCustomSpells(kyrion);
           await this.syncSpecialShadowFeatures(kyrion);
           await globalThis.AltarionAutomationManager?.ensureKyrionDarkVitalityEffect?.(kyrion);
@@ -1639,6 +1644,20 @@ export class KyrionManager {
             requirementsLabel: `Warlock ${warlockLevel}`,
             subtype: "pact"
           });
+        }
+
+        // Pre-seed Rogue Level 1 Expertise from GM JSON (Insight & Perception) so initial sync
+        // never opens a choice popup for levels 1-4; leveling up to Rogue 6 still prompts for 2 new skills!
+        const existingRogueExp = actor.getFlag("altarion-aitusa", "rogueExpertiseChosen");
+        if (!Array.isArray(existingRogueExp) || existingRogueExp.length === 0) {
+          const inferredExp = ["ins", "prc"];
+          const expPatch = { "flags.altarion-aitusa.rogueExpertiseChosen": inferredExp };
+          for (const sk of inferredExp) {
+            if (Number(actor.system?.skills?.[sk]?.value || 0) < 2) {
+              expPatch[`system.skills.${sk}.value`] = 2;
+            }
+          }
+          await actor.update(expPatch);
         }
 
         const expertiseSlots = rogueLevel >= 6 ? 4 : 2;

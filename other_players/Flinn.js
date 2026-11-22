@@ -20,6 +20,7 @@ import { ArcanePlagueManager } from "../scripts/arcane-plague.js";
 import { AltarionAutomationManager } from "../scripts/automations.js";
 import { createV2Dialog } from "../scripts/dialog-v2.js";
 import { CoriaRollLedger } from "../scripts/roll-ledger.js";
+import { isIgnoredBackupActor, shouldThisClientRunAutoSync } from "../scripts/sync-guard.js";
 
 const MODULE_ID = "altarion-aitusa";
 
@@ -58,6 +59,7 @@ export class FlinnManager {
     { name: "Spellcasting", level: 1, source: "PHB" },
     { name: "Arcane Recovery", level: 1, source: "PHB" },
     { name: "Arcane Tradition", level: 2, source: "PHB" },
+    { name: "Cantrip Formulas", level: 3, source: "TCE" },
     { name: "Ability Score Improvement", level: 4, source: "PHB" },
     { name: "Ability Score Improvement", level: 8, source: "PHB" },
     { name: "Ability Score Improvement", level: 12, source: "PHB" },
@@ -80,9 +82,12 @@ export class FlinnManager {
     { name: "Divine Domain", level: 1, source: "PHB" },
     { name: "Channel Divinity", level: 2, source: "PHB" },
     { name: "Channel Divinity: Turn Undead", level: 2, source: "PHB" },
+    { name: "Channel Divinity: Harness Divine Power", level: 2, source: "TCE" },
     { name: "Ability Score Improvement", level: 4, source: "PHB" },
+    { name: "Cantrip Versatility", level: 4, source: "TCE" },
     { name: "Destroy Undead", level: 5, source: "PHB" },
     { name: "Ability Score Improvement", level: 8, source: "PHB" },
+    { name: "Blessed Strikes", level: 8, source: "TCE" },
     { name: "Divine Intervention", level: 10, source: "PHB" },
     { name: "Ability Score Improvement", level: 12, source: "PHB" },
     { name: "Ability Score Improvement", level: 16, source: "PHB" },
@@ -283,9 +288,11 @@ export class FlinnManager {
     this.registerFlinnHooks();
     Hooks.once("ready", async () => {
       try {
+        if (!shouldThisClientRunAutoSync(null)) return;
         const flinn = this.getFlinnActor();
-        if (flinn?.isOwner) {
+        if (flinn && shouldThisClientRunAutoSync(flinn)) {
           await this.ensureSpiritualWeaponConfigured(flinn);
+          await this.ensureHarnessDivinePowerConfigured(flinn);
         }
       } catch (_e) {
         // ignore
@@ -294,7 +301,7 @@ export class FlinnManager {
   }
 
   static isFlinn(actor) {
-    if (!actor) return false;
+    if (!actor || isIgnoredBackupActor(actor)) return false;
     const norm = String(actor.name || "").trim().toLowerCase();
     const base = this.CHARACTER_NAME.toLowerCase();
     return norm === base || norm === "flinn encantor" || norm.startsWith(`${base} `);
@@ -1745,7 +1752,7 @@ export class FlinnManager {
     // 0. Inject "Flinn's Portent Rolls" floating button when Foundry is ready & keep it updated
     Hooks.once("ready", async () => {
       const flinn = this.getFlinnActor();
-      if (flinn && flinn.isOwner && !Array.isArray(flinn.flags?.[MODULE_ID]?.portentDice)) {
+      if (flinn && shouldThisClientRunAutoSync(flinn) && !Array.isArray(flinn.flags?.[MODULE_ID]?.portentDice)) {
         const { wizardLevel } = this.getLevels(flinn);
         if (wizardLevel >= 2) {
           await this.rollFlinnPortentsBlind(flinn);
@@ -1825,15 +1832,27 @@ export class FlinnManager {
       }
     });
 
-    // 3. When Flinn casts "Paths of Destiny", apply the 1-minute status effect
+    // 3. When Flinn casts "Paths of Destiny" or uses "Channel Divinity: Harness Divine Power"
     Hooks.on("dnd5e.postUseActivity", async (activity) => {
       const item = activity?.item;
       const actor = item?.actor;
-      if (!item || !actor || !this.isFlinn(actor)) return;
+      if (!item || !actor || !actor.isOwner || !this.isFlinn(actor)) return;
 
+      const nameLow = String(item.name || "").trim().toLowerCase();
+
+      // 3a. Channel Divinity: Harness Divine Power (TCE) — Spell Slot Recovery Dialog
+      const isHarnessDivinePower =
+        Boolean(item.flags?.[MODULE_ID]?.isHarnessDivinePowerFeat) ||
+        nameLow.includes("harness divine power");
+      if (isHarnessDivinePower) {
+        await this.openHarnessDivinePowerDialog(actor, item);
+        return;
+      }
+
+      // 3b. Paths of Destiny — 1-minute status effect
       const isPaths =
         Boolean(item.flags?.[MODULE_ID]?.isPathsOfDestinySpell) ||
-        item.name?.trim().toLowerCase() === "paths of destiny";
+        nameLow === "paths of destiny";
       if (!isPaths) return;
 
       await AltarionAutomationManager.applyOrUpdateStatusEffect(actor, {
@@ -1889,6 +1908,13 @@ export class FlinnManager {
           const targetKey = choiceBtn.getAttribute("data-target-key") || "";
           const rollerActorId = choiceBtn.getAttribute("data-roller-actor-id") || "";
 
+          const choiceChatChannel =
+            globalThis.CoriaChatTabs?.getChannelForOriginRoll?.({
+              originMsgId,
+              cardMsgId,
+              defaultChannel: "combat"
+            }) || "combat";
+
           await AltarionAutomationManager.sendMinimalistFeatureCard(flinn, {
             icon: cardSource === "Lucky Feat" ? "fa-clover" : "fa-hourglass-end",
             title: `${cardSource} — Die Selected (${chosenTotal})!`,
@@ -1896,7 +1922,12 @@ export class FlinnManager {
               <strong>${foundry.utils.escapeHTML(flinn?.name || "Flinn")}</strong> selected <strong>${foundry.utils.escapeHTML(targetName)}</strong>'s roll outcome (<strong>${foundry.utils.escapeHTML(chosenLabel)}</strong>)!<br>
               &bull; <strong>Final Result (d20 = ${chosenNat}):</strong> <strong>${chosenTotal}</strong>
             `,
-            flags: { isPathsOfDestinyCard: true, isD20ReactionCard: true }
+            flags: {
+              isPathsOfDestinyCard: true,
+              isD20ReactionCard: true,
+              chatChannel: choiceChatChannel,
+              originRollMessageId: originMsgId
+            }
           });
 
           await CoriaRollLedger.applyRollIntervention({
@@ -2139,22 +2170,23 @@ export class FlinnManager {
       // 4. LEGENDARY RESISTANCE (Monster / NPC failed saving throws)
       //    Visible to GM or controller of the monster when uses > 0
       // ----------------------------------------------------------------------
+      const resolvedSaveDc = Number(
+        modState?.currentTarget ??
+          message.flags?.[MODULE_ID]?.rollLedger?.dc ??
+          message.flags?.[MODULE_ID]?.linkedSaveCard?.saveDc ??
+          roll.options?.target ??
+          message.flags?.dnd5e?.roll?.target ??
+          AltarionAutomationManager._pendingSaveContext?.dc ??
+          NaN
+      );
+      const domSucceededSave = Boolean(rootEl.querySelector(".dice-total.success, .roll.success"));
+
       if (isSavingThrow && rawType !== "death" && speakerActor && this.isUserControllerOf(speakerActor)) {
         const legInfo = this.getLegendaryResistanceInfo(speakerActor);
         if (legInfo && !modState?.forceSuccess && modState?.isSuccess !== true) {
-          const saveDc = Number(
-            modState?.currentTarget ??
-              message.flags?.[MODULE_ID]?.rollLedger?.dc ??
-              message.flags?.[MODULE_ID]?.linkedSaveCard?.saveDc ??
-              roll.options?.target ??
-              message.flags?.dnd5e?.roll?.target ??
-              AltarionAutomationManager._pendingSaveContext?.dc ??
-              NaN
-          );
-          const domSucceeded = Boolean(rootEl.querySelector(".dice-total.success, .roll.success"));
-          const canUseLegRes = Number.isFinite(saveDc)
-            ? origNat === 1 || origTotal < saveDc
-            : !domSucceeded;
+          const canUseLegRes = Number.isFinite(resolvedSaveDc)
+            ? origNat === 1 || origTotal < resolvedSaveDc
+            : !domSucceededSave;
           if (canUseLegRes) {
             buttonsHtmlList.push(`
               <button type="button" class="coria-d20-react-btn btn-cleric-gold"
@@ -2166,6 +2198,29 @@ export class FlinnManager {
               </button>
             `);
           }
+        }
+      }
+
+      // ----------------------------------------------------------------------
+      // 5. CARD OF THE RESONANT ARCANA — THE HIEROPHANT (Altarion & GM only)
+      //    When a creature within 30 ft of Altarion FAILS a save against a spell
+      // ----------------------------------------------------------------------
+      if (isSavingThrow && globalThis.CoriaResonantArcana?.buildHierophantButtonHtml) {
+        const hieroBtnHtml = globalThis.CoriaResonantArcana.buildHierophantButtonHtml({
+          message,
+          isSavingThrow,
+          rawType,
+          rollerActor: speakerActor,
+          rollerTok,
+          rollerName,
+          origNat,
+          origTotal,
+          saveDc: resolvedSaveDc,
+          domHasSuccess: domSucceededSave,
+          modState
+        });
+        if (hieroBtnHtml) {
+          buttonsHtmlList.push(hieroBtnHtml);
         }
       }
 
@@ -2193,6 +2248,10 @@ export class FlinnManager {
             casterId: btn.getAttribute("data-caster-id") || "",
             rollerUuid: btn.getAttribute("data-roller-uuid") || speakerActor?.uuid || "",
             targetAcAttr: btn.getAttribute("data-target-ac"),
+            spellSchool: btn.getAttribute("data-spell-school") || "",
+            spellName: btn.getAttribute("data-spell-name") || "",
+            spellSource: btn.getAttribute("data-spell-source") || "",
+            saveDcAttr: btn.getAttribute("data-save-dc") || "",
             flinn,
             speakerActor,
             rollerName,
@@ -2233,7 +2292,11 @@ export class FlinnManager {
     saveDc = 14,
     cardMessageId = "",
     targetKey = "",
-    originMsgId = ""
+    originMsgId = "",
+    isSpellCard = false,
+    spellCardName = "Spell",
+    spellCardSchool = "",
+    spellCardSourceName = ""
   } = {}) {
     const flinn = this.getFlinnActor();
     const userControlsFlinn = this.isUserFlinnController(flinn);
@@ -2325,6 +2388,28 @@ export class FlinnManager {
           `);
         }
       }
+
+      // The Hierophant (Altarion): Eligible on failed spell saves within 30 ft
+      if (isSpellCard && globalThis.CoriaResonantArcana?.buildHierophantButtonHtml) {
+        const hieroInline = globalThis.CoriaResonantArcana.buildHierophantButtonHtml({
+          isSavingThrow: true,
+          rawType: "save",
+          rollerActor,
+          rollerTok,
+          rollerName,
+          origNat,
+          origTotal,
+          saveDc,
+          inlineCardSpellInfo: {
+            isSpell: true,
+            school: spellCardSchool,
+            spellName: spellCardName,
+            sourceName: spellCardSourceName || "the spellcaster"
+          },
+          inlineDataAttrs: dataAttrs
+        });
+        if (hieroInline) buttons.push(hieroInline);
+      }
     }
 
     if (buttons.length === 0) return "";
@@ -2365,6 +2450,10 @@ export class FlinnManager {
           casterId,
           rollerUuid,
           targetAcAttr: null,
+          spellSchool: btn.getAttribute("data-spell-school") || "",
+          spellName: btn.getAttribute("data-spell-name") || "",
+          spellSource: btn.getAttribute("data-spell-source") || "",
+          saveDcAttr: btn.getAttribute("data-save-dc") || "",
           flinn,
           speakerActor,
           rollerName,
@@ -2391,6 +2480,10 @@ export class FlinnManager {
     casterId = "",
     rollerUuid = "",
     targetAcAttr = null,
+    spellSchool = "",
+    spellName = "",
+    spellSource = "",
+    saveDcAttr = "",
     flinn = null,
     speakerActor = null,
     rollerName = "Creature",
@@ -2406,6 +2499,35 @@ export class FlinnManager {
   } = {}) {
     flinn = flinn || this.getFlinnActor();
     const resolvedRollerActorId = rollerActorId || speakerActor?.id || "";
+    const reactionChatChannel =
+      globalThis.CoriaChatTabs?.getChannelForOriginRoll?.({
+        originMsgId,
+        cardMsgId,
+        defaultChannel: "combat"
+      }) || "combat";
+
+    // --- 0. CARD OF THE RESONANT ARCANA: THE HIEROPHANT (Altarion) ---
+    if (reactType === "the-hierophant") {
+      await globalThis.CoriaResonantArcana?.executeHierophantReaction?.({
+        casterId,
+        speakerActor,
+        rollerUuid,
+        rollerActorId: resolvedRollerActorId,
+        rollerName,
+        origNat,
+        origTotal,
+        flatBonus,
+        bonusStr,
+        originMsgId,
+        cardMsgId,
+        targetKey,
+        spellSchool,
+        spellName,
+        spellSource,
+        saveDcAttr
+      });
+      return;
+    }
 
     // --- A. PATHS OF DESTINY ---
     if (reactType === "paths-of-destiny") {
@@ -2456,7 +2578,12 @@ export class FlinnManager {
             <i class="fas fa-dice-d20"></i> Use Forced d20 (${newTotal})
           </button>
         `,
-        flags: { isPathsOfDestinyCard: true, isD20ReactionCard: true }
+        flags: {
+          isPathsOfDestinyCard: true,
+          isD20ReactionCard: true,
+          chatChannel: reactionChatChannel,
+          originRollMessageId: originMsgId
+        }
       });
       return;
     }
@@ -2485,7 +2612,11 @@ export class FlinnManager {
               &bull; <strong>Original Roll (d20 = ${origNat}):</strong> ${origNat} ${bonusStr} = <strong>${origTotal}</strong><br>
               &bull; <strong>Portent Roll (d20 = ${portentNat}):</strong> ${portentNat} ${bonusStr} = <strong>${portentTotal}</strong>
             `,
-            flags: { isD20ReactionCard: true }
+            flags: {
+              isD20ReactionCard: true,
+              chatChannel: reactionChatChannel,
+              originRollMessageId: originMsgId
+            }
           });
 
           await CoriaRollLedger.applyRollIntervention({
@@ -2522,7 +2653,11 @@ export class FlinnManager {
           &bull; <strong>Original Roll (d20 = 1):</strong> 1 ${bonusStr} = <strong>${origTotal}</strong><br>
           &bull; <strong>New Roll (d20 = ${newNat}):</strong> ${newNat} ${bonusStr} = <strong>${newTotal}</strong>
         `,
-        flags: { isD20ReactionCard: true }
+        flags: {
+          isD20ReactionCard: true,
+          chatChannel: reactionChatChannel,
+          originRollMessageId: originMsgId
+        }
       });
 
       await CoriaRollLedger.applyRollIntervention({
@@ -2613,7 +2748,12 @@ export class FlinnManager {
           <em>Choose which of the <strong>${candidateDice.length} dice</strong> will be used:</em>
         `,
         buttonsHtml: choiceBtnsHtml,
-        flags: { isPathsOfDestinyCard: true, isD20ReactionCard: true }
+        flags: {
+          isPathsOfDestinyCard: true,
+          isD20ReactionCard: true,
+          chatChannel: reactionChatChannel,
+          originRollMessageId: originMsgId
+        }
       });
       return;
     }
@@ -2843,6 +2983,13 @@ export class FlinnManager {
     const finalTotal = Math.min(origTotal, newTotal);
     const finalNat = finalTotal === newTotal ? newNat : origNat;
 
+    const sbChatChannel =
+      globalThis.CoriaChatTabs?.getChannelForOriginRoll?.({
+        originMsgId,
+        cardMsgId,
+        defaultChannel: "combat"
+      }) || "combat";
+
     await AltarionAutomationManager.sendMinimalistFeatureCard(caster, {
       icon: "fa-feather-alt",
       title: `Silvery Barbs — Silver Distraction (${finalTotal})!`,
@@ -2852,7 +2999,11 @@ export class FlinnManager {
         &bull; <strong>New Roll (d20 = ${newNat}):</strong> ${newNat} ${bonusStr} = <strong>${newTotal}</strong><br>
         &bull; <strong>Lowest Result Applied (d20 = ${finalNat}):</strong> <strong>${finalTotal}</strong>
       `,
-      flags: { isD20ReactionCard: true }
+      flags: {
+        isD20ReactionCard: true,
+        chatChannel: sbChatChannel,
+        originRollMessageId: originMsgId
+      }
     });
 
     await CoriaRollLedger.applyRollIntervention({
@@ -3589,6 +3740,311 @@ export class FlinnManager {
   }
 
   /**
+   * Configure "Channel Divinity: Harness Divine Power" (Tasha's Cauldron of Everything, Cleric Level 2)
+   * with clean uses (1 at Cleric 2, 2 at Cleric 6, 3 at Cleric 18; Long Rest recovery) and a 16-char utility activity.
+   */
+  static configureHarnessDivinePowerDoc(doc = null, existingItem = null) {
+    const existingSpent = Number(existingItem?.system?.uses?.spent ?? doc?.system?.uses?.spent ?? 0);
+    const out = doc
+      ? foundry.utils.deepClone(doc)
+      : {
+          name: "Channel Divinity: Harness Divine Power",
+          type: "feat",
+          img: "icons/magic/holy/barrier-shield-winged-blue.webp",
+          system: {
+            description: {
+              value: `<div class="rd__b rd__b--2"><p><em>2nd-level cleric optional class feature (Tasha's Cauldron of Everything)</em></p><p>You can expend a use of your Channel Divinity to fuel your spells. As a bonus action, you touch your holy symbol, utter a prayer, and regain one expended spell slot, the level of which can be no higher than half your proficiency bonus (rounded up). The number of times you can use this feature is based on the level you've reached in this class: 2nd level, once; 6th level, twice; and 18th level, thrice. You regain all expended uses when you finish a long rest.</p></div>`,
+              chat: ""
+            },
+            source: { book: "TCE", page: "30", custom: "", rules: "2014" },
+            requirements: "Cleric 2",
+            type: { value: "class", subtype: "channelDivinity" }
+          },
+          flags: {}
+        };
+
+    out.name = "Channel Divinity: Harness Divine Power";
+    out.img = out.img || "icons/magic/holy/barrier-shield-winged-blue.webp";
+    out.system = out.system || {};
+    out.system.requirements = "Cleric 2";
+    out.system.type = { value: "class", subtype: "channelDivinity" };
+    out.system.uses = {
+      spent: existingSpent,
+      max: "1 + min(floor(@classes.cleric.levels / 6), 1) + min(floor(@classes.cleric.levels / 18), 1)",
+      recovery: [{ period: "lr", type: "recoverAll" }]
+    };
+    out.system.activities = {
+      harnDivPwrAct001: {
+        _id: "harnDivPwrAct001",
+        type: "utility",
+        name: "Harness Divine Power (Recover Spell Slot)",
+        activation: {
+          type: "bonus",
+          value: 1,
+          condition: "",
+          override: false
+        },
+        consumption: {
+          targets: [
+            {
+              type: "itemUses",
+              value: "1",
+              target: "",
+              scaling: {}
+            }
+          ],
+          scaling: { allowed: false, max: "" },
+          spellSlot: false
+        },
+        description: {
+          chatFlavor:
+            "As a bonus action, expend a use of Channel Divinity to regain one expended spell slot of a level no higher than half your Proficiency Bonus (rounded up)."
+        },
+        duration: { concentration: false, value: "", units: "inst", special: "", override: false },
+        effects: [],
+        range: { value: null, units: "self", special: "", override: false },
+        target: {
+          template: { count: "", contiguous: false, type: "", size: "", width: "", height: "", units: "ft" },
+          affects: { count: "", type: "self", choice: false, special: "" },
+          prompt: false,
+          override: false
+        },
+        uses: { spent: 0, max: "", recovery: [] },
+        roll: { prompt: false, visible: false, name: "", formula: "" },
+        sort: 0
+      }
+    };
+    out.flags = foundry.utils.mergeObject(out.flags || {}, {
+      [MODULE_ID]: {
+        isSecondaryClassItem: true,
+        originCategory: "class",
+        levelRequired: 2,
+        featureKey: "cleric:class:channel divinity: harness divine power:2",
+        isHarnessDivinePowerFeat: true,
+        syncSchemaVersion: 2
+      }
+    });
+    return out;
+  }
+
+  static async ensureHarnessDivinePowerConfigured(actor) {
+    if (!actor || !actor.isOwner) return null;
+    const item = actor.items.find(
+      i =>
+        i.type === "feat" &&
+        (i.flags?.[MODULE_ID]?.isHarnessDivinePowerFeat ||
+          i.name?.trim().toLowerCase().includes("harness divine power"))
+    );
+    if (!item) return null;
+    if (
+      Number(item.flags?.[MODULE_ID]?.syncSchemaVersion || 0) >= 2 &&
+      item.flags?.[MODULE_ID]?.isHarnessDivinePowerFeat &&
+      item.system?.activities?.harnDivPwrAct001
+    ) {
+      return item;
+    }
+    const stub = this.configureHarnessDivinePowerDoc(item.toObject(), item);
+    const actPatch = foundry.utils.deepClone(stub.system.activities);
+    const oldActs = item.toObject().system?.activities || {};
+    for (const oldKey of Object.keys(oldActs)) {
+      if (!(oldKey in actPatch)) {
+        actPatch[`-=${oldKey}`] = null;
+      }
+    }
+    await item.update({
+      img: stub.img,
+      "system.type": stub.system.type,
+      "system.requirements": stub.system.requirements,
+      "system.uses": stub.system.uses,
+      "system.activities": actPatch,
+      [`flags.${MODULE_ID}.isSecondaryClassItem`]: true,
+      [`flags.${MODULE_ID}.originCategory`]: "class",
+      [`flags.${MODULE_ID}.isHarnessDivinePowerFeat`]: true,
+      [`flags.${MODULE_ID}.syncSchemaVersion`]: 2
+    });
+    return item;
+  }
+
+  static _hdpLastOpenAt = 0;
+
+  /**
+   * Interactive Dialog for Flinn's "Channel Divinity: Harness Divine Power":
+   * Lets Flinn choose which expended Spell Slot to recover, capped at `Math.ceil(proficiencyBonus / 2)`.
+   */
+  static async openHarnessDivinePowerDialog(actor, _item = null) {
+    if (!actor || !actor.isOwner) return;
+    const now = Date.now();
+    if (now - this._hdpLastOpenAt < 1200) return;
+    this._hdpLastOpenAt = now;
+
+    const profBonus = Math.max(2, Number(actor.system?.attributes?.prof ?? 2));
+    const maxSlotLevel = Math.ceil(profBonus / 2);
+
+    // Find Channel Divinity feature to show & consume 1 use if available
+    const cdItem = actor.items.find(
+      i =>
+        i.type === "feat" &&
+        i.name?.trim().toLowerCase() === "channel divinity"
+    );
+    const cdMax = Number(cdItem?.system?.uses?.max ?? 0);
+    const cdSpent = Number(cdItem?.system?.uses?.spent ?? 0);
+    const cdRemaining = Math.max(0, cdMax - cdSpent);
+
+    const eligibleSlots = [];
+    for (let lvl = 1; lvl <= maxSlotLevel; lvl++) {
+      const slotObj = actor.system?.spells?.[`spell${lvl}`];
+      const maxVal = Number(slotObj?.max || 0);
+      const curVal = Number(slotObj?.value || 0);
+      if (maxVal > 0) {
+        eligibleSlots.push({
+          lvl,
+          curVal,
+          maxVal,
+          canRecover: curVal < maxVal
+        });
+      }
+    }
+
+    const recoverableSlots = eligibleSlots.filter(s => s.canRecover);
+    const defaultLvl =
+      recoverableSlots.length > 0
+        ? recoverableSlots[recoverableSlots.length - 1].lvl
+        : null;
+
+    const cdBannerHtml = cdItem && cdMax > 0
+      ? `<div style="margin-bottom: 10px; padding: 6px 10px; border-radius: 6px; background: rgba(250, 204, 21, 0.12); border: 1px solid rgba(250, 204, 21, 0.42); font-size: 12px; color: #fef08a;">
+           <i class="fas fa-sun"></i> <strong>Channel Divinity:</strong> ${cdRemaining} / ${cdMax} uso(s) disponível(is)${
+             cdRemaining > 0
+               ? " <em>(1 uso será consumido ao confirmar)</em>"
+               : " <em>(0 usos restantes — já gasto ou recarregue manualmente se necessário)</em>"
+           }
+         </div>`
+      : "";
+
+    let bodyListHtml = "";
+    if (eligibleSlots.length === 0) {
+      bodyListHtml = `<p style="color: #fca5a5; text-align: center; padding: 12px 0;">Nenhum espaço de magia elegível encontrado até o Nível ${maxSlotLevel}.</p>`;
+    } else if (recoverableSlots.length === 0) {
+      bodyListHtml = `
+        <div style="padding: 12px; border-radius: 8px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.4); color: #a7f3d0; text-align: center;">
+          <i class="fas fa-check-circle"></i> Todos os espaços de magia até o <strong>Nível ${maxSlotLevel}</strong> já estão cheios!
+        </div>
+      `;
+    } else {
+      bodyListHtml = eligibleSlots
+        .map(s => {
+          const isChecked = s.lvl === defaultLvl ? "checked" : "";
+          const disabledAttr = s.canRecover ? "" : "disabled";
+          const opacityStyle = s.canRecover ? "" : "opacity: 0.5; cursor: not-allowed;";
+          const statusBadge = s.canRecover
+            ? `<span style="color: #86efac; font-weight: 700;">${s.curVal} / ${s.maxVal} &rarr; ${s.curVal + 1} / ${s.maxVal}</span>`
+            : `<span style="color: #94a3b8; font-weight: 600;">${s.curVal} / ${s.maxVal} (Completo)</span>`;
+          return `
+            <label style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px; margin-bottom: 6px; border-radius: 7px; background: rgba(30, 22, 52, 0.72); border: 1px solid ${
+              s.canRecover ? "rgba(250, 204, 21, 0.45)" : "rgba(148, 163, 184, 0.25)"
+            }; cursor: pointer; ${opacityStyle}">
+              <span style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #f8fafc;">
+                <input type="radio" name="hdp-slot-level" value="${s.lvl}" ${isChecked} ${disabledAttr} />
+                <i class="fas fa-sparkles" style="color: #facc15;"></i>
+                Espaço de Magia — Nível ${s.lvl}
+              </span>
+              <span style="font-size: 12px;">${statusBadge}</span>
+            </label>
+          `;
+        })
+        .join("");
+    }
+
+    const content = `
+      <div style="padding: 6px 2px;">
+        <p style="margin-bottom: 8px; font-size: 13px;">
+          <strong>${foundry.utils.escapeHTML(actor.name)}</strong> canalizou energia divina para recuperar <strong>1 espaço de magia gasto</strong>.<br>
+          <span style="color: #cbd5e1; font-size: 12px;">
+            Bônus de Proficiência: <strong>+${profBonus}</strong> &rarr; Nível máximo recuperável: <strong>Nível ${maxSlotLevel}</strong> <em>(metade do BP arredondado para cima)</em>.
+          </span>
+        </p>
+        ${cdBannerHtml}
+        <div style="margin-top: 8px;">${bodyListHtml}</div>
+      </div>
+    `;
+
+    const buttons =
+      recoverableSlots.length > 0
+        ? {
+            recover: {
+              icon: '<i class="fas fa-sparkles"></i>',
+              label: "Recuperar Espaço de Magia",
+              callback: async (html) => {
+                const root = html instanceof HTMLElement ? html : html?.[0];
+                const chosenInput = root?.querySelector('input[name="hdp-slot-level"]:checked');
+                const chosenLvl = Number(chosenInput?.value || defaultLvl || 0);
+                if (!chosenLvl || chosenLvl < 1 || chosenLvl > maxSlotLevel) return;
+
+                const slotKey = `spell${chosenLvl}`;
+                const liveSlot = actor.system?.spells?.[slotKey];
+                const curVal = Number(liveSlot?.value || 0);
+                const maxVal = Number(liveSlot?.max || 0);
+                if (curVal >= maxVal) {
+                  ui.notifications?.warn?.(`Espaços de Nível ${chosenLvl} já estão completos!`);
+                  return;
+                }
+
+                const newVal = Math.min(maxVal, curVal + 1);
+                await actor.update(
+                  { [`system.spells.${slotKey}.value`]: newVal },
+                  { altarionBypassWard: true, coriaDamageReactionInternal: true }
+                );
+
+                // Consume 1 use of Channel Divinity if available
+                let cdConsumedNote = "";
+                if (cdItem && cdMax > 0 && cdRemaining > 0) {
+                  const liveCdSpent = Number(cdItem.system?.uses?.spent ?? 0);
+                  if (liveCdSpent < cdMax) {
+                    await cdItem.update({ "system.uses.spent": Math.min(cdMax, liveCdSpent + 1) });
+                    cdConsumedNote = `<br>&bull; <strong>Channel Divinity:</strong> ${Math.max(0, cdMax - (liveCdSpent + 1))} / ${cdMax} uso(s) restante(s).`;
+                  }
+                }
+
+                if (actor.sheet?.rendered) actor.sheet.render(false);
+
+                await AltarionAutomationManager.sendMinimalistFeatureCard(actor, {
+                  icon: "fa-sun",
+                  title: `Harness Divine Power — +1 Spell Slot (Level ${chosenLvl})!`,
+                  bodyHtml: `
+                    <strong>${foundry.utils.escapeHTML(actor.name)}</strong> used <strong>Channel Divinity: Harness Divine Power</strong> (Proficiency Bonus <strong>+${profBonus}</strong> &rarr; Max Slot Level <strong>${maxSlotLevel}</strong>)!<br>
+                    &bull; <strong>Spell Slot Recovered:</strong> Level <strong>${chosenLvl}</strong> Spell Slots: <strong>${curVal} &rarr; ${newVal} / ${maxVal}</strong>!${cdConsumedNote}
+                  `,
+                  flags: {
+                    isHarnessDivinePowerCard: true,
+                    chatChannel: "combat"
+                  }
+                });
+              }
+            },
+            cancel: {
+              icon: '<i class="fas fa-times"></i>',
+              label: "Cancelar"
+            }
+          }
+        : {
+            ok: {
+              icon: '<i class="fas fa-check"></i>',
+              label: "Fechar"
+            }
+          };
+
+    createV2Dialog(
+      {
+        title: `${actor.name} — Harness Divine Power`,
+        content,
+        buttons,
+        default: recoverableSlots.length > 0 ? "recover" : "ok"
+      },
+      { width: 460 }
+    ).render(true);
+  }
+
+  /**
    * Open the "Intuitive Arcanum — Accidental Casting" dialog for Flinn.
    */
   static async openIntuitiveArcanumDialog(
@@ -4012,7 +4468,7 @@ export class FlinnManager {
           const clericFeats = [];
           for (const def of this.CLERIC_CLASS_FEATURES) {
             if (def.level > clericLevel) continue;
-            const doc = await OtherPlayersBase.pConvertFeatureStub(
+            let doc = await OtherPlayersBase.pConvertFeatureStub(
               {
                 name: def.name,
                 source: def.source,
@@ -4023,6 +4479,15 @@ export class FlinnManager {
               },
               { actor, isSecondary: true, originCategory: "class", clsRaw: clericConv.clsRaw }
             );
+            if (def.name.toLowerCase().includes("harness divine power")) {
+              const existingHdp = actor.items.find(
+                i =>
+                  i.type === "feat" &&
+                  (i.flags?.[MODULE_ID]?.isHarnessDivinePowerFeat ||
+                    i.name?.trim().toLowerCase().includes("harness divine power"))
+              );
+              doc = this.configureHarnessDivinePowerDoc(doc, existingHdp);
+            }
             if (doc) clericFeats.push(doc);
           }
 
@@ -4181,7 +4646,21 @@ export class FlinnManager {
 
         if (actor.sheet?.rendered) actor.sheet.render(false);
 
-        // 5. Interactive Choice Dialog: Blessings of Knowledge (2 skills from Arcana, History, Nature, Religion gain Expertise)
+        // 5. Pre-seed Knowledge Domain Blessings of Knowledge from GM JSON (History & Religion)
+        //    so initial sync does not open a choice popup (Arcana Expertise comes from Fortune's Knowledge).
+        const existingBok = actor.getFlag(MODULE_ID, "blessingsOfKnowledgeChosen");
+        if (!Array.isArray(existingBok) || existingBok.length === 0) {
+          const inferredBok = ["his", "rel"];
+          const bokPatch = { [`flags.${MODULE_ID}.blessingsOfKnowledgeChosen`]: inferredBok };
+          for (const sk of inferredBok) {
+            if (Number(actor.system?.skills?.[sk]?.value || 0) < 2) {
+              bokPatch[`system.skills.${sk}.value`] = 2;
+            }
+          }
+          await actor.update(bokPatch);
+        }
+
+        // Interactive Choice Dialog: Blessings of Knowledge (only opens if choices remain unpicked)
         await OtherPlayersBase.promptSkillExpertiseChoiceIfNeeded(actor, {
           flagKey: "blessingsOfKnowledgeChosen",
           title: "Blessings of Knowledge (Knowledge Domain)",

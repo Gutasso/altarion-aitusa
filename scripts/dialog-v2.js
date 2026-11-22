@@ -6,6 +6,8 @@
  * framework deprecation warnings while preserving full CSS/callback compatibility.
  */
 
+import { isIgnoredBackupActor } from "./sync-guard.js";
+
 let _CoriaDialogV2Class = null;
 
 function extractIconClass(rawIcon) {
@@ -668,12 +670,13 @@ export class CoriaHeaderColorManager {
   }
 
   static getCharacterKey(actor) {
+    if (!actor || isIgnoredBackupActor(actor)) return "other";
     const n = String(actor?.name || "").trim().toLowerCase();
-    if (n.includes("flinn")) return "flinn";
-    if (n.includes("altarion")) return "altarion";
-    if (n.includes("aitusa")) return "aitusa";
-    if (n.includes("parva")) return "parva";
-    if (n.includes("kyrion")) return "kyrion";
+    if (n === "flinn" || n === "flinn encantor" || n.startsWith("flinn ")) return "flinn";
+    if (n === "altarion" || n === "altarion talendris" || n.startsWith("altarion ")) return "altarion";
+    if (n === "aitusa" || n.startsWith("aitusa ")) return "aitusa";
+    if (n === "parva" || n.startsWith("parva ")) return "parva";
+    if (n === "kyrion" || n.startsWith("kyrion ")) return "kyrion";
     return "other";
   }
 

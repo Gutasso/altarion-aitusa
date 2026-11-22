@@ -12,6 +12,38 @@ import { CoriaRollLedger } from "./roll-ledger.js";
 import { CoriaSpellImporter } from "./spell-importer.js";
 import { PartyJsonSyncManager } from "./party-json-sync.js";
 import { CoriaAttunementSlots } from "./attunement-slots.js";
+import { CoriaChatTabs } from "./chat-tabs.js";
+import { CoriaResonantArcana } from "./resonant-arcana.js";
+import { isIgnoredBackupActor, shouldThisClientRunAutoSync } from "./sync-guard.js";
+
+function setupCoriaHubFloatingButtonGuard() {
+  if (globalThis._coriaHubFloatingGuardBound) return;
+  globalThis._coriaHubFloatingGuardBound = true;
+
+  const syncMenuClass = () => {
+    try {
+      const hubOpen = Boolean(
+        document.getElementById("coria-hub-app") || document.getElementById("coria-hub-wrapper")
+      );
+      document.body?.classList?.toggle("coria-hub-menu-open", hubOpen);
+    } catch (_e) {}
+  };
+
+  Hooks.on("renderCoriaHubApp", syncMenuClass);
+  Hooks.on("closeCoriaHubApp", syncMenuClass);
+  Hooks.on("renderApplication", syncMenuClass);
+  Hooks.on("closeApplication", syncMenuClass);
+
+  const attachObserver = () => {
+    syncMenuClass();
+    if (!document.body || typeof MutationObserver !== "function") return;
+    const obs = new MutationObserver(() => syncMenuClass());
+    obs.observe(document.body, { childList: true });
+  };
+
+  if (document.body) attachObserver();
+  else Hooks.once("ready", attachObserver);
+}
 
 /**
  * Prevent dnd5e 5.3's `SensesField._shim` from defining `darkvision`, `blindsight`, `tremorsense`,
@@ -216,6 +248,7 @@ function patchDnd5eSensesShimAndTokenHpBar() {
  * Helper: Match Altarion whether named "Altarion", "Altarion Talendris", or configured via module setting.
  */
 function matchesAltarionName(name) {
+  if (isIgnoredBackupActor(name)) return false;
   const norm = String(name || "").trim().toLowerCase();
   if (!norm) return false;
   let settingName = "altarion";
@@ -235,6 +268,7 @@ function matchesAltarionName(name) {
 }
 
 function matchesAitusaName(name) {
+  if (isIgnoredBackupActor(name)) return false;
   const norm = String(name || "").trim().toLowerCase();
   if (!norm) return false;
   let settingName = "aitusa";
@@ -281,7 +315,8 @@ Hooks.once("init", () => {
     default: true
   });
 
-  // Initialize Secondary Class mechanics, Aura Engine, Roll Ledger, Advanced Automations, Arcane Plague, Party JSON Sync & Attunement Slots
+  // Initialize Secondary Class mechanics, Aura Engine, Roll Ledger, Advanced Automations, Arcane Plague,
+  // Party JSON Sync, Attunement Slots, Dual Chat Tabs & Resonant Arcana Cards
   SecondaryClassManager.init();
   CoriaAuraEngine.init();
   CoriaRollLedger.init();
@@ -289,6 +324,9 @@ Hooks.once("init", () => {
   ArcanePlagueManager.init();
   PartyJsonSyncManager.init();
   CoriaAttunementSlots.init();
+  CoriaChatTabs.init();
+  CoriaResonantArcana.init();
+  setupCoriaHubFloatingButtonGuard();
 });
 
 Hooks.once("ready", async () => {
@@ -314,7 +352,7 @@ Hooks.once("ready", async () => {
     if (aitusa.sheet?.rendered) aitusa.sheet.render(false);
   }
 
-  if (game.settings.get("altarion-aitusa", "autoSync")) {
+  if (game.settings.get("altarion-aitusa", "autoSync") && shouldThisClientRunAutoSync(null)) {
     if (altarion?.isOwner) await FeatureSyncManager.syncAltarion(altarion);
     if (aitusa?.isOwner) await FeatureSyncManager.syncAitusa(aitusa);
   }
@@ -330,14 +368,16 @@ Hooks.once("ready", async () => {
     };
   }
 
-  // Run curated 5-character JSON Sync (one-time per version) after OtherPlayersBase finishes its initial sync
-  setTimeout(async () => {
-    try {
-      await PartyJsonSyncManager.syncAllPartyActors({ force: false, silent: false });
-    } catch (err) {
-      console.warn("[Altarion & Aitusa] Delayed Party JSON Sync warning:", err);
-    }
-  }, 1800);
+  // Run curated 5-character JSON Sync (one-time per version) ONLY on the authoritative GM client (or solo local)
+  if (shouldThisClientRunAutoSync(null)) {
+    setTimeout(async () => {
+      try {
+        await PartyJsonSyncManager.syncAllPartyActors({ force: false, silent: false });
+      } catch (err) {
+        console.warn("[Altarion & Aitusa] Delayed Party JSON Sync warning:", err);
+      }
+    }, 1800);
+  }
 });
 
 /**
@@ -514,9 +554,10 @@ Hooks.on("dnd5e.postUseActivity", async (activity) => {
 /**
  * Automatically detect when Altarion or Aitusa actor is created or renamed
  */
-Hooks.on("createActor", async (actor) => {
-  if (!actor || !actor.isOwner || FeatureSyncManager.isSyncing(actor.id)) return;
+Hooks.on("createActor", async (actor, _options, userId) => {
+  if (!actor || isIgnoredBackupActor(actor) || FeatureSyncManager.isSyncing(actor.id)) return;
   if (!game.settings.get("altarion-aitusa", "autoSync")) return;
+  if (!shouldThisClientRunAutoSync(actor, { hookUserId: userId })) return;
 
   if (matchesAltarionName(actor.name)) {
     await FeatureSyncManager.syncAltarion(actor);
@@ -525,11 +566,13 @@ Hooks.on("createActor", async (actor) => {
   }
 });
 
-Hooks.on("updateActor", async (actor, changed) => {
-  if (!actor || !actor.isOwner) return;
+Hooks.on("updateActor", async (actor, changed, _options, userId) => {
+  if (!actor || !actor.isOwner || isIgnoredBackupActor(actor)) return;
+  if (userId && userId !== game.user?.id) return;
 
   const isAltarion = matchesAltarionName(actor.name);
   const isAitusa = matchesAitusaName(actor.name);
+  if (!isAltarion && !isAitusa) return;
 
   // 1. If Altarion's temporary hit points drop to 0, automatically remove Ancestral Ward status
   if (isAltarion && changed?.system?.attributes?.hp && "temp" in changed.system.attributes.hp) {
@@ -572,10 +615,11 @@ Hooks.on("updateActor", async (actor, changed) => {
     await FeatureSyncManager.syncArcaneWardResource(actor);
   }
 
-  // 4. If actor was renamed to Altarion or Aitusa, trigger full sync
+  // 4. If actor was renamed to Altarion or Aitusa, trigger full sync ONLY on authoritative client
   if (!("name" in (changed ?? {}))) return;
   if (FeatureSyncManager.isSyncing(actor.id)) return;
   if (!game.settings.get("altarion-aitusa", "autoSync")) return;
+  if (!shouldThisClientRunAutoSync(actor, { hookUserId: userId })) return;
 
   if (isAltarion) {
     await FeatureSyncManager.syncAltarion(actor);
@@ -586,14 +630,20 @@ Hooks.on("updateActor", async (actor, changed) => {
 
 /**
  * When an actor's class, subclass, or Ancestral Attacks item is updated, keep sheet state synchronized
+ * (Strictly scoped to `hookUserId === game.user.id` + single-authority sync to prevent GM <-> Player loops!)
  */
 for (const hookName of ["createItem", "updateItem", "deleteItem"]) {
-  Hooks.on(hookName, async (item, changed) => {
+  Hooks.on(hookName, async (item, changedOrOptions, optionsOrUserId, maybeUserId) => {
+    const hookUserId = hookName === "updateItem" ? maybeUserId : optionsOrUserId;
+    const changed = hookName === "updateItem" ? changedOrOptions : null;
+    if (hookUserId && hookUserId !== game.user?.id) return;
+
     const actor = item.parent;
-    if (!actor || FeatureSyncManager.isSyncing(actor.id)) return;
+    if (!actor || isIgnoredBackupActor(actor) || FeatureSyncManager.isSyncing(actor.id)) return;
 
     const isAltarion = matchesAltarionName(actor.name);
     const isAitusa = matchesAitusaName(actor.name);
+    if (!isAltarion && !isAitusa) return;
 
     // Keep Ancestral Attacks primary resource & Draconic Focus header counters in sync when item uses are consumed/recovered
     if (
@@ -646,21 +696,26 @@ for (const hookName of ["createItem", "updateItem", "deleteItem"]) {
 
     if (item.type !== "class" && item.type !== "subclass") return;
 
-    if (isAltarion) {
+    // On updateItem for class/subclass, ONLY trigger full sync when class levels genuinely changed!
+    if (hookName === "updateItem" && !(changed?.system && "levels" in changed.system)) {
       SecondaryClassManager.refreshActor(actor);
-      if (actor.isOwner && hookName !== "deleteItem") {
-        await FeatureSyncManager.syncAltarion(actor);
-        const aitusa = game.actors.find(a => matchesAitusaName(a.name));
-        if (aitusa?.isOwner) {
-          await FeatureSyncManager.syncAitusa(aitusa);
-        }
+      return;
+    }
+
+    SecondaryClassManager.refreshActor(actor);
+    if (!shouldThisClientRunAutoSync(actor, { hookUserId })) return;
+
+    if (isAltarion && hookName !== "deleteItem") {
+      await FeatureSyncManager.syncAltarion(actor);
+      const aitusa = game.actors.find(a => matchesAitusaName(a.name));
+      if (aitusa?.isOwner && !FeatureSyncManager.isSyncing(aitusa.id)) {
+        await FeatureSyncManager.syncAitusa(aitusa);
       }
-    } else if (isAitusa) {
-      SecondaryClassManager.refreshActor(actor);
-      if (actor.isOwner && hookName !== "deleteItem") {
-        await FeatureSyncManager.syncAitusa(actor);
-        const altarion = game.actors.find(a => matchesAltarionName(a.name));
-        if (altarion?.isOwner) await FeatureSyncManager.syncAltarion(altarion);
+    } else if (isAitusa && hookName !== "deleteItem") {
+      await FeatureSyncManager.syncAitusa(actor);
+      const altarion = game.actors.find(a => matchesAltarionName(a.name));
+      if (altarion?.isOwner && !FeatureSyncManager.isSyncing(altarion.id)) {
+        await FeatureSyncManager.syncAltarion(altarion);
       }
     }
   });
@@ -825,8 +880,12 @@ function onRenderActorSheet(sheet, html) {
 
   if (!isAltarion && !isAitusa) return;
 
-  // If the actor was just created/opened and has no classes yet (or has stub classes with empty descriptions), trigger auto-sync automatically
-  if (actor.isOwner && game.settings.get("altarion-aitusa", "autoSync") && !FeatureSyncManager.isSyncing(actor.id)) {
+  // If the actor was just created/opened and has no classes yet (or has stub classes with empty descriptions), trigger auto-sync ONLY on authoritative client
+  if (
+    shouldThisClientRunAutoSync(actor) &&
+    game.settings.get("altarion-aitusa", "autoSync") &&
+    !FeatureSyncManager.isSyncing(actor.id)
+  ) {
     const classItems = actor.items.filter(i => i.type === "class");
     const needsClassSync =
       classItems.length === 0 || classItems.some(i => !(i.system?.description?.value || "").trim());
@@ -1149,8 +1208,8 @@ function onRenderActorSheet(sheet, html) {
       syncBtn.innerHTML = `<i class="fas fa-sync"></i> Sync Features`;
       syncBtn.addEventListener("click", async (e) => {
         e.preventDefault();
-        if (isAltarion) await FeatureSyncManager.syncAltarion(actor);
-        if (isAitusa) await FeatureSyncManager.syncAitusa(actor);
+        if (isAltarion) await FeatureSyncManager.syncAltarion(actor, { force: true });
+        if (isAitusa) await FeatureSyncManager.syncAitusa(actor, { force: true });
       });
       container.appendChild(syncBtn);
     }

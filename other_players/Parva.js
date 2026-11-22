@@ -2,12 +2,13 @@
  * Character Synchronizer & Homebrew Configuration for: PARVA
  * - Dual Races: Human (Variant) [Feat: Telekinetic] + Aasimar (Fallen)
  * - Primary Class: Warlock (Default Level 4) — Subclass: The Fathomless, Pact Boon: Pact of the Tome
- * - Secondary Class: Sorcerer (Default Level 2) — Subclass: Divine Soul
+ * - Secondary Class: Sorcerer (Default Level 1) — Subclass: Divine Soul
  * - Interactive Choice Dialogs: Eldritch Invocations, Divine Magic Affinity, and Metamagic (at Sorcerer Lvl 3+)
  */
 
 import { OtherPlayersBase } from "./OtherPlayersBase.js";
 import { createV2Dialog } from "../scripts/dialog-v2.js";
+import { isIgnoredBackupActor, shouldThisClientRunAutoSync } from "../scripts/sync-guard.js";
 
 export class ParvaManager {
   static CHARACTER_NAME = "Parva";
@@ -30,7 +31,7 @@ export class ParvaManager {
     name: "Sorcerer",
     identifier: "sorcerer",
     source: "PHB",
-    defaultLevel: 2,
+    defaultLevel: 1,
     subclass: {
       name: "Divine Soul",
       shortName: "Divine Soul",
@@ -45,6 +46,7 @@ export class ParvaManager {
     { name: "Eldritch Invocations", level: 2, source: "PHB" },
     { name: "Pact Boon", level: 3, source: "PHB" },
     { name: "Ability Score Improvement", level: 4, source: "PHB" },
+    { name: "Eldritch Versatility", level: 4, source: "TCE" },
     { name: "Ability Score Improvement", level: 8, source: "PHB" },
     { name: "Mystic Arcanum (6th level)", level: 11, source: "PHB" },
     { name: "Ability Score Improvement", level: 12, source: "PHB" },
@@ -72,6 +74,8 @@ export class ParvaManager {
     { name: "Font of Magic", level: 2, source: "PHB" },
     { name: "Metamagic", level: 3, source: "PHB" },
     { name: "Ability Score Improvement", level: 4, source: "PHB" },
+    { name: "Sorcerous Versatility", level: 4, source: "TCE" },
+    { name: "Magical Guidance", level: 5, source: "TCE" },
     { name: "Ability Score Improvement", level: 8, source: "PHB" },
     { name: "Ability Score Improvement", level: 12, source: "PHB" },
     { name: "Ability Score Improvement", level: 16, source: "PHB" },
@@ -92,10 +96,14 @@ export class ParvaManager {
     OtherPlayersBase.registerCharacterHandler(this.CHARACTER_NAME, this);
     Hooks.once("ready", async () => {
       try {
+        if (!shouldThisClientRunAutoSync(null)) return;
         const parva = game.actors?.find(
-          a => String(a.name || "").trim().toLowerCase() === this.CHARACTER_NAME.toLowerCase()
+          a =>
+            !isIgnoredBackupActor(a) &&
+            (String(a.name || "").trim().toLowerCase() === this.CHARACTER_NAME.toLowerCase() ||
+              String(a.name || "").trim().toLowerCase().startsWith(`${this.CHARACTER_NAME.toLowerCase()} `))
         );
-        if (parva?.isOwner) {
+        if (parva && shouldThisClientRunAutoSync(parva)) {
           await this.ensureTentacleOfTheDeepsConfigured(parva);
         }
       } catch (_e) {
@@ -695,7 +703,56 @@ export class ParvaManager {
 
       if (actor.sheet?.rendered) actor.sheet.render(false);
 
-      // 6. Interactive Choice Dialogs (Eldritch Invocations, Divine Magic Affinity, Metamagic at Lvl 3+)
+      // 6. Pre-seed inferred choices from GM JSON (Agonizing Blast, Aspect of the Moon, Divine Magic Affinity: Good)
+      //    so initial sync for Warlock 4 / Sorcerer 1 does NOT pop up choice dialogs; leveling up still prompts normally!
+      if (warlockLevel >= 2 && !actor.getFlag("altarion-aitusa", "parvaInitialInvocationsSeeded")) {
+        const existingInvs = actor.items.filter(
+          i =>
+            i.type === "feat" &&
+            (i.flags?.["altarion-aitusa"]?.choiceCategory === "eldritch-invocation" ||
+              i.system?.type?.subtype === "eldritchInvocation" ||
+              /\b(agonizing blast|aspect of the moon)\b/i.test(i.name || ""))
+        );
+        if (existingInvs.length < 2) {
+          const initialInvs = [
+            { name: "Agonizing Blast", source: "PHB" },
+            { name: "Aspect of the Moon", source: "XGE" }
+          ];
+          const docsToAdd = [];
+          for (const invDef of initialInvs) {
+            const already = actor.items.some(
+              i =>
+                i.type === "feat" &&
+                String(i.name || "").trim().toLowerCase().includes(invDef.name.toLowerCase())
+            );
+            if (already) continue;
+            const invDoc = await OtherPlayersBase.pConvertOptionalFeature({
+              name: invDef.name,
+              source: invDef.source,
+              actor,
+              isSecondary: false,
+              subtype: "eldritchInvocation",
+              requirements: "Warlock 2",
+              choiceCategory: "eldritch-invocation"
+            });
+            if (invDoc) docsToAdd.push(invDoc);
+          }
+          if (docsToAdd.length > 0) {
+            await OtherPlayersBase.syncFeatureItems(actor, docsToAdd, {
+              maxLevel: 20,
+              classItemId: warlockClassItem?.id || null
+            });
+          }
+        }
+        await actor.setFlag("altarion-aitusa", "parvaInitialInvocationsSeeded", true);
+      }
+
+      if (!actor.getFlag("altarion-aitusa", "divineSoulAffinity")) {
+        await actor.setFlag("altarion-aitusa", "divineSoulAffinity", "good");
+        await OtherPlayersBase.syncSpells(actor, [{ name: "Cure Wounds", source: "PHB" }]);
+      }
+
+      // Interactive Choice Dialogs (only prompt when leveling up into new unpicked slots!)
       const maxInvocations = OtherPlayersBase.getEldritchInvocationCount(warlockLevel);
       if (maxInvocations > 0) {
         await OtherPlayersBase.promptOptionalFeatureChoiceIfNeeded(actor, {

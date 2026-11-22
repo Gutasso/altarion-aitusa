@@ -1,11 +1,13 @@
 /**
  * Curated Character JSON Snapshot Data for Party Sync (Aitusa, Altarion Talendris, Flinn Encantor, Kyrion, Parva)
+ * - Syncs Ability Scores, Skill Proficiencies/Expertise, Curated Spells, Inventory, Currency,
+ *   Tool Proficiencies, Languages, Extra Feats, Backgrounds, and `professions-reworked-5e` flags.
  * - Uses verified local Foundry icons (zero third-party cdn.5e.tools / githubusercontent cookie warnings).
  * - Converts the 5 "Card of the Resonant Arcana" homebrew magic items into attunable Equipment (Trinket) items
- *   so they appear in Inventory and work natively with Slot-Based Attunement.
+ *   with 1/Long Rest charges, ready-to-use activities, and full automation flags.
  */
 
-export const PARTY_JSON_SYNC_VERSION = 2;
+export const PARTY_JSON_SYNC_VERSION = 3;
 
 export const EXTERNAL_IMG_MIGRATION_MAP = {
   "https://cdn.5e.tools/2024/img/items/DMG/Bag%20of%20Holding.webp": "icons/containers/bags/coinpouch-cloth-purple.webp",
@@ -119,10 +121,90 @@ export const PARTY_JSON_DATA = {
             },
             "uses": {
               "spent": 0,
-              "max": "",
-              "recovery": []
+              "max": "1",
+              "recovery": [
+                {
+                  "period": "lr",
+                  "type": "recoverAll"
+                }
+              ]
             },
-            "activities": {},
+            "activities": {
+              "resArcHighPri001": {
+                "_id": "resArcHighPri001",
+                "type": "utility",
+                "name": "Use The High Priestess (Detect Magic + Truesight 30 ft)",
+                "activation": {
+                  "type": "action",
+                  "value": 1,
+                  "condition": "",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [
+                    {
+                      "type": "itemUses",
+                      "value": "1",
+                      "target": "",
+                      "scaling": {}
+                    }
+                  ],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": false
+                },
+                "description": {
+                  "chatFlavor": "Expends 1 charge to cast Detect Magic (no spell slot or components) and grants Truesight 30 ft for 10 minutes."
+                },
+                "duration": {
+                  "concentration": false,
+                  "value": "",
+                  "units": "inst",
+                  "special": "",
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "value": null,
+                  "units": "self",
+                  "special": "",
+                  "override": false
+                },
+                "target": {
+                  "template": {
+                    "count": "",
+                    "contiguous": false,
+                    "type": "",
+                    "size": "",
+                    "width": "",
+                    "height": "",
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "count": "",
+                    "type": "",
+                    "choice": false,
+                    "special": ""
+                  },
+                  "prompt": false,
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "prompt": false,
+                  "visible": false,
+                  "name": "",
+                  "formula": ""
+                },
+                "sort": 0
+              }
+            },
             "source": {
               "custom": "Coria Homebrew",
               "rules": "2014"
@@ -132,8 +214,1697 @@ export const PARTY_JSON_DATA = {
           "folder": null,
           "sort": 0,
           "flags": {
-            "dnd5e": {}
+            "dnd5e": {},
+            "altarion-aitusa": {
+              "isResonantArcanaCard": true,
+              "resonantArcanaKey": "high-priestess"
+            }
           }
+        }
+      }
+    ],
+    "abilities": {
+      "str": {
+        "value": 14,
+        "proficient": 0
+      },
+      "dex": {
+        "value": 10,
+        "proficient": 0
+      },
+      "con": {
+        "value": 14,
+        "proficient": 1
+      },
+      "int": {
+        "value": 14,
+        "proficient": 1
+      },
+      "wis": {
+        "value": 12,
+        "proficient": 0
+      },
+      "cha": {
+        "value": 8,
+        "proficient": 0
+      }
+    },
+    "skills": {
+      "arc": 1,
+      "inv": 1
+    },
+    "spells": [
+      {
+        "origId": "fPJaXYufCQDKTLhh",
+        "doc": {
+          "name": "Comprehend Languages",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "224",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>For the duration, you understand the literal meaning of any spoken language that you hear. You also understand any written language that you see, but you must be touching the surface on which the words are written. It takes about 1 minute to read one page of text.</p><p>This spell doesn't decode secret messages in a text or a glyph, such as an arcane sigil, that isn't part of a written language.</p></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "div",
+            "properties": [
+              "vocal",
+              "somatic",
+              "material",
+              "ritual"
+            ],
+            "materials": {
+              "value": "a pinch of soot and salt",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "self",
+                "count": "0",
+                "choice": false
+              },
+              "template": {
+                "units": "self",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "self"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "hour"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "comprehend-languages"
+          },
+          "img": "icons/skills/trades/academics-book-study-runes.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "comprehend%20languages_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "77uItCmffdlEIT3O",
+        "doc": {
+          "name": "Cure Wounds",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "230",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>A creature you touch regains a number of hit points equal to [[/r 1d8]] + your spellcasting ability modifier. This spell has no effect on undead or constructs.</p></div><div class=\"rd__b  rd__b--3\"><div data-roll-name-ancestor=\"At Higher Levels\" class=\"rd__b  rd__b--3\"><span class=\"rd__h rd__h--3\" data-title-index=\"1\"> <span class=\"entry-title-inner\">At Higher Levels.</span></span> <p>When you cast this spell using a spell slot of 2nd level or higher, the healing increases by [[/r 1d8]] for each slot level above 1st.</p></div></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "evo",
+            "properties": [
+              "vocal",
+              "somatic"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "touch",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "touch"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "",
+              "units": "inst"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "heal",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "healing": {
+                  "number": 1,
+                  "denomination": 8,
+                  "bonus": "@mod",
+                  "types": [
+                    "healing"
+                  ],
+                  "custom": {
+                    "enabled": false,
+                    "formula": ""
+                  },
+                  "scaling": {
+                    "mode": "whole",
+                    "number": 1,
+                    "formula": ""
+                  }
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "cure-wounds"
+          },
+          "img": "icons/magic/life/cross-flared-green.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "cure%20wounds_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "oSss2qylemox75do",
+        "doc": {
+          "name": "Detect Magic",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "231",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>For the duration, you sense the presence of magic within 30 feet of you. If you sense magic in this way, you can use your action to see a faint aura around any visible creature or object in the area that bears magic, and you learn its <a href=\"https://5e.tools/book.html#PHB,10,the%20schools%20of%20magic,0\">school of magic</a>, if any.</p><p>The spell can penetrate most barriers, but it is blocked by 1 foot of stone, 1 inch of common metal, a thin sheet of lead, or 3 feet of wood or dirt.</p></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "div",
+            "properties": [
+              "vocal",
+              "somatic",
+              "ritual",
+              "concentration"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "type": "radius",
+                "size": "30",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "self"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "10",
+              "units": "minute"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "detect-magic"
+          },
+          "img": "icons/magic/unholy/hands-cloud-light-pink.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "detect%20magic_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "SEbWYySCfjacymow",
+        "doc": {
+          "name": "Find Familiar",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "240",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>You gain the service of a familiar, a spirit that takes an animal form you choose: @creature[bat], @creature[cat], @creature[crab], @creature[frog] (toad), @creature[hawk], @creature[lizard], @creature[octopus], @creature[owl], @creature[poisonous snake], fish (@creature[quipper]), @creature[rat], @creature[raven], @creature[sea horse], @creature[spider], or @creature[weasel]. Appearing in an unoccupied space within range, the familiar has the statistics of the chosen form, though it is a celestial, fey, or fiend (your choice) instead of a beast.</p><p><i class=\"ve-muted\">Additional <a href=\"https://5e.tools/bestiary.html#blankhash,flstmiscellaneous:familiar=1\">animal form choices</a> may be available at the DM's discretion.</i></p><p>Your familiar acts independently of you, but it always obeys your commands. In combat, it rolls its own initiative and acts on its own turn. A familiar can't attack, but it can take other actions as normal.</p><p>When the familiar drops to 0 hit points, it disappears, leaving behind no physical form. It reappears after you cast this spell again. As an action, you can temporarily dismiss the familiar to a pocket dimension. Alternatively, you can dismiss it forever. As an action while it is temporarily dismissed, you can cause it to reappear in any unoccupied space within 30 feet of you. Whenever the familiar drops to 0 hit points or disappears into the pocket dimension, it leaves behind in its space anything it was wearing or carrying.</p><p>While your familiar is within 100 feet of you, you can communicate with it telepathically. Additionally, as an action, you can see through your familiar's eyes and hear what it hears until the start of your next turn, gaining the benefits of any special senses that the familiar has. During this time, you are &amp;Reference[condition=deafened]{deaf} and &amp;Reference[condition=blinded]{blind} with regard to your own senses.</p><p>You can't have more than one familiar at a time. If you cast this spell while you already have a familiar, you instead cause it to adopt a new form. Choose one of the forms from the above list. Your familiar transforms into the chosen creature.</p><p>Finally, when you cast a spell with a range of touch, your familiar can deliver the spell as if it had cast the spell. Your familiar must be within 100 feet of you, and it must use its reaction to deliver the spell when you cast it. If the spell requires an attack roll, you use your attack modifier for the roll.</p></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "con",
+            "properties": [
+              "vocal",
+              "somatic",
+              "material",
+              "ritual"
+            ],
+            "materials": {
+              "value": "10 gp worth of charcoal, incense, and herbs that must be consumed by fire in a brass brazier",
+              "consumed": true,
+              "cost": 10,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "space",
+                "count": "0",
+                "choice": false
+              },
+              "template": {
+                "units": "any",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "10",
+              "units": "ft"
+            },
+            "activation": {
+              "type": "hour",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "",
+              "units": "inst"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "summon",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "bonuses": {},
+                "creatureSizes": [],
+                "creatureTypes": [],
+                "match": {
+                  "attacks": false,
+                  "disposition": false,
+                  "proficiency": false,
+                  "saves": false
+                },
+                "profiles": [],
+                "summon": {
+                  "mode": "",
+                  "prompt": true
+                },
+                "visibility": {
+                  "identifier": "",
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {}
+              }
+            },
+            "identifier": "find-familiar"
+          },
+          "img": "icons/creatures/birds/corvid-call-sound-glowing.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "find%20familiar_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "cn8rVTywhA6oyUdI",
+        "doc": {
+          "name": "Identify",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "252",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>You choose one object that you must touch throughout the casting of the spell. If it is a magic item or some other magic-imbued object, you learn its properties and how to use them, whether it requires attunement to use, and how many charges it has, if any. You learn whether any spells are affecting the item and what they are. If the item was created by a spell, you learn which spell created it.</p><p>If you instead touch a creature throughout the casting, you learn what spells, if any, are currently affecting it.</p></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "div",
+            "properties": [
+              "vocal",
+              "somatic",
+              "material",
+              "ritual"
+            ],
+            "materials": {
+              "value": "a pearl worth at least 100 gp and an owl feather",
+              "consumed": false,
+              "cost": 100,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "object",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "touch",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "touch"
+            },
+            "activation": {
+              "type": "minute",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "",
+              "units": "inst"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "identify"
+          },
+          "img": "icons/sundries/scrolls/scroll-bound-blue-red.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "identify_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "c4UgEcfH6mO1Ejpp",
+        "doc": {
+          "name": "Light",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "255",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>You touch one object that is no larger than 10 feet in any dimension. Until the spell ends, the object sheds bright light in a 20-foot radius and dim light for an additional 20 feet. The light can be colored as you like. Completely covering the object with something opaque blocks the light. The spell ends if you cast it again or dismiss it as an action.</p><p>If you target an object held or worn by a hostile creature, that creature must succeed on a Dexterity saving throw to avoid the spell.</p></div>",
+              "chat": ""
+            },
+            "level": 0,
+            "school": "evo",
+            "properties": [
+              "vocal",
+              "material"
+            ],
+            "materials": {
+              "value": "a firefly or phosphorescent moss",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "object",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "touch",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "touch"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "hour"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 2,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "save",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "damage": {
+                  "onSave": "none",
+                  "parts": []
+                },
+                "save": {
+                  "ability": [
+                    "dex"
+                  ],
+                  "dc": {
+                    "calculation": "spellcasting",
+                    "formula": ""
+                  }
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "light"
+          },
+          "img": "icons/magic/light/orb-lightbulb-gray.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "light_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "fGiqphJ9BqqFcxHj",
+        "doc": {
+          "name": "Longstrider",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "256",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>You touch a creature. The target's speed increases by 10 feet until the spell ends.</p></div><div class=\"rd__b  rd__b--3\"><div data-roll-name-ancestor=\"At Higher Levels\" class=\"rd__b  rd__b--3\"><span class=\"rd__h rd__h--3\" data-title-index=\"1\"> <span class=\"entry-title-inner\">At Higher Levels.</span></span> <p>When you cast this spell using a spell slot of 2nd level or higher, you can target one additional creature for each slot level above 1st.</p></div></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "trs",
+            "properties": [
+              "vocal",
+              "somatic",
+              "material"
+            ],
+            "materials": {
+              "value": "a pinch of dirt",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "touch",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "touch"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "hour"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "longstrider"
+          },
+          "img": "icons/equipment/feet/boots-leather-laced-brown.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "longstrider_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "bDJPpRFqawAXi9wz",
+        "doc": {
+          "name": "Mage Hand",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "256",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>A spectral, floating hand appears at a point you choose within range. The hand lasts for the duration or until you dismiss it as an action. The hand vanishes if it is ever more than 30 feet away from you or if you cast this spell again.</p><p>You can use your action to control the hand. You can use the hand to manipulate an object, open an unlocked door or container, stow or retrieve an item from an open container, or pour the contents out of a vial. You can move the hand up to 30 feet each time you use it.</p><p>The hand can't attack, activate magic items, or carry more than 10 pounds.</p></div>",
+              "chat": ""
+            },
+            "level": 0,
+            "school": "con",
+            "properties": [
+              "vocal",
+              "somatic"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "space",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "30",
+              "units": "ft"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "minute"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 2,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "mage-hand"
+          },
+          "img": "icons/magic/light/orbs-hand-gray.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "mage%20hand_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "j6vWC17b7kNDsIhI",
+        "doc": {
+          "name": "Shield",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "275",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>An invisible barrier of magical force appears and protects you. Until the start of your next turn, you have a +5 bonus to AC, including against the triggering attack, and you take no damage from @spell[magic missile].</p></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "abj",
+            "properties": [
+              "vocal",
+              "somatic"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "self",
+                "count": "0",
+                "choice": false
+              },
+              "template": {
+                "units": "self",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "self"
+            },
+            "activation": {
+              "type": "reaction",
+              "condition": "which you take when you are hit by an attack or targeted by the magic missile spell",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "round"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [
+                  {
+                    "_id": "6pbotGIvqQkraPva",
+                    "level": {}
+                  }
+                ],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "shield"
+          },
+          "img": "icons/magic/defensive/shield-barrier-deflect-teal.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "shield_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": [
+            {
+              "_id": "6pbotGIvqQkraPva",
+              "flags": {
+                "plutonium": {
+                  "dedupeId": "shield"
+                }
+              },
+              "changes": [
+                {
+                  "key": "system.attributes.ac.bonus",
+                  "mode": 2,
+                  "value": "5",
+                  "priority": null
+                }
+              ],
+              "disabled": false,
+              "duration": {
+                "startTime": null,
+                "rounds": 1,
+                "seconds": null,
+                "combat": null,
+                "turns": null,
+                "startRound": null,
+                "startTurn": null
+              },
+              "origin": "Item.FlLKKv7bQBlIAs11",
+              "tint": "#ffffff",
+              "transfer": false,
+              "name": "Shield",
+              "description": "<p>Until the start of your next turn, you have a +5 bonus to AC, including against the triggering attack, and you take no damage from magic missile.</p>",
+              "statuses": [],
+              "_stats": {
+                "compendiumSource": null,
+                "duplicateSource": null,
+                "coreVersion": "13.351",
+                "systemId": "dnd5e",
+                "systemVersion": "3.3.1",
+                "createdTime": null,
+                "modifiedTime": null,
+                "lastModifiedBy": null,
+                "exportSource": null
+              },
+              "img": "icons/magic/defensive/shield-barrier-deflect-teal.webp",
+              "type": "base",
+              "system": {},
+              "sort": 0
+            }
+          ]
+        }
+      },
+      {
+        "origId": "DPQYlAFXMlkzve1k",
+        "doc": {
+          "name": "Silvery Barbs",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "SCC",
+              "page": "38",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>You magically distract the triggering creature and turn its momentary uncertainty into encouragement for another creature. The triggering creature must reroll the [[/r d20]] and use the lower roll.</p><p>You can then choose a different creature you can see within range (you can choose yourself). The chosen creature has advantage on the next attack roll, ability check, or saving throw it makes within 1 minute. A creature can be empowered by only one use of this spell at a time.</p></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "enc",
+            "properties": [
+              "vocal"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "60",
+              "units": "ft"
+            },
+            "activation": {
+              "type": "reaction",
+              "condition": "which you take when a creature you can see within 60 feet of yourself succeeds on an attack roll, an ability check, or a saving throw",
+              "value": 1
+            },
+            "duration": {
+              "value": "",
+              "units": "inst"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "d20",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "silvery-barbs"
+          },
+          "img": "icons/magic/control/energy-stream-link-white.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "SCC",
+              "hash": "silvery%20barbs_scc",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "HyFI68LIGSwN9QnR",
+        "doc": {
+          "name": "Absorb Elements",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "XGE",
+              "page": "150",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>The spell captures some of the incoming energy, lessening its effect on you and storing it for your next melee attack. You have resistance to the triggering damage type until the start of your next turn. Also, the first time you hit with a melee attack on your next turn, the target takes an extra [[/damage 1d6]] damage of the triggering type, and the spell ends.</p></div><div class=\"rd__b  rd__b--3\"><div data-roll-name-ancestor=\"At Higher Levels\" class=\"rd__b  rd__b--3\"><span class=\"rd__h rd__h--3\" data-title-index=\"1\"> <span class=\"entry-title-inner\">At Higher Levels.</span></span> <p>When you cast this spell using a spell slot of 2nd level or higher, the extra damage increases by [[/damage 1d6]] for each slot level above 1st.</p></div></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "abj",
+            "properties": [
+              "somatic"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "self",
+                "count": "0",
+                "choice": false
+              },
+              "template": {
+                "units": "self",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "self"
+            },
+            "activation": {
+              "type": "reaction",
+              "condition": "which you take when you take acid, cold, fire, lightning, or thunder damage",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "round"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "damage",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "damage": {
+                  "critical": {
+                    "allow": false,
+                    "bonus": ""
+                  },
+                  "parts": [
+                    {
+                      "number": 1,
+                      "denomination": 6,
+                      "bonus": "",
+                      "types": [],
+                      "custom": {
+                        "enabled": false,
+                        "formula": ""
+                      },
+                      "scaling": {
+                        "mode": "whole",
+                        "number": 1,
+                        "formula": ""
+                      }
+                    }
+                  ]
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "absorb-elements"
+          },
+          "img": "icons/magic/symbols/elements-air-earth-fire-water.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "XGE",
+              "hash": "absorb%20elements_xge",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
         }
       }
     ]
@@ -1109,7 +2880,7 @@ export const PARTY_JSON_DATA = {
           "img": "icons/sundries/gaming/rune-card.webp",
           "system": {
             "description": {
-              "value": "<p>This rectangular slab of polished black quartz appears to hold a fragment of the night sky within it. While you are attuned to the card, stardust drifts inside the stone to form the illustration of a Major Arcana that resonates with your soul.</p><p data-path-to-node=\"4\">The card has 1 charge. You can expend this charge to use the property of the arcana engraved upon it. The card regains its expended charge daily at dawn.</p><p></p><p><strong>The Hierophant.</strong> As a reaction when you or a creature you can see within 30 feet of you fails a saving throw against a spell, you can expend the card's charge to allow the target to reroll the saving throw. If the school of the spell is from Ilusion or Enchantment, the target rolls with advantage. If the target success against the save, it becomes immune to illusions created by that specific source for 1 minute.</p>",
+              "value": "<p>This rectangular slab of polished black quartz appears to hold a fragment of the night sky within it. While you are attuned to the card, stardust drifts inside the stone to form the illustration of a Major Arcana that resonates with your soul.</p><p data-path-to-node=\"4\">The card has 1 charge. You can expend this charge to use the property of the arcana engraved upon it. The card regains its expended charge daily at dawn.</p><p></p><p><strong>The Hierophant.</strong> As a reaction when you or a creature you can see within 30 feet of you fails a saving throw against a spell, you can expend the card's charge to allow the target to reroll the saving throw. If the school of the spell is from Illusion or Enchantment, the target rolls with advantage. If the target succeeds against the save, it becomes immune to illusions created by that specific source for 1 minute.</p>",
               "chat": ""
             },
             "quantity": 1,
@@ -1140,10 +2911,90 @@ export const PARTY_JSON_DATA = {
             },
             "uses": {
               "spent": 0,
-              "max": "",
-              "recovery": []
+              "max": "1",
+              "recovery": [
+                {
+                  "period": "lr",
+                  "type": "recoverAll"
+                }
+              ]
             },
-            "activities": {},
+            "activities": {
+              "resArcHieroph001": {
+                "_id": "resArcHieroph001",
+                "type": "utility",
+                "name": "Use The Hierophant (Reaction — Reroll Spell Save)",
+                "activation": {
+                  "type": "reaction",
+                  "value": 1,
+                  "condition": "",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [
+                    {
+                      "type": "itemUses",
+                      "value": "1",
+                      "target": "",
+                      "scaling": {}
+                    }
+                  ],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": false
+                },
+                "description": {
+                  "chatFlavor": "As a reaction when a creature within 30 ft fails a saving throw against a spell, allow it to reroll (with advantage vs Enchantment or Illusion). On a success, it becomes immune to illusions from that source for 1 minute."
+                },
+                "duration": {
+                  "concentration": false,
+                  "value": "",
+                  "units": "inst",
+                  "special": "",
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "value": null,
+                  "units": "self",
+                  "special": "",
+                  "override": false
+                },
+                "target": {
+                  "template": {
+                    "count": "",
+                    "contiguous": false,
+                    "type": "",
+                    "size": "",
+                    "width": "",
+                    "height": "",
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "count": "",
+                    "type": "",
+                    "choice": false,
+                    "special": ""
+                  },
+                  "prompt": false,
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "prompt": false,
+                  "visible": false,
+                  "name": "",
+                  "formula": ""
+                },
+                "sort": 0
+              }
+            },
             "source": {
               "custom": "Coria Homebrew",
               "rules": "2014"
@@ -1153,7 +3004,11 @@ export const PARTY_JSON_DATA = {
           "folder": null,
           "sort": 0,
           "flags": {
-            "dnd5e": {}
+            "dnd5e": {},
+            "altarion-aitusa": {
+              "isResonantArcanaCard": true,
+              "resonantArcanaKey": "hierophant"
+            }
           }
         }
       },
@@ -1440,6 +3295,1977 @@ export const PARTY_JSON_DATA = {
           "effects": [],
           "folder": null,
           "sort": 0
+        }
+      }
+    ],
+    "abilities": {
+      "str": {
+        "value": 16,
+        "proficient": 0
+      },
+      "dex": {
+        "value": 8,
+        "proficient": 0
+      },
+      "con": {
+        "value": 14,
+        "proficient": 1
+      },
+      "int": {
+        "value": 16,
+        "proficient": 1
+      },
+      "wis": {
+        "value": 10,
+        "proficient": 0
+      },
+      "cha": {
+        "value": 10,
+        "proficient": 0
+      }
+    },
+    "skills": {
+      "arc": 1,
+      "his": 1,
+      "inv": 1,
+      "nat": 1,
+      "prc": 1,
+      "sur": 1
+    },
+    "spells": [
+      {
+        "origId": "3XVp43VY0Ldzm1Yc",
+        "doc": {
+          "name": "Detect Magic",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "231",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>For the duration, you sense the presence of magic within 30 feet of you. If you sense magic in this way, you can use your action to see a faint aura around any visible creature or object in the area that bears magic, and you learn its <a href=\"https://5e.tools/book.html#PHB,10,the%20schools%20of%20magic,0\">school of magic</a>, if any.</p><p>The spell can penetrate most barriers, but it is blocked by 1 foot of stone, 1 inch of common metal, a thin sheet of lead, or 3 feet of wood or dirt.</p></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "div",
+            "properties": [
+              "vocal",
+              "somatic",
+              "ritual",
+              "concentration"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "type": "radius",
+                "size": "30",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "self"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "10",
+              "units": "minute"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "detect-magic"
+          },
+          "img": "icons/magic/unholy/hands-cloud-light-pink.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "detect%20magic_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "eiRqSTGjfXLmSNo4",
+        "doc": {
+          "name": "Find Familiar",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "240",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>You gain the service of a familiar, a spirit that takes an animal form you choose: @creature[bat], @creature[cat], @creature[crab], @creature[frog] (toad), @creature[hawk], @creature[lizard], @creature[octopus], @creature[owl], @creature[poisonous snake], fish (@creature[quipper]), @creature[rat], @creature[raven], @creature[sea horse], @creature[spider], or @creature[weasel]. Appearing in an unoccupied space within range, the familiar has the statistics of the chosen form, though it is a celestial, fey, or fiend (your choice) instead of a beast.</p><p><i class=\"ve-muted\">Additional <a href=\"https://5e.tools/bestiary.html#blankhash,flstmiscellaneous:familiar=1\">animal form choices</a> may be available at the DM's discretion.</i></p><p>Your familiar acts independently of you, but it always obeys your commands. In combat, it rolls its own initiative and acts on its own turn. A familiar can't attack, but it can take other actions as normal.</p><p>When the familiar drops to 0 hit points, it disappears, leaving behind no physical form. It reappears after you cast this spell again. As an action, you can temporarily dismiss the familiar to a pocket dimension. Alternatively, you can dismiss it forever. As an action while it is temporarily dismissed, you can cause it to reappear in any unoccupied space within 30 feet of you. Whenever the familiar drops to 0 hit points or disappears into the pocket dimension, it leaves behind in its space anything it was wearing or carrying.</p><p>While your familiar is within 100 feet of you, you can communicate with it telepathically. Additionally, as an action, you can see through your familiar's eyes and hear what it hears until the start of your next turn, gaining the benefits of any special senses that the familiar has. During this time, you are &amp;Reference[condition=deafened]{deaf} and &amp;Reference[condition=blinded]{blind} with regard to your own senses.</p><p>You can't have more than one familiar at a time. If you cast this spell while you already have a familiar, you instead cause it to adopt a new form. Choose one of the forms from the above list. Your familiar transforms into the chosen creature.</p><p>Finally, when you cast a spell with a range of touch, your familiar can deliver the spell as if it had cast the spell. Your familiar must be within 100 feet of you, and it must use its reaction to deliver the spell when you cast it. If the spell requires an attack roll, you use your attack modifier for the roll.</p></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "con",
+            "properties": [
+              "vocal",
+              "somatic",
+              "material",
+              "ritual"
+            ],
+            "materials": {
+              "value": "10 gp worth of charcoal, incense, and herbs that must be consumed by fire in a brass brazier",
+              "consumed": true,
+              "cost": 10,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "space",
+                "count": "0",
+                "choice": false
+              },
+              "template": {
+                "units": "any",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "10",
+              "units": "ft"
+            },
+            "activation": {
+              "type": "hour",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "",
+              "units": "inst"
+            },
+            "ability": "",
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 0,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "summon",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "bonuses": {},
+                "creatureSizes": [],
+                "creatureTypes": [],
+                "match": {
+                  "ability": "",
+                  "attacks": false,
+                  "disposition": false,
+                  "proficiency": false,
+                  "saves": false
+                },
+                "profiles": [],
+                "summon": {
+                  "mode": "",
+                  "prompt": false
+                },
+                "visibility": {
+                  "identifier": "",
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {}
+              }
+            },
+            "identifier": "find-familiar"
+          },
+          "img": "icons/creatures/birds/corvid-call-sound-glowing.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "find%20familiar_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "shP8h377LspfZUzp",
+        "doc": {
+          "name": "Identify",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "252",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>You choose one object that you must touch throughout the casting of the spell. If it is a magic item or some other magic-imbued object, you learn its properties and how to use them, whether it requires attunement to use, and how many charges it has, if any. You learn whether any spells are affecting the item and what they are. If the item was created by a spell, you learn which spell created it.</p><p>If you instead touch a creature throughout the casting, you learn what spells, if any, are currently affecting it.</p></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "div",
+            "properties": [
+              "vocal",
+              "somatic",
+              "material",
+              "ritual"
+            ],
+            "materials": {
+              "value": "a pearl worth at least 100 gp and an owl feather",
+              "consumed": false,
+              "cost": 100,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "object",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "touch",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "touch"
+            },
+            "activation": {
+              "type": "minute",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "",
+              "units": "inst"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 0,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "identify"
+          },
+          "img": "icons/sundries/scrolls/scroll-bound-blue-red.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "identify_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "ouqOcMWKa8nlQCSw",
+        "doc": {
+          "name": "Longstrider",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "256",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>You touch a creature. The target's speed increases by 10 feet until the spell ends.</p></div><div class=\"rd__b  rd__b--3\"><div data-roll-name-ancestor=\"At Higher Levels\" class=\"rd__b  rd__b--3\"><span class=\"rd__h rd__h--3\" data-title-index=\"1\"> <span class=\"entry-title-inner\">At Higher Levels.</span></span> <p>When you cast this spell using a spell slot of 2nd level or higher, you can target one additional creature for each slot level above 1st.</p></div></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "trs",
+            "properties": [
+              "vocal",
+              "somatic",
+              "material"
+            ],
+            "materials": {
+              "value": "a pinch of dirt",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "touch",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "touch"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "hour"
+            },
+            "ability": "",
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "longstrider"
+          },
+          "img": "icons/equipment/feet/boots-leather-laced-brown.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "longstrider_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "kCJMSdskur8wjdiR",
+        "doc": {
+          "name": "Shield",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "275",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>An invisible barrier of magical force appears and protects you. Until the start of your next turn, you have a +5 bonus to AC, including against the triggering attack, and you take no damage from @spell[magic missile].</p></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "abj",
+            "properties": [
+              "vocal",
+              "somatic"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "self",
+                "count": "0",
+                "choice": false
+              },
+              "template": {
+                "units": "self",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "self"
+            },
+            "activation": {
+              "type": "reaction",
+              "condition": "which you take when you are hit by an attack or targeted by the magic missile spell",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "round"
+            },
+            "ability": "",
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [
+                  {
+                    "_id": "6pbotGIvqQkraPva",
+                    "level": {}
+                  }
+                ],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "shield"
+          },
+          "img": "icons/magic/defensive/shield-barrier-deflect-teal.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "shield_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": [
+            {
+              "_id": "6pbotGIvqQkraPva",
+              "flags": {
+                "plutonium": {
+                  "dedupeId": "shield"
+                }
+              },
+              "changes": [
+                {
+                  "key": "system.attributes.ac.bonus",
+                  "mode": 2,
+                  "value": "5",
+                  "priority": null
+                }
+              ],
+              "disabled": false,
+              "duration": {
+                "startTime": null,
+                "rounds": 1,
+                "seconds": null,
+                "combat": null,
+                "turns": null,
+                "startRound": null,
+                "startTurn": null
+              },
+              "origin": "Item.FlLKKv7bQBlIAs11",
+              "tint": "#ffffff",
+              "transfer": false,
+              "name": "Shield",
+              "description": "<p>Until the start of your next turn, you have a +5 bonus to AC, including against the triggering attack, and you take no damage from magic missile.</p>",
+              "statuses": [],
+              "_stats": {
+                "compendiumSource": null,
+                "duplicateSource": null,
+                "coreVersion": "13.351",
+                "systemId": "dnd5e",
+                "systemVersion": "3.3.1",
+                "createdTime": null,
+                "modifiedTime": null,
+                "lastModifiedBy": null,
+                "exportSource": null
+              },
+              "img": "icons/magic/defensive/shield-barrier-deflect-teal.webp",
+              "type": "base",
+              "system": {},
+              "sort": 0
+            }
+          ]
+        }
+      },
+      {
+        "origId": "dEJeOkdXYO6naOjb",
+        "doc": {
+          "name": "Silvery Barbs",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "SCC",
+              "page": "38",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>You magically distract the triggering creature and turn its momentary uncertainty into encouragement for another creature. The triggering creature must reroll the [[/r d20]] and use the lower roll.</p><p>You can then choose a different creature you can see within range (you can choose yourself). The chosen creature has advantage on the next attack roll, ability check, or saving throw it makes within 1 minute. A creature can be empowered by only one use of this spell at a time.</p></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "enc",
+            "properties": [
+              "vocal"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "60",
+              "units": "ft"
+            },
+            "activation": {
+              "type": "reaction",
+              "condition": "which you take when a creature you can see within 60 feet of yourself succeeds on an attack roll, an ability check, or a saving throw",
+              "value": 1
+            },
+            "duration": {
+              "value": "",
+              "units": "inst"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "d20",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "silvery-barbs"
+          },
+          "img": "icons/magic/control/energy-stream-link-white.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "SCC",
+              "hash": "silvery%20barbs_scc",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "X2ziXShCSRgN8ibn",
+        "doc": {
+          "name": "Absorb Elements",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "XGE",
+              "page": "150",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>The spell captures some of the incoming energy, lessening its effect on you and storing it for your next melee attack. You have resistance to the triggering damage type until the start of your next turn. Also, the first time you hit with a melee attack on your next turn, the target takes an extra [[/damage 1d6]] damage of the triggering type, and the spell ends.</p></div><div class=\"rd__b  rd__b--3\"><div data-roll-name-ancestor=\"At Higher Levels\" class=\"rd__b  rd__b--3\"><span class=\"rd__h rd__h--3\" data-title-index=\"1\"> <span class=\"entry-title-inner\">At Higher Levels.</span></span> <p>When you cast this spell using a spell slot of 2nd level or higher, the extra damage increases by [[/damage 1d6]] for each slot level above 1st.</p></div></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "abj",
+            "properties": [
+              "somatic"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "self",
+                "count": "0",
+                "choice": false
+              },
+              "template": {
+                "units": "self",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "self"
+            },
+            "activation": {
+              "type": "reaction",
+              "condition": "which you take when you take acid, cold, fire, lightning, or thunder damage",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "round"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "damage",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "damage": {
+                  "critical": {
+                    "allow": false,
+                    "bonus": ""
+                  },
+                  "parts": [
+                    {
+                      "number": 1,
+                      "denomination": 6,
+                      "bonus": "",
+                      "types": [],
+                      "custom": {
+                        "enabled": false,
+                        "formula": ""
+                      },
+                      "scaling": {
+                        "mode": "whole",
+                        "number": 1,
+                        "formula": ""
+                      }
+                    }
+                  ]
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "absorb-elements"
+          },
+          "img": "icons/magic/symbols/elements-air-earth-fire-water.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "XGE",
+              "hash": "absorb%20elements_xge",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "RNjTpKbxEnHz3zgJ",
+        "doc": {
+          "name": "Light",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "255",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>You touch one object that is no larger than 10 feet in any dimension. Until the spell ends, the object sheds bright light in a 20-foot radius and dim light for an additional 20 feet. The light can be colored as you like. Completely covering the object with something opaque blocks the light. The spell ends if you cast it again or dismiss it as an action.</p><p>If you target an object held or worn by a hostile creature, that creature must succeed on a Dexterity saving throw to avoid the spell.</p></div>",
+              "chat": ""
+            },
+            "level": 0,
+            "school": "evo",
+            "properties": [
+              "vocal",
+              "material"
+            ],
+            "materials": {
+              "value": "a firefly or phosphorescent moss",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "object",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "touch",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "touch"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "hour"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 2,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "save",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "damage": {
+                  "onSave": "none",
+                  "parts": []
+                },
+                "save": {
+                  "ability": [
+                    "dex"
+                  ],
+                  "dc": {
+                    "calculation": "spellcasting",
+                    "formula": ""
+                  }
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "light"
+          },
+          "img": "icons/magic/light/orb-lightbulb-gray.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "light_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "VqgFM1z1ZP41MwNX",
+        "doc": {
+          "name": "Mage Hand",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "256",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>A spectral, floating hand appears at a point you choose within range. The hand lasts for the duration or until you dismiss it as an action. The hand vanishes if it is ever more than 30 feet away from you or if you cast this spell again.</p><p>You can use your action to control the hand. You can use the hand to manipulate an object, open an unlocked door or container, stow or retrieve an item from an open container, or pour the contents out of a vial. You can move the hand up to 30 feet each time you use it.</p><p>The hand can't attack, activate magic items, or carry more than 10 pounds.</p></div>",
+              "chat": ""
+            },
+            "level": 0,
+            "school": "con",
+            "properties": [
+              "vocal",
+              "somatic"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "space",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "30",
+              "units": "ft"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "minute"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 2,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "mage-hand"
+          },
+          "img": "icons/magic/light/orbs-hand-gray.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "mage%20hand_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "s6DHnSSudHHrNk25",
+        "doc": {
+          "name": "Comprehend Languages",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "224",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>For the duration, you understand the literal meaning of any spoken language that you hear. You also understand any written language that you see, but you must be touching the surface on which the words are written. It takes about 1 minute to read one page of text.</p><p>This spell doesn't decode secret messages in a text or a glyph, such as an arcane sigil, that isn't part of a written language.</p></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "div",
+            "properties": [
+              "vocal",
+              "somatic",
+              "material",
+              "ritual"
+            ],
+            "materials": {
+              "value": "a pinch of soot and salt",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "self",
+                "count": "0",
+                "choice": false
+              },
+              "template": {
+                "units": "self",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "self"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "hour"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "comprehend-languages"
+          },
+          "img": "icons/skills/trades/academics-book-study-runes.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "comprehend%20languages_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "KRYmFKLXArZd0aGz",
+        "doc": {
+          "name": "Cure Wounds",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "230",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>A creature you touch regains a number of hit points equal to [[/r 1d8]] + your spellcasting ability modifier. This spell has no effect on undead or constructs.</p></div><div class=\"rd__b  rd__b--3\"><div data-roll-name-ancestor=\"At Higher Levels\" class=\"rd__b  rd__b--3\"><span class=\"rd__h rd__h--3\" data-title-index=\"1\"> <span class=\"entry-title-inner\">At Higher Levels.</span></span> <p>When you cast this spell using a spell slot of 2nd level or higher, the healing increases by [[/r 1d8]] for each slot level above 1st.</p></div></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "evo",
+            "properties": [
+              "vocal",
+              "somatic"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "touch",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "touch"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "",
+              "units": "inst"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "heal",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "healing": {
+                  "number": 1,
+                  "denomination": 8,
+                  "bonus": "@mod",
+                  "types": [
+                    "healing"
+                  ],
+                  "custom": {
+                    "enabled": false,
+                    "formula": ""
+                  },
+                  "scaling": {
+                    "mode": "whole",
+                    "number": 1,
+                    "formula": ""
+                  }
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "cure-wounds"
+          },
+          "img": "icons/magic/life/cross-flared-green.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "cure%20wounds_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "G7YQJypce53tl4Wb",
+        "doc": {
+          "name": "Heroism",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB'14",
+              "page": "250",
+              "license": "",
+              "rules": "2014",
+              "revision": 1
+            },
+            "description": {
+              "value": "<div class=\"ve-rd__b  ve-rd__b--3\"><p>A willing creature you touch is imbued with bravery. Until the spell ends, the creature is immune to being &amp;Reference[condition=frightened] and gains temporary hit points equal to your spellcasting ability modifier at the start of each of its turns. When the spell ends, the target loses any remaining temporary hit points from this spell.</p></div><div class=\"ve-rd__b  ve-rd__b--3\"><p></p><div data-roll-name-ancestor=\"At Higher Levels\" class=\"ve-rd__b  ve-rd__b--3\"><p><span class=\"ve-rd__h ve-rd__h--3\" data-title-index=\"1\"> <span class=\"entry-title-inner \">At Higher Levels.</span></span> When you cast this spell using a spell slot of 2nd level or higher, you can target one additional creature for each slot level above 1st.</p></div></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "enc",
+            "properties": [
+              "vocal",
+              "somatic",
+              "concentration"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "template": {
+                "contiguous": false,
+                "type": "",
+                "units": "ft",
+                "stationary": false
+              },
+              "affects": {
+                "count": "1",
+                "type": "creature",
+                "choice": false,
+                "special": ""
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "touch"
+            },
+            "activation": {
+              "type": "action",
+              "value": 1,
+              "condition": ""
+            },
+            "duration": {
+              "value": "1",
+              "units": "minute"
+            },
+            "uses": {
+              "max": "",
+              "recovery": [],
+              "spent": 0
+            },
+            "method": "spell",
+            "prepared": 1,
+            "sourceItem": "class:dragon-rider",
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "heal",
+                "activation": {
+                  "type": "special",
+                  "value": null,
+                  "override": true,
+                  "condition": "When a creature under the effects of this spell starts their turn."
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": false
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "override": true,
+                  "units": "spec",
+                  "special": ""
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "units": "ft",
+                    "stationary": false
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "healing": {
+                  "number": null,
+                  "denomination": null,
+                  "bonus": "",
+                  "types": [
+                    "temphp"
+                  ],
+                  "custom": {
+                    "enabled": true,
+                    "formula": "@mod"
+                  },
+                  "scaling": {
+                    "mode": "whole",
+                    "number": null,
+                    "formula": ""
+                  }
+                },
+                "uses": {
+                  "spent": 0,
+                  "recovery": [],
+                  "max": ""
+                },
+                "sort": 100000,
+                "name": "Grant Temporary Hit Points",
+                "img": "",
+                "visibility": {
+                  "level": {
+                    "min": null,
+                    "max": null
+                  },
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                },
+                "flags": {}
+              },
+              "s8S50epEPffDG1NB": {
+                "type": "utility",
+                "name": "Cast",
+                "_id": "s8S50epEPffDG1NB",
+                "img": null,
+                "sort": 0,
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "scaling": {
+                    "allowed": false
+                  },
+                  "spellSlot": true,
+                  "targets": []
+                },
+                "description": {},
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [
+                  {
+                    "_id": "c4iy2EIj29eRA2qq",
+                    "level": {}
+                  }
+                ],
+                "flags": {},
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false,
+                  "prompt": true
+                },
+                "uses": {
+                  "spent": 0,
+                  "recovery": []
+                },
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                },
+                "roll": {
+                  "prompt": false,
+                  "visible": false
+                }
+              }
+            },
+            "identifier": "heroism"
+          },
+          "img": "icons/magic/control/buff-strength-muscle-damage-orange.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "heroism_phb",
+              "propDroppable": "spell",
+              "spellClassNames": [
+                "Bard",
+                "Paladin"
+              ]
+            },
+            "altarion-aitusa": {}
+          },
+          "effects": [
+            {
+              "name": "Heroism",
+              "img": "icons/magic/control/buff-strength-muscle-damage-orange.webp",
+              "origin": "Compendium.dnd5e.spells.Item.ge3Saet9zPTDyaoL",
+              "transfer": false,
+              "_id": "c4iy2EIj29eRA2qq",
+              "type": "base",
+              "system": {},
+              "changes": [
+                {
+                  "key": "system.traits.ci.value",
+                  "mode": 2,
+                  "value": "frightened",
+                  "priority": null
+                }
+              ],
+              "disabled": false,
+              "duration": {
+                "startTime": null,
+                "combat": null,
+                "seconds": 60,
+                "rounds": null,
+                "turns": null,
+                "startRound": null,
+                "startTurn": null
+              },
+              "description": "<p>You have been imbued with bravery. Until the spell ends, you are immune to being &amp;reference[Frightened apply=false] and gain Temporary Hit Points equal to the caster's Spellcasting ability modifier at the start of each of your turns. When the spell ends, you lose any remaining temporary hit points from this spell.</p>",
+              "tint": "#ffffff",
+              "statuses": [],
+              "sort": 0,
+              "flags": {
+                "dnd5e": {
+                  "riders": {
+                    "statuses": []
+                  }
+                },
+                "plutonium": {
+                  "dedupeId": "heroism"
+                }
+              },
+              "_stats": {
+                "compendiumSource": null,
+                "duplicateSource": null,
+                "exportSource": null,
+                "coreVersion": "13.351",
+                "systemId": "dnd5e",
+                "systemVersion": "5.3.2",
+                "lastModifiedBy": null
+              }
+            }
+          ]
         }
       }
     ]
@@ -3020,10 +6846,90 @@ export const PARTY_JSON_DATA = {
             },
             "uses": {
               "spent": 0,
-              "max": "",
-              "recovery": []
+              "max": "1",
+              "recovery": [
+                {
+                  "period": "lr",
+                  "type": "recoverAll"
+                }
+              ]
             },
-            "activities": {},
+            "activities": {
+              "resArcTheFool001": {
+                "_id": "resArcTheFool001",
+                "type": "utility",
+                "name": "Use The Fool (Reaction — Warp Probability 1d4)",
+                "activation": {
+                  "type": "reaction",
+                  "value": 1,
+                  "condition": "",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [
+                    {
+                      "type": "itemUses",
+                      "value": "1",
+                      "target": "",
+                      "scaling": {}
+                    }
+                  ],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": false
+                },
+                "description": {
+                  "chatFlavor": "As a reaction when you take damage, roll 1d4: on 1–2 halve the damage and teleport up to 10 ft; on 3–4 take 0 damage and reflect up to 15 Force damage to the attacker."
+                },
+                "duration": {
+                  "concentration": false,
+                  "value": "",
+                  "units": "inst",
+                  "special": "",
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "value": null,
+                  "units": "self",
+                  "special": "",
+                  "override": false
+                },
+                "target": {
+                  "template": {
+                    "count": "",
+                    "contiguous": false,
+                    "type": "",
+                    "size": "",
+                    "width": "",
+                    "height": "",
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "count": "",
+                    "type": "",
+                    "choice": false,
+                    "special": ""
+                  },
+                  "prompt": false,
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "prompt": false,
+                  "visible": false,
+                  "name": "",
+                  "formula": ""
+                },
+                "sort": 0
+              }
+            },
             "source": {
               "custom": "Coria Homebrew",
               "rules": "2014"
@@ -3033,7 +6939,11 @@ export const PARTY_JSON_DATA = {
           "folder": null,
           "sort": 0,
           "flags": {
-            "dnd5e": {}
+            "dnd5e": {},
+            "altarion-aitusa": {
+              "isResonantArcanaCard": true,
+              "resonantArcanaKey": "fool"
+            }
           }
         }
       },
@@ -3418,7 +7328,7 @@ export const PARTY_JSON_DATA = {
               "value": []
             }
           },
-          "img": "icons/sundries/books/book-backed-wood-tan.webp",
+          "img": "modules/altarion-aitusa/flinn_icons/arcane-grimoire-tophat.jpg",
           "flags": {
             "plutonium": {
               "page": "items.html",
@@ -3429,7 +7339,7 @@ export const PARTY_JSON_DATA = {
           "effects": [
             {
               "name": "Spell Attack Bonus (Melee)",
-              "img": "icons/sundries/books/book-backed-wood-tan.webp",
+              "img": "modules/altarion-aitusa/flinn_icons/arcane-grimoire-tophat.jpg",
               "description": "",
               "changes": [
                 {
@@ -3464,7 +7374,7 @@ export const PARTY_JSON_DATA = {
             },
             {
               "name": "Spell Attack Bonus (Ranged)",
-              "img": "icons/sundries/books/book-backed-wood-tan.webp",
+              "img": "modules/altarion-aitusa/flinn_icons/arcane-grimoire-tophat.jpg",
               "description": "",
               "changes": [
                 {
@@ -3499,7 +7409,7 @@ export const PARTY_JSON_DATA = {
             },
             {
               "name": "Spell Save DC Bonus",
-              "img": "icons/sundries/books/book-backed-wood-tan.webp",
+              "img": "modules/altarion-aitusa/flinn_icons/arcane-grimoire-tophat.jpg",
               "description": "",
               "changes": [
                 {
@@ -3867,6 +7777,4709 @@ export const PARTY_JSON_DATA = {
           "effects": [],
           "folder": null,
           "sort": 0
+        }
+      }
+    ],
+    "abilities": {
+      "str": {
+        "value": 8,
+        "proficient": 0
+      },
+      "dex": {
+        "value": 14,
+        "proficient": 0
+      },
+      "con": {
+        "value": 14,
+        "proficient": 0
+      },
+      "int": {
+        "value": 18,
+        "proficient": 1
+      },
+      "wis": {
+        "value": 12,
+        "proficient": 1
+      },
+      "cha": {
+        "value": 12,
+        "proficient": 0
+      }
+    },
+    "skills": {
+      "arc": 2,
+      "his": 2,
+      "ins": 1,
+      "inv": 1,
+      "per": 1,
+      "rel": 2
+    },
+    "spells": [
+      {
+        "origId": "bjkKslEISQLr5AXC",
+        "doc": {
+          "name": "Light",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "255",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>You touch one object that is no larger than 10 feet in any dimension. Until the spell ends, the object sheds bright light in a 20-foot radius and dim light for an additional 20 feet. The light can be colored as you like. Completely covering the object with something opaque blocks the light. The spell ends if you cast it again or dismiss it as an action.</p><p>If you target an object held or worn by a hostile creature, that creature must succeed on a Dexterity saving throw to avoid the spell.</p></div>",
+              "chat": ""
+            },
+            "level": 0,
+            "school": "evo",
+            "properties": [
+              "vocal",
+              "material"
+            ],
+            "materials": {
+              "value": "a firefly or phosphorescent moss",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "object",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "touch"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "hour"
+            },
+            "ability": "int",
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 2,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "save",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "damage": {
+                  "onSave": "none",
+                  "parts": []
+                },
+                "save": {
+                  "ability": [
+                    "dex"
+                  ],
+                  "dc": {
+                    "calculation": "int",
+                    "formula": ""
+                  }
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "light",
+            "sourceItem": "class:cleric"
+          },
+          "img": "icons/magic/light/orb-lightbulb-gray.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "light_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {
+              "sourceId": "Actor.k5Gvzp4DWvNsxcGk.Item.bjkKslEISQLr5AXC",
+              "advancementOrigin": "l0uX6YelG7ID9lOp.LwCeGQ3AvWesoaNw"
+            },
+            "altarion-aitusa": {
+              "flinnSpellOrigin": "cleric"
+            }
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "Ml1ehrzFYZbGZN0l",
+        "doc": {
+          "name": "Cure Wounds",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "230",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>A creature you touch regains a number of hit points equal to [[/r 1d8]] + your spellcasting ability modifier. This spell has no effect on undead or constructs.</p></div><div class=\"rd__b  rd__b--3\"><div data-roll-name-ancestor=\"At Higher Levels\" class=\"rd__b  rd__b--3\"><span class=\"rd__h rd__h--3\" data-title-index=\"1\"> <span class=\"entry-title-inner\">At Higher Levels.</span></span> <p>When you cast this spell using a spell slot of 2nd level or higher, the healing increases by [[/r 1d8]] for each slot level above 1st.</p></div></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "evo",
+            "properties": [
+              "vocal",
+              "somatic"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "touch"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "",
+              "units": "inst"
+            },
+            "ability": "int",
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "innate",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "heal",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "healing": {
+                  "number": 1,
+                  "denomination": 8,
+                  "bonus": "@mod",
+                  "types": [
+                    "healing"
+                  ],
+                  "custom": {
+                    "enabled": false,
+                    "formula": ""
+                  },
+                  "scaling": {
+                    "mode": "",
+                    "number": 1,
+                    "formula": ""
+                  }
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "cure-wounds",
+            "sourceItem": "class:cleric"
+          },
+          "img": "icons/magic/life/cross-flared-green.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "cure%20wounds_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {
+              "sourceId": "Actor.k5Gvzp4DWvNsxcGk.Item.Ml1ehrzFYZbGZN0l",
+              "advancementOrigin": "5mNpQ5s4ml0sazwE.HWTMcarIQRg5dn2x"
+            },
+            "midiProperties": {
+              "confirmTargets": "default",
+              "autoFailFriendly": false,
+              "autoSaveFriendly": false,
+              "critOther": false,
+              "offHandWeapon": false,
+              "magicdam": false,
+              "magiceffect": false,
+              "noConcentrationCheck": false,
+              "toggleEffect": false,
+              "ignoreTotalCover": false,
+              "idr": false,
+              "idi": false,
+              "idv": false,
+              "ida": false
+            },
+            "midi-qol": {
+              "rollAttackPerTarget": "default",
+              "removeAttackDamageButtons": "default",
+              "itemCondition": "",
+              "effectCondition": ""
+            },
+            "altarion-aitusa": {
+              "flinnSpellOrigin": "cleric"
+            }
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "hWhQGRGhEDMoJOBx",
+        "doc": {
+          "name": "Lesser Restoration",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "255",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>You touch a creature and can end either one disease or one condition afflicting it. The condition can be &amp;Reference[condition=blinded], &amp;Reference[condition=deafened], &amp;Reference[condition=paralyzed], or &amp;Reference[condition=poisoned].</p></div>",
+              "chat": ""
+            },
+            "level": 2,
+            "school": "abj",
+            "properties": [
+              "vocal",
+              "somatic"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "touch"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "",
+              "units": "inst"
+            },
+            "ability": "wis",
+            "uses": {
+              "max": "1",
+              "recovery": [
+                {
+                  "period": "lr",
+                  "type": "recoverAll"
+                }
+              ],
+              "spent": 0
+            },
+            "method": "innate",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [
+                    {
+                      "type": "itemUses",
+                      "target": "",
+                      "value": "1",
+                      "scaling": {
+                        "mode": "",
+                        "formula": ""
+                      }
+                    }
+                  ],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "lesser-restoration",
+            "sourceItem": "class:cleric"
+          },
+          "img": "icons/magic/nature/leaf-oak-wreath-glow-green.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "lesser%20restoration_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {
+              "sourceId": "Actor.k5Gvzp4DWvNsxcGk.Item.hWhQGRGhEDMoJOBx",
+              "advancementOrigin": "5mNpQ5s4ml0sazwE.HWTMcarIQRg5dn2x"
+            },
+            "altarion-aitusa": {
+              "flinnSpellOrigin": "cleric"
+            }
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "UO5ZKHHeGYPaV9xU",
+        "doc": {
+          "name": "Fire Bolt",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "242",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>You hurl a mote of fire at a creature or object within range. Make a ranged spell attack against the target. On a hit, the target takes [[/damage 1d10 type=fire]] damage. A flammable object hit by this spell ignites if it isn't being worn or carried.</p><p>This spell's damage increases by [[/r 1d10]] when you reach 5th level ([[/damage 2d10]]), 11th level ([[/damage 3d10]]), and 17th level ([[/damage 4d10]]).</p></div>",
+              "chat": ""
+            },
+            "level": 0,
+            "school": "evo",
+            "properties": [
+              "vocal",
+              "somatic"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "120",
+              "units": "ft"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "",
+              "units": "inst"
+            },
+            "ability": "int",
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 2,
+            "sourceItem": "class:wizard",
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "attack",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "attack": {
+                  "ability": "int",
+                  "bonus": "",
+                  "critical": {
+                    "threshold": null
+                  },
+                  "flat": false,
+                  "type": {
+                    "value": "ranged",
+                    "classification": "spell"
+                  }
+                },
+                "damage": {
+                  "critical": {
+                    "bonus": ""
+                  },
+                  "includeBase": true,
+                  "parts": [
+                    {
+                      "number": 1,
+                      "denomination": 10,
+                      "bonus": "",
+                      "types": [
+                        "fire"
+                      ],
+                      "custom": {
+                        "enabled": false,
+                        "formula": ""
+                      },
+                      "scaling": {
+                        "mode": "whole",
+                        "number": 1,
+                        "formula": ""
+                      }
+                    }
+                  ]
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "fire-bolt"
+          },
+          "img": "icons/magic/fire/projectile-bolt-zigzag-orange.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "fire%20bolt_phb",
+              "propDroppable": "spell",
+              "parentClassName": "Wizard",
+              "parentClassSource": "PHB",
+              "parentSubclassName": "School of Divination",
+              "parentSubclassSource": "PHB"
+            },
+            "tidy5e-sheet": {
+              "parentClass": "wizard"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {
+              "flinnSpellOrigin": "wizard"
+            }
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "9Gn1MqKiF6Aog7rI",
+        "doc": {
+          "name": "Mage Hand",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "256",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>A spectral, floating hand appears at a point you choose within range. The hand lasts for the duration or until you dismiss it as an action. The hand vanishes if it is ever more than 30 feet away from you or if you cast this spell again.</p><p>You can use your action to control the hand. You can use the hand to manipulate an object, open an unlocked door or container, stow or retrieve an item from an open container, or pour the contents out of a vial. You can move the hand up to 30 feet each time you use it.</p><p>The hand can't attack, activate magic items, or carry more than 10 pounds.</p></div>",
+              "chat": ""
+            },
+            "level": 0,
+            "school": "con",
+            "properties": [
+              "vocal",
+              "somatic"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "space",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "30",
+              "units": "ft"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "minute"
+            },
+            "ability": "int",
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 2,
+            "sourceItem": "class:wizard",
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "mage-hand"
+          },
+          "img": "icons/magic/light/orbs-hand-gray.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "mage%20hand_phb",
+              "propDroppable": "spell",
+              "parentClassName": "Wizard",
+              "parentClassSource": "PHB",
+              "parentSubclassName": "School of Divination",
+              "parentSubclassSource": "PHB"
+            },
+            "tidy5e-sheet": {
+              "parentClass": "wizard"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {
+              "flinnSpellOrigin": "wizard"
+            }
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "7vbQJ0xzpVTqArGm",
+        "doc": {
+          "name": "Prestidigitation",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "267",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>This spell is a minor magical trick that novice spellcasters use for practice. You create one of the following magical effects within range:</p><ul class=\"rd__list\"><li class=\"rd__li \">You create an instantaneous, harmless sensory effect, such as a shower of sparks, a puff of wind, faint musical notes, or an odd odor.</li><li class=\"rd__li \">You instantaneously light or snuff out a candle, a torch, or a small campfire.</li><li class=\"rd__li \">You instantaneously clean or soil an object no larger than 1 cubic foot.</li><li class=\"rd__li \">You chill, warm, or flavor up to 1 cubic foot of nonliving material for 1 hour.</li><li class=\"rd__li \">You make a color, a small mark, or a symbol appear on an object or a surface for 1 hour.</li><li class=\"rd__li \">You create a nonmagical trinket or an illusory image that can fit in your hand and that lasts until the end of your next turn.</li></ul><p>If you cast this spell multiple times, you can have up to three of its non-instantaneous effects active at a time, and you can dismiss such an effect as an action.</p></div>",
+              "chat": ""
+            },
+            "level": 0,
+            "school": "trs",
+            "properties": [
+              "vocal",
+              "somatic"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "10",
+              "units": "ft"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "hour"
+            },
+            "ability": "int",
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 2,
+            "sourceItem": "class:wizard",
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "prestidigitation"
+          },
+          "img": "icons/magic/light/hand-sparks-smoke-green.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "prestidigitation_phb",
+              "propDroppable": "spell",
+              "parentClassName": "Wizard",
+              "parentClassSource": "PHB",
+              "parentSubclassName": "School of Divination",
+              "parentSubclassSource": "PHB"
+            },
+            "tidy5e-sheet": {
+              "parentClass": "wizard"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {
+              "flinnSpellOrigin": "wizard"
+            }
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "ym2DQ2h02yQ9nGWE",
+        "doc": {
+          "name": "Guidance",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "248",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>You touch one willing creature. Once before the spell ends, the target can roll a [[/r d4]] and add the number rolled to one ability check of its choice. It can roll the die before or after making the ability check. The spell then ends.</p></div>",
+              "chat": ""
+            },
+            "level": 0,
+            "school": "div",
+            "properties": [
+              "vocal",
+              "somatic",
+              "concentration"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "touch"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "minute"
+            },
+            "ability": "wis",
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 2,
+            "sourceItem": "class:cleric",
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "guidance"
+          },
+          "img": "icons/skills/ranged/arrow-flying-ornate-gold.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "guidance_phb",
+              "propDroppable": "spell",
+              "parentClassName": "Cleric",
+              "parentClassSource": "PHB",
+              "parentSubclassName": "Knowledge Domain",
+              "parentSubclassSource": "PHB"
+            },
+            "tidy5e-sheet": {
+              "parentClass": "cleric"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {
+              "flinnSpellOrigin": "cleric"
+            }
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "Bh1KNLG4rbACdnoL",
+        "doc": {
+          "name": "Sacred Flame",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "272",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>Flame-like radiance descends on a creature that you can see within range. The target must succeed on a Dexterity saving throw or take [[/damage 1d8 type=radiant]] damage. The target gains no benefit from cover for this saving throw.</p><p>The spell's damage increases by [[/r 1d8]] when you reach 5th level ([[/damage 2d8]]), 11th level ([[/damage 3d8]]), and 17th level ([[/damage 4d8]]).</p></div>",
+              "chat": ""
+            },
+            "level": 0,
+            "school": "evo",
+            "properties": [
+              "vocal",
+              "somatic"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "60",
+              "units": "ft"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "",
+              "units": "inst"
+            },
+            "ability": "wis",
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 2,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "save",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "damage": {
+                  "onSave": "none",
+                  "parts": [
+                    {
+                      "number": 1,
+                      "denomination": 8,
+                      "bonus": "",
+                      "types": [
+                        "radiant"
+                      ],
+                      "custom": {
+                        "enabled": false,
+                        "formula": ""
+                      },
+                      "scaling": {
+                        "mode": "whole",
+                        "number": 1,
+                        "formula": ""
+                      }
+                    }
+                  ]
+                },
+                "save": {
+                  "ability": [
+                    "dex"
+                  ],
+                  "dc": {
+                    "calculation": "int",
+                    "formula": ""
+                  }
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "sacred-flame",
+            "sourceItem": "class:cleric"
+          },
+          "img": "icons/magic/fire/projectile-fireball-orange-green.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "sacred%20flame_phb",
+              "propDroppable": "spell",
+              "parentClassName": "Cleric",
+              "parentClassSource": "PHB",
+              "parentSubclassName": "Knowledge Domain",
+              "parentSubclassSource": "PHB"
+            },
+            "tidy5e-sheet": {
+              "parentClass": "cleric"
+            },
+            "midiProperties": {
+              "confirmTargets": "default",
+              "saveDamage": "default",
+              "bonusSaveDamage": "default",
+              "autoFailFriendly": false,
+              "autoSaveFriendly": false,
+              "critOther": false,
+              "offHandWeapon": false,
+              "magicdam": false,
+              "magiceffect": false,
+              "noConcentrationCheck": false,
+              "toggleEffect": false,
+              "ignoreTotalCover": false,
+              "idr": false,
+              "idi": false,
+              "idv": false,
+              "ida": false
+            },
+            "midi-qol": {
+              "rollAttackPerTarget": "default",
+              "removeAttackDamageButtons": "default",
+              "itemCondition": "",
+              "effectCondition": ""
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {
+              "flinnSpellOrigin": "cleric"
+            }
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "FOw4Rs007xiuJZTC",
+        "doc": {
+          "name": "Toll the Dead",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "XGE",
+              "page": "169",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>You point at one creature you can see within range, and the sound of a dolorous bell fills the air around it for a moment. The target must succeed on a Wisdom saving throw or take [[/damage 1d8 type=necrotic]] damage. If the target is missing any of its hit points, it instead takes [[/damage 1d12 type=necrotic]] damage.</p><p>The spell's damage increases by one die when you reach 5th level ([[/damage 2d8]] or [[/damage 2d12]]), 11th level ([[/damage 3d8]] or [[/damage 3d12]]), and 17th level ([[/damage 4d8]] or [[/damage 4d12]]).</p></div>",
+              "chat": ""
+            },
+            "level": 0,
+            "school": "nec",
+            "properties": [
+              "vocal",
+              "somatic"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "60",
+              "units": "ft"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "",
+              "units": "inst"
+            },
+            "ability": "wis",
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 2,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "save",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "damage": {
+                  "onSave": "none",
+                  "parts": [
+                    {
+                      "number": null,
+                      "denomination": null,
+                      "bonus": "",
+                      "types": [
+                        "necrotic"
+                      ],
+                      "custom": {
+                        "enabled": true,
+                        "formula": "(floor(((@details.level + @details.spellLevel) + 1) / 6) + 1)d8[if uninjured]"
+                      },
+                      "scaling": {
+                        "mode": "",
+                        "number": null,
+                        "formula": ""
+                      }
+                    }
+                  ]
+                },
+                "save": {
+                  "ability": [
+                    "wis"
+                  ],
+                  "dc": {
+                    "calculation": "int",
+                    "formula": ""
+                  }
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              },
+              "dnd5eactivity200": {
+                "_id": "dnd5eactivity200",
+                "type": "damage",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "damage": {
+                  "critical": {
+                    "allow": false,
+                    "bonus": ""
+                  },
+                  "parts": [
+                    {
+                      "number": null,
+                      "denomination": null,
+                      "bonus": "",
+                      "types": [],
+                      "custom": {
+                        "enabled": true,
+                        "formula": "(floor(((@details.level + @details.spellLevel) + 1) / 6) + 1)d12[if injured]"
+                      },
+                      "scaling": {
+                        "mode": "",
+                        "number": null,
+                        "formula": ""
+                      }
+                    }
+                  ]
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "toll-the-dead",
+            "sourceItem": "class:cleric"
+          },
+          "img": "icons/magic/sonic/bell-alarm-red-purple.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "XGE",
+              "hash": "toll%20the%20dead_xge",
+              "propDroppable": "spell",
+              "parentClassName": "Cleric",
+              "parentClassSource": "PHB",
+              "parentSubclassName": "Knowledge Domain",
+              "parentSubclassSource": "PHB"
+            },
+            "tidy5e-sheet": {
+              "parentClass": "cleric"
+            },
+            "midiProperties": {
+              "confirmTargets": "default",
+              "saveDamage": "default",
+              "bonusSaveDamage": "default",
+              "otherSaveDamage": "default",
+              "autoFailFriendly": false,
+              "autoSaveFriendly": false,
+              "critOther": false,
+              "offHandWeapon": false,
+              "magicdam": false,
+              "magiceffect": false,
+              "noConcentrationCheck": false,
+              "toggleEffect": false,
+              "ignoreTotalCover": false,
+              "idr": false,
+              "idi": false,
+              "idv": false,
+              "ida": false
+            },
+            "midi-qol": {
+              "rollAttackPerTarget": "default",
+              "removeAttackDamageButtons": "default",
+              "itemCondition": "",
+              "otherCondition": "",
+              "effectCondition": ""
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {
+              "flinnSpellOrigin": "cleric"
+            }
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "b2Fjak9VbmExiirH",
+        "doc": {
+          "name": "Command",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "223",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>You speak a one-word command to a creature you can see within range. The target must succeed on a Wisdom saving throw or follow the command on its next turn. The spell has no effect if the target is undead, if it doesn't understand your language, or if your command is directly harmful to it.</p><p>Some typical commands and their effects follow. You might issue a command other than one described here. If you do so, the DM determines how the target behaves. If the target can't follow your command, the spell ends.</p><div data-roll-name-ancestor=\"Approach\" class=\"rd__b  rd__b--3\"><span class=\"rd__h rd__h--3\" data-title-index=\"1\"> <span class=\"entry-title-inner\">Approach.</span></span> <p>The target moves toward you by the shortest and most direct route, ending its turn if it moves within 5 feet of you.</p></div><div data-roll-name-ancestor=\"Drop\" class=\"rd__b  rd__b--3\"><span class=\"rd__h rd__h--3\" data-title-index=\"2\"> <span class=\"entry-title-inner\">Drop.</span></span> <p>The target drops whatever it is holding and then ends its turn.</p></div><div data-roll-name-ancestor=\"Flee\" class=\"rd__b  rd__b--3\"><span class=\"rd__h rd__h--3\" data-title-index=\"3\"> <span class=\"entry-title-inner\">Flee.</span></span> <p>The target spends its turn moving away from you by the fastest available means.</p></div><div data-roll-name-ancestor=\"Grovel\" class=\"rd__b  rd__b--3\"><span class=\"rd__h rd__h--3\" data-title-index=\"4\"> <span class=\"entry-title-inner\">Grovel.</span></span> <p>The target falls &amp;Reference[condition=prone] and then ends its turn.</p></div><div data-roll-name-ancestor=\"Halt\" class=\"rd__b  rd__b--3\"><span class=\"rd__h rd__h--3\" data-title-index=\"5\"> <span class=\"entry-title-inner\">Halt.</span></span> <p>The target doesn't move and takes no actions. A flying creature stays aloft, provided that it is able to do so. If it must move to stay aloft, it flies the minimum distance needed to remain in the air.</p></div></div><div class=\"rd__b  rd__b--3\"><div data-roll-name-ancestor=\"At Higher Levels\" class=\"rd__b  rd__b--3\"><span class=\"rd__h rd__h--3\" data-title-index=\"1\"> <span class=\"entry-title-inner\">At Higher Levels.</span></span> <p>When you cast this spell using a spell slot of 2nd level or higher, you can affect one additional creature for each slot level above 1st. The creatures must be within 30 feet of each other when you target them.</p></div></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "enc",
+            "properties": [
+              "vocal"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "60",
+              "units": "ft"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "round"
+            },
+            "ability": "",
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 2,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "save",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "damage": {
+                  "onSave": "half",
+                  "parts": []
+                },
+                "save": {
+                  "ability": [
+                    "wis"
+                  ],
+                  "dc": {
+                    "calculation": "spellcasting",
+                    "formula": ""
+                  }
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "command",
+            "sourceItem": "class:cleric"
+          },
+          "img": "icons/magic/control/control-influence-puppet.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "command_phb",
+              "propDroppable": "spell"
+            },
+            "midiProperties": {
+              "confirmTargets": "default",
+              "autoFailFriendly": false,
+              "autoSaveFriendly": false,
+              "critOther": false,
+              "offHandWeapon": false,
+              "magicdam": false,
+              "magiceffect": false,
+              "noConcentrationCheck": false,
+              "toggleEffect": false,
+              "ignoreTotalCover": false,
+              "idr": false,
+              "idi": false,
+              "idv": false,
+              "ida": false
+            },
+            "midi-qol": {
+              "rollAttackPerTarget": "default",
+              "itemCondition": "",
+              "effectCondition": ""
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {
+              "flinnSpellOrigin": "cleric"
+            }
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "EZqDHnxi7WX6qoD5",
+        "doc": {
+          "name": "Identify",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "252",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>You choose one object that you must touch throughout the casting of the spell. If it is a magic item or some other magic-imbued object, you learn its properties and how to use them, whether it requires attunement to use, and how many charges it has, if any. You learn whether any spells are affecting the item and what they are. If the item was created by a spell, you learn which spell created it.</p><p>If you instead touch a creature throughout the casting, you learn what spells, if any, are currently affecting it.</p></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "div",
+            "properties": [
+              "vocal",
+              "somatic",
+              "material",
+              "ritual"
+            ],
+            "materials": {
+              "value": "a pearl worth at least 100 gp and an owl feather",
+              "consumed": false,
+              "cost": 100,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "object",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "touch"
+            },
+            "activation": {
+              "type": "minute",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "",
+              "units": "inst"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 2,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "identify",
+            "sourceItem": "class:cleric"
+          },
+          "img": "icons/sundries/scrolls/scroll-bound-blue-red.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "identify_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {
+              "flinnSpellOrigin": "cleric"
+            }
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "CtmAuvuwmIbfaReG",
+        "doc": {
+          "name": "Augury",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "215",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>By casting gem-inlaid sticks, rolling dragon bones, laying out ornate cards, or employing some other divining tool, you receive an omen from an otherworldly entity about the results of a specific course of action that you plan to take within the next 30 minutes. The DM chooses from the following possible omens:</p><ul class=\"rd__list\"><li class=\"rd__li \">Weal, for good results</li><li class=\"rd__li \">Woe, for bad results</li><li class=\"rd__li \">Weal and woe, for both good and bad results</li><li class=\"rd__li \">Nothing, for results that aren't especially good or bad</li></ul><p>The spell doesn't take into account any possible circumstances that might change the outcome, such as the casting of additional spells or the loss or gain of a companion.</p><p>If you cast the spell two or more times before completing your next long rest, there is a cumulative [[/r 1d100]]{25 percent} chance for each casting after the first that you get a random reading. The DM makes this roll in secret.</p></div>",
+              "chat": ""
+            },
+            "level": 2,
+            "school": "div",
+            "properties": [
+              "vocal",
+              "somatic",
+              "material",
+              "ritual"
+            ],
+            "materials": {
+              "value": "specially marked sticks, bones, or similar tokens worth at least 25 gp",
+              "consumed": false,
+              "cost": 25,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "self",
+                "count": "0",
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "self"
+            },
+            "activation": {
+              "type": "minute",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "",
+              "units": "inst"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "augury",
+            "sourceItem": "class:cleric"
+          },
+          "img": "icons/magic/light/orb-hands-humanoid-yellow.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "augury_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {
+              "flinnSpellOrigin": "cleric"
+            }
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "dKgV912o7Oq3KgWE",
+        "doc": {
+          "name": "Detect Magic",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "231",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>For the duration, you sense the presence of magic within 30 feet of you. If you sense magic in this way, you can use your action to see a faint aura around any visible creature or object in the area that bears magic, and you learn its <a href=\"https://5e.tools/book.html#PHB,10,the%20schools%20of%20magic,0\">school of magic</a>, if any.</p><p>The spell can penetrate most barriers, but it is blocked by 1 foot of stone, 1 inch of common metal, a thin sheet of lead, or 3 feet of wood or dirt.</p></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "div",
+            "properties": [
+              "vocal",
+              "somatic",
+              "ritual",
+              "concentration"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "type": "radius",
+                "size": "30",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "self"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "10",
+              "units": "minute"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 0,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "detect-magic",
+            "sourceItem": "class:cleric"
+          },
+          "img": "icons/magic/unholy/hands-cloud-light-pink.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "detect%20magic_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {
+              "flinnSpellOrigin": "cleric"
+            }
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "QJaTrX2kvWq43CDP",
+        "doc": {
+          "name": "Mage Armor",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "256",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>You touch a willing creature who isn't wearing armor, and a protective magical force surrounds it until the spell ends. The target's base AC becomes 13 + its Dexterity modifier. The spell ends if the target dons armor or if you dismiss the spell as an action.</p></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "abj",
+            "properties": [
+              "vocal",
+              "somatic",
+              "material"
+            ],
+            "materials": {
+              "value": "a piece of cured leather",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "touch"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "8",
+              "units": "hour"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [
+                  {
+                    "_id": "cfwMU7LuOJ619Lny",
+                    "level": {}
+                  }
+                ],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "mage-armor",
+            "sourceItem": "class:wizard"
+          },
+          "img": "icons/equipment/chest/breastplate-helmet-metal.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "mage%20armor_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {
+              "flinnSpellOrigin": "wizard"
+            }
+          },
+          "effects": [
+            {
+              "_id": "cfwMU7LuOJ619Lny",
+              "changes": [
+                {
+                  "key": "system.attributes.ac.calc",
+                  "mode": 5,
+                  "value": "mage",
+                  "priority": null
+                }
+              ],
+              "disabled": false,
+              "duration": {
+                "startTime": null,
+                "seconds": 28800,
+                "combat": null,
+                "rounds": null,
+                "turns": null,
+                "startRound": null,
+                "startTurn": null
+              },
+              "origin": "Compendium.dnd5e.spells.CKZTpZlxj7hjjo2H",
+              "transfer": false,
+              "flags": {
+                "plutonium": {
+                  "dedupeId": "mage-armor"
+                }
+              },
+              "tint": "#ffffff",
+              "name": "Mage Armor",
+              "description": "<p>The target's base AC becomes 13 + its Dexterity modifier.</p>",
+              "statuses": [],
+              "_stats": {
+                "compendiumSource": null,
+                "duplicateSource": null,
+                "coreVersion": "13.351",
+                "systemId": "dnd5e",
+                "systemVersion": "3.3.1",
+                "createdTime": null,
+                "modifiedTime": null,
+                "lastModifiedBy": null,
+                "exportSource": null
+              },
+              "img": "icons/equipment/chest/breastplate-helmet-metal.webp",
+              "type": "base",
+              "system": {},
+              "sort": 0
+            }
+          ]
+        }
+      },
+      {
+        "origId": "JG8N8Nfm0muWdowZ",
+        "doc": {
+          "name": "Shield",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "275",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>An invisible barrier of magical force appears and protects you. Until the start of your next turn, you have a +5 bonus to AC, including against the triggering attack, and you take no damage from @spell[magic missile].</p></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "abj",
+            "properties": [
+              "vocal",
+              "somatic"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "self",
+                "count": "0",
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "self"
+            },
+            "activation": {
+              "type": "reaction",
+              "condition": "which you take when you are hit by an attack or targeted by the magic missile spell",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "round"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [
+                  {
+                    "_id": "6pbotGIvqQkraPva",
+                    "level": {}
+                  }
+                ],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "shield",
+            "sourceItem": "class:wizard"
+          },
+          "img": "icons/magic/defensive/shield-barrier-deflect-teal.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "shield_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {
+              "flinnSpellOrigin": "wizard"
+            }
+          },
+          "effects": [
+            {
+              "_id": "6pbotGIvqQkraPva",
+              "flags": {
+                "plutonium": {
+                  "dedupeId": "shield"
+                }
+              },
+              "changes": [
+                {
+                  "key": "system.attributes.ac.bonus",
+                  "mode": 2,
+                  "value": "5",
+                  "priority": null
+                }
+              ],
+              "disabled": false,
+              "duration": {
+                "startTime": null,
+                "rounds": 1,
+                "seconds": null,
+                "combat": null,
+                "turns": null,
+                "startRound": null,
+                "startTurn": null
+              },
+              "origin": "Item.FlLKKv7bQBlIAs11",
+              "tint": "#ffffff",
+              "transfer": false,
+              "name": "Shield",
+              "description": "<p>Until the start of your next turn, you have a +5 bonus to AC, including against the triggering attack, and you take no damage from magic missile.</p>",
+              "statuses": [],
+              "_stats": {
+                "compendiumSource": null,
+                "duplicateSource": null,
+                "coreVersion": "13.351",
+                "systemId": "dnd5e",
+                "systemVersion": "3.3.1",
+                "createdTime": null,
+                "modifiedTime": null,
+                "lastModifiedBy": null,
+                "exportSource": null
+              },
+              "img": "icons/magic/defensive/shield-barrier-deflect-teal.webp",
+              "type": "base",
+              "system": {},
+              "sort": 0
+            }
+          ]
+        }
+      },
+      {
+        "origId": "iKWkO5C1xBPzcuOd",
+        "doc": {
+          "name": "Silvery Barbs",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "SCC",
+              "page": "38",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>You magically distract the triggering creature and turn its momentary uncertainty into encouragement for another creature. The triggering creature must reroll the [[/r d20]] and use the lower roll.</p><p>You can then choose a different creature you can see within range (you can choose yourself). The chosen creature has advantage on the next attack roll, ability check, or saving throw it makes within 1 minute. A creature can be empowered by only one use of this spell at a time.</p></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "enc",
+            "properties": [
+              "vocal"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "60",
+              "units": "ft"
+            },
+            "activation": {
+              "type": "reaction",
+              "condition": "which you take when a creature you can see within 60 feet of yourself succeeds on an attack roll, an ability check, or a saving throw",
+              "value": 1
+            },
+            "duration": {
+              "value": "",
+              "units": "inst"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "d20",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "silvery-barbs",
+            "sourceItem": "class:wizard"
+          },
+          "img": "icons/magic/control/energy-stream-link-white.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "SCC",
+              "hash": "silvery%20barbs_scc",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {
+              "flinnSpellOrigin": "wizard"
+            }
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "ES8XCDFukV7jRxTx",
+        "doc": {
+          "name": "Absorb Elements",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "XGE",
+              "page": "150",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>The spell captures some of the incoming energy, lessening its effect on you and storing it for your next melee attack. You have resistance to the triggering damage type until the start of your next turn. Also, the first time you hit with a melee attack on your next turn, the target takes an extra [[/damage 1d6]] damage of the triggering type, and the spell ends.</p></div><div class=\"rd__b  rd__b--3\"><div data-roll-name-ancestor=\"At Higher Levels\" class=\"rd__b  rd__b--3\"><span class=\"rd__h rd__h--3\" data-title-index=\"1\"> <span class=\"entry-title-inner\">At Higher Levels.</span></span> <p>When you cast this spell using a spell slot of 2nd level or higher, the extra damage increases by [[/damage 1d6]] for each slot level above 1st.</p></div></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "abj",
+            "properties": [
+              "somatic"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "self",
+                "count": "0",
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "self"
+            },
+            "activation": {
+              "type": "reaction",
+              "condition": "which you take when you take acid, cold, fire, lightning, or thunder damage",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "round"
+            },
+            "ability": "",
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "damage",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "damage": {
+                  "critical": {
+                    "allow": false,
+                    "bonus": ""
+                  },
+                  "parts": [
+                    {
+                      "number": 1,
+                      "denomination": 6,
+                      "bonus": "",
+                      "types": [],
+                      "custom": {
+                        "enabled": false,
+                        "formula": ""
+                      },
+                      "scaling": {
+                        "mode": "whole",
+                        "number": 1,
+                        "formula": ""
+                      }
+                    }
+                  ]
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "absorb-elements",
+            "sourceItem": "class:wizard"
+          },
+          "img": "icons/magic/symbols/elements-air-earth-fire-water.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "XGE",
+              "hash": "absorb%20elements_xge",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {
+              "flinnSpellOrigin": "wizard"
+            }
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "dbasWTvjkDJaNBR2",
+        "doc": {
+          "name": "Mind Spike",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "XGE",
+              "page": "162",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>You reach into the mind of one creature you can see within range. The target must make a Wisdom saving throw, taking [[/damage 3d8 type=psychic]] damage on a failed save, or half as much damage on a successful one. On a failed save, you also always know the target's location until the spell ends, but only while the two of you are on the same plane of existence. While you have this knowledge, the target can't become hidden from you, and if it's &amp;Reference[condition=invisible], it gains no benefit from that condition against you.</p></div><div class=\"rd__b  rd__b--3\"><div data-roll-name-ancestor=\"At Higher Levels\" class=\"rd__b  rd__b--3\"><span class=\"rd__h rd__h--3\" data-title-index=\"1\"> <span class=\"entry-title-inner\">At Higher Levels.</span></span> <p>When you cast this spell using a spell slot of 3rd level or higher, the damage increases by [[/damage 1d8]] for each slot level above 2nd.</p></div></div>",
+              "chat": ""
+            },
+            "level": 2,
+            "school": "div",
+            "properties": [
+              "somatic",
+              "concentration"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "60",
+              "units": "ft"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "hour"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "save",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "damage": {
+                  "onSave": "half",
+                  "parts": [
+                    {
+                      "number": 3,
+                      "denomination": 8,
+                      "bonus": "",
+                      "types": [
+                        "psychic"
+                      ],
+                      "custom": {
+                        "enabled": false,
+                        "formula": ""
+                      },
+                      "scaling": {
+                        "mode": "whole",
+                        "number": 1,
+                        "formula": ""
+                      }
+                    }
+                  ]
+                },
+                "save": {
+                  "ability": [
+                    "wis"
+                  ],
+                  "dc": {
+                    "calculation": "spellcasting",
+                    "formula": ""
+                  }
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "mind-spike",
+            "sourceItem": "class:wizard"
+          },
+          "img": "icons/magic/light/explosion-impact-purple.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "XGE",
+              "hash": "mind%20spike_xge",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {
+              "flinnSpellOrigin": "wizard"
+            }
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "n1TjxHWUbwFcLHAt",
+        "doc": {
+          "name": "Bless",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "219",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>You bless up to three creatures of your choice within range. Whenever a target makes an attack roll or a saving throw before the spell ends, the target can roll a [[/r d4]] and add the number rolled to the attack roll or saving throw.</p></div><div class=\"rd__b  rd__b--3\"><div data-roll-name-ancestor=\"At Higher Levels\" class=\"rd__b  rd__b--3\"><span class=\"rd__h rd__h--3\" data-title-index=\"1\"> <span class=\"entry-title-inner\">At Higher Levels.</span></span> <p>When you cast this spell using a spell slot of 2nd level or higher, you can target one additional creature for each slot level above 1st.</p></div></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "enc",
+            "properties": [
+              "vocal",
+              "somatic",
+              "material",
+              "concentration"
+            ],
+            "materials": {
+              "value": "a sprinkling of holy water",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "3",
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "30",
+              "units": "ft"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "minute"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [
+                  {
+                    "_id": "8rP3gwmXVTgZqYZE",
+                    "level": {}
+                  }
+                ],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "bless",
+            "sourceItem": "class:cleric"
+          },
+          "img": "icons/magic/life/heart-hand-gold-green.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "bless_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {
+              "flinnSpellOrigin": "cleric"
+            }
+          },
+          "effects": [
+            {
+              "_id": "8rP3gwmXVTgZqYZE",
+              "flags": {
+                "plutonium": {
+                  "dedupeId": "bless"
+                }
+              },
+              "changes": [
+                {
+                  "key": "system.bonuses.abilities.save",
+                  "mode": 2,
+                  "value": "1d4",
+                  "priority": null
+                },
+                {
+                  "key": "system.bonuses.mwak.attack",
+                  "mode": 2,
+                  "value": "1d4",
+                  "priority": null
+                },
+                {
+                  "key": "system.bonuses.msak.attack",
+                  "mode": 2,
+                  "value": "1d4",
+                  "priority": null
+                },
+                {
+                  "key": "system.bonuses.rsak.attack",
+                  "mode": 2,
+                  "value": "1d4",
+                  "priority": null
+                },
+                {
+                  "key": "system.bonuses.rwak.attack",
+                  "mode": 2,
+                  "value": "1d4",
+                  "priority": null
+                }
+              ],
+              "disabled": false,
+              "duration": {
+                "startTime": null,
+                "seconds": 60,
+                "rounds": 10,
+                "combat": null,
+                "turns": null,
+                "startRound": null,
+                "startTurn": null
+              },
+              "origin": "Item.kZZAZ6kp9YzgPQEe",
+              "tint": "#ffffff",
+              "transfer": false,
+              "name": "Bless",
+              "description": "",
+              "statuses": [],
+              "_stats": {
+                "compendiumSource": null,
+                "duplicateSource": null,
+                "coreVersion": "13.351",
+                "systemId": "dnd5e",
+                "systemVersion": "3.3.1",
+                "createdTime": null,
+                "modifiedTime": null,
+                "lastModifiedBy": null,
+                "exportSource": null
+              },
+              "img": "icons/magic/life/heart-hand-gold-green.webp",
+              "type": "base",
+              "system": {},
+              "sort": 0
+            }
+          ]
+        }
+      },
+      {
+        "origId": "QYnru6FUiABV8IDG",
+        "doc": {
+          "name": "Sanctuary",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "272",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>You ward a creature within range against attack. Until the spell ends, any creature who targets the warded creature with an attack or a harmful spell must first make a Wisdom saving throw. On a failed save, the creature must choose a new target or lose the attack or spell. This spell doesn't protect the warded creature from area effects, such as the explosion of a @spell[fireball].</p><p>If the warded creature makes an attack, casts a spell that affects an enemy, or deals damage to another creature, this spell ends.</p></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "abj",
+            "properties": [
+              "vocal",
+              "somatic",
+              "material"
+            ],
+            "materials": {
+              "value": "a small silver mirror",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "30",
+              "units": "ft"
+            },
+            "activation": {
+              "type": "bonus",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "minute"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "save",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "damage": {
+                  "onSave": "half",
+                  "parts": []
+                },
+                "save": {
+                  "ability": [
+                    "wis"
+                  ],
+                  "dc": {
+                    "calculation": "spellcasting",
+                    "formula": ""
+                  }
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "sanctuary",
+            "sourceItem": "class:cleric"
+          },
+          "img": "icons/magic/holy/barrier-shield-winged-blue.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "sanctuary_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {
+              "flinnSpellOrigin": "cleric"
+            }
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "qpbNNdHIzaMghmfp",
+        "doc": {
+          "name": "Comprehend Languages",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "224",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>For the duration, you understand the literal meaning of any spoken language that you hear. You also understand any written language that you see, but you must be touching the surface on which the words are written. It takes about 1 minute to read one page of text.</p><p>This spell doesn't decode secret messages in a text or a glyph, such as an arcane sigil, that isn't part of a written language.</p></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "div",
+            "properties": [
+              "vocal",
+              "somatic",
+              "material",
+              "ritual"
+            ],
+            "materials": {
+              "value": "a pinch of soot and salt",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "self",
+                "count": "0",
+                "choice": false
+              },
+              "template": {
+                "units": "self",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "self"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "hour"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 0,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "comprehend-languages",
+            "sourceItem": "class:wizard"
+          },
+          "img": "icons/skills/trades/academics-book-study-runes.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "comprehend%20languages_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {
+              "flinnSpellOrigin": "wizard"
+            }
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "1yqvcYETguV8sxLf",
+        "doc": {
+          "name": "Feather Fall",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "239",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>Choose up to five falling creatures within range. A falling creature's rate of descent slows to 60 feet per round until the spell ends. If the creature lands before the spell ends, it takes no falling damage and can land on its feet, and the spell ends for that creature.</p></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "trs",
+            "properties": [
+              "vocal",
+              "material"
+            ],
+            "materials": {
+              "value": "a small feather or a piece of down",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "5",
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "60",
+              "units": "ft"
+            },
+            "activation": {
+              "type": "reaction",
+              "condition": "which you take when you or a creature within 60 feet of you falls",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "minute"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 0,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "feather-fall",
+            "sourceItem": "class:wizard"
+          },
+          "img": "icons/commodities/materials/feather-white-glowing-fire.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "feather%20fall_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {
+              "flinnSpellOrigin": "wizard"
+            }
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "KlZLUDhy8Y5XVOM7",
+        "doc": {
+          "name": "Sleep",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "276",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>This spell sends creatures into a magical slumber. Roll [[/r 5d8]]; the total is how many hit points of creatures this spell can affect. Creatures within 20 feet of a point you choose within range are affected in ascending order of their current hit points (ignoring &amp;Reference[condition=unconscious] creatures).</p><p>Starting with the creature that has the lowest current hit points, each creature affected by this spell falls &amp;Reference[condition=unconscious] until the spell ends, the sleeper takes damage, or someone uses an action to shake or slap the sleeper awake. Subtract each creature's hit points from the total before moving on to the creature with the next lowest hit points. A creature's hit points must be equal to or less than the remaining total for that creature to be affected.</p><p>Undead and creatures immune to being &amp;Reference[condition=charmed] aren't affected by this spell.</p></div><div class=\"rd__b  rd__b--3\"><div data-roll-name-ancestor=\"At Higher Levels\" class=\"rd__b  rd__b--3\"><span class=\"rd__h rd__h--3\" data-title-index=\"1\"> <span class=\"entry-title-inner\">At Higher Levels.</span></span> <p>When you cast this spell using a spell slot of 2nd level or higher, roll an additional [[/r 2d8]] for each slot level above 1st.</p></div></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "enc",
+            "properties": [
+              "vocal",
+              "somatic",
+              "material"
+            ],
+            "materials": {
+              "value": "a pinch of fine sand, rose petals, or a cricket",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "type": "sphere",
+                "size": "20",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "90",
+              "units": "ft"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "minute"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "damage",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [
+                  {
+                    "_id": "MowBnXpRu2aG48i9",
+                    "level": {}
+                  }
+                ],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "damage": {
+                  "critical": {
+                    "allow": false,
+                    "bonus": ""
+                  },
+                  "parts": [
+                    {
+                      "number": 5,
+                      "denomination": 8,
+                      "bonus": "",
+                      "types": [],
+                      "custom": {
+                        "enabled": false,
+                        "formula": ""
+                      },
+                      "scaling": {
+                        "mode": "whole",
+                        "number": 2,
+                        "formula": ""
+                      }
+                    }
+                  ]
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "sleep",
+            "sourceItem": "class:wizard"
+          },
+          "img": "icons/magic/control/sleep-bubble-purple.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "sleep_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {
+              "flinnSpellOrigin": "wizard"
+            }
+          },
+          "effects": [
+            {
+              "name": "Sleep",
+              "origin": "Compendium.dnd5e.spells.Item.KhwiSi9fwVfUPtku",
+              "duration": {
+                "startTime": null,
+                "seconds": 60,
+                "combat": null,
+                "rounds": null,
+                "turns": null,
+                "startRound": null,
+                "startTurn": null
+              },
+              "disabled": false,
+              "_id": "MowBnXpRu2aG48i9",
+              "changes": [],
+              "description": "<p>The creature affected by this spell falls Unconscious until the spell ends, the sleeper takes damage, or someone uses an action to shake or slap the sleeper awake.</p>",
+              "transfer": false,
+              "statuses": [
+                "unconscious",
+                "incapacitated"
+              ],
+              "flags": {
+                "plutonium": {
+                  "dedupeId": "sleep"
+                }
+              },
+              "tint": "#ffffff",
+              "_stats": {
+                "compendiumSource": null,
+                "duplicateSource": null,
+                "coreVersion": "13.351",
+                "systemId": "dnd5e",
+                "systemVersion": "3.3.1",
+                "createdTime": null,
+                "modifiedTime": null,
+                "lastModifiedBy": null,
+                "exportSource": null
+              },
+              "img": "icons/magic/control/sleep-bubble-purple.webp",
+              "type": "base",
+              "system": {},
+              "sort": 0
+            }
+          ]
+        }
+      },
+      {
+        "origId": "KHmuy54aysjTyv4w",
+        "doc": {
+          "name": "Chill Touch",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "221",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>You create a ghostly, skeletal hand in the space of a creature within range. Make a ranged spell attack against the creature to assail it with the chill of the grave. On a hit, the target takes [[/damage 1d8 type=necrotic]] damage, and it can't regain hit points until the start of your next turn. Until then, the hand clings to the target.</p><p>If you hit an undead target, it also has disadvantage on attack rolls against you until the end of your next turn.</p><p>This spell's damage increases by [[/r 1d8]] when you reach 5th level ([[/damage 2d8]]), 11th level ([[/damage 3d8]]), and 17th level ([[/damage 4d8]]).</p></div>",
+              "chat": ""
+            },
+            "level": 0,
+            "school": "nec",
+            "properties": [
+              "vocal",
+              "somatic"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "120",
+              "units": "ft"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "round"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 2,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "attack",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "attack": {
+                  "ability": "",
+                  "bonus": "",
+                  "critical": {
+                    "threshold": null
+                  },
+                  "flat": false,
+                  "type": {
+                    "value": "ranged",
+                    "classification": "spell"
+                  }
+                },
+                "damage": {
+                  "critical": {
+                    "bonus": ""
+                  },
+                  "includeBase": true,
+                  "parts": [
+                    {
+                      "number": 1,
+                      "denomination": 8,
+                      "bonus": "",
+                      "types": [
+                        "necrotic"
+                      ],
+                      "custom": {
+                        "enabled": false,
+                        "formula": ""
+                      },
+                      "scaling": {
+                        "mode": "whole",
+                        "number": 1,
+                        "formula": ""
+                      }
+                    }
+                  ]
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "chill-touch",
+            "sourceItem": "class:wizard"
+          },
+          "img": "icons/magic/lightning/claws-unarmed-strike-teal.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "chill%20touch_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {
+              "flinnSpellOrigin": "wizard"
+            }
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "5hyJeuvrNxqzsNhC",
+        "doc": {
+          "name": "Misty Step",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "260",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>Briefly surrounded by silvery mist, you teleport up to 30 feet to an unoccupied space that you can see.</p></div>",
+              "chat": ""
+            },
+            "level": 2,
+            "school": "con",
+            "properties": [
+              "vocal"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "space",
+                "count": "30",
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "self"
+            },
+            "activation": {
+              "type": "bonus",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "",
+              "units": "inst"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 0,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "misty-step",
+            "sourceItem": "class:wizard"
+          },
+          "img": "icons/magic/water/projectile-ice-impact-stone.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "misty%20step_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {
+              "flinnSpellOrigin": "wizard"
+            }
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "h7RQWTcFgtEKRdmV",
+        "doc": {
+          "name": "See Invisibility",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "274",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>For the duration, you see &amp;Reference[condition=invisible] creatures and objects as if they were visible, and you can see into the Ethereal Plane. Ethereal creatures and objects appear ghostly and translucent.</p></div>",
+              "chat": ""
+            },
+            "level": 2,
+            "school": "div",
+            "properties": [
+              "vocal",
+              "somatic",
+              "material"
+            ],
+            "materials": {
+              "value": "a pinch of talc and a small sprinkling of powdered silver",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "self",
+                "count": "0",
+                "choice": false
+              },
+              "template": {
+                "units": "self",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "self"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "hour"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "see-invisibility",
+            "sourceItem": "class:wizard"
+          },
+          "img": "icons/magic/control/silhouette-aura-energy.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "see%20invisibility_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {
+              "flinnSpellOrigin": "wizard"
+            }
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "tzhs0TixmylJIiDa",
+        "doc": {
+          "name": "Guiding Bolt",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB'14",
+              "page": "248",
+              "license": "",
+              "rules": "2014",
+              "revision": 1
+            },
+            "description": {
+              "value": "<div class=\"ve-rd__b  ve-rd__b--3\"><p>A flash of light streaks toward a creature of your choice within range. Make a ranged spell attack against the target. On a hit, the target takes [[/damage 4d6 type=radiant]] damage, and the next attack roll made against this target before the end of your next turn has advantage, thanks to the mystical dim light glittering on the target until then.</p></div><div class=\"ve-rd__b  ve-rd__b--3\"><p></p><div data-roll-name-ancestor=\"At Higher Levels\" class=\"ve-rd__b  ve-rd__b--3\"><p><span class=\"ve-rd__h ve-rd__h--3\" data-title-index=\"1\"> <span class=\"entry-title-inner \">At Higher Levels.</span></span> When you cast this spell using a spell slot of 2nd level or higher, the damage increases by [[/damage 1d6]] for each slot level above 1st.</p></div></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "evo",
+            "properties": [
+              "vocal",
+              "somatic"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "template": {
+                "contiguous": false,
+                "type": "",
+                "units": "ft",
+                "stationary": false
+              },
+              "affects": {
+                "count": "1",
+                "type": "creature",
+                "choice": false,
+                "special": ""
+              }
+            },
+            "range": {
+              "value": "120",
+              "units": "ft",
+              "special": ""
+            },
+            "activation": {
+              "type": "action",
+              "value": 1,
+              "condition": ""
+            },
+            "duration": {
+              "value": "1",
+              "units": "round"
+            },
+            "uses": {
+              "max": "",
+              "recovery": [],
+              "spent": 0
+            },
+            "method": "spell",
+            "prepared": 1,
+            "sourceItem": "class:cleric",
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "attack",
+                "activation": {
+                  "type": "action",
+                  "value": null,
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [
+                  {
+                    "_id": "hf1g2XNPqQFMw35j",
+                    "level": {}
+                  }
+                ],
+                "range": {
+                  "override": false,
+                  "units": "self"
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "units": "ft",
+                    "stationary": false
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "attack": {
+                  "ability": "",
+                  "bonus": "",
+                  "critical": {
+                    "threshold": null
+                  },
+                  "flat": false,
+                  "type": {
+                    "value": "ranged",
+                    "classification": ""
+                  }
+                },
+                "damage": {
+                  "critical": {
+                    "bonus": ""
+                  },
+                  "includeBase": true,
+                  "parts": [
+                    {
+                      "number": 4,
+                      "denomination": 6,
+                      "bonus": "",
+                      "types": [
+                        "radiant"
+                      ],
+                      "custom": {
+                        "enabled": false,
+                        "formula": ""
+                      },
+                      "scaling": {
+                        "mode": "whole",
+                        "number": 1,
+                        "formula": ""
+                      }
+                    }
+                  ]
+                },
+                "uses": {
+                  "spent": 0,
+                  "recovery": [],
+                  "max": ""
+                },
+                "sort": 0,
+                "name": "Cast",
+                "img": "",
+                "visibility": {
+                  "level": {
+                    "min": null,
+                    "max": null
+                  },
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                },
+                "flags": {}
+              }
+            },
+            "identifier": "guiding-bolt",
+            "ability": ""
+          },
+          "img": "icons/magic/fire/projectile-fireball-purple.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "guiding%20bolt_phb",
+              "propDroppable": "spell",
+              "spellClassNames": [
+                "Cleric"
+              ]
+            },
+            "altarion-aitusa": {
+              "flinnSpellOrigin": "cleric"
+            }
+          },
+          "effects": [
+            {
+              "name": "Guiding Bolt",
+              "img": "icons/magic/fire/projectile-fireball-purple.webp",
+              "origin": "Compendium.dnd5e.spells.Item.7buEm5KhI5lP8m1z",
+              "transfer": false,
+              "_id": "hf1g2XNPqQFMw35j",
+              "type": "base",
+              "system": {},
+              "changes": [],
+              "disabled": false,
+              "duration": {
+                "startTime": null,
+                "combat": null,
+                "seconds": 6,
+                "rounds": null,
+                "turns": null,
+                "startRound": null,
+                "startTurn": null
+              },
+              "description": "<p>The next attack roll made against you before the end of the caster's next turn has advantage thanks to the mystical dim light glittering on you.</p>",
+              "tint": "#ffffff",
+              "statuses": [],
+              "sort": 0,
+              "flags": {
+                "dnd5e": {
+                  "riders": {
+                    "statuses": []
+                  }
+                },
+                "plutonium": {
+                  "dedupeId": "guiding-bolt"
+                }
+              },
+              "_stats": {
+                "compendiumSource": null,
+                "duplicateSource": null,
+                "exportSource": null,
+                "coreVersion": "13.351",
+                "systemId": "dnd5e",
+                "systemVersion": "5.3.2",
+                "lastModifiedBy": null
+              }
+            }
+          ]
         }
       }
     ]
@@ -5688,10 +14301,90 @@ export const PARTY_JSON_DATA = {
             },
             "uses": {
               "spent": 0,
-              "max": "",
-              "recovery": []
+              "max": "1",
+              "recovery": [
+                {
+                  "period": "lr",
+                  "type": "recoverAll"
+                }
+              ]
             },
-            "activities": {},
+            "activities": {
+              "resArcStreng0001": {
+                "_id": "resArcStreng0001",
+                "type": "utility",
+                "name": "Use The Strength (Temp HP + 1d4 Psychic Melee)",
+                "activation": {
+                  "type": "bonus",
+                  "value": 1,
+                  "condition": "",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [
+                    {
+                      "type": "itemUses",
+                      "value": "1",
+                      "target": "",
+                      "scaling": {}
+                    }
+                  ],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": false
+                },
+                "description": {
+                  "chatFlavor": "As a bonus action, gain 1d8 + Proficiency Bonus + CON modifier Temporary Hit Points. While you have Temporary Hit Points, your melee weapon attacks deal an extra +1d4 Psychic damage."
+                },
+                "duration": {
+                  "concentration": false,
+                  "value": "",
+                  "units": "inst",
+                  "special": "",
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "value": null,
+                  "units": "self",
+                  "special": "",
+                  "override": false
+                },
+                "target": {
+                  "template": {
+                    "count": "",
+                    "contiguous": false,
+                    "type": "",
+                    "size": "",
+                    "width": "",
+                    "height": "",
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "count": "",
+                    "type": "",
+                    "choice": false,
+                    "special": ""
+                  },
+                  "prompt": false,
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "prompt": false,
+                  "visible": false,
+                  "name": "",
+                  "formula": ""
+                },
+                "sort": 0
+              }
+            },
             "source": {
               "custom": "Coria Homebrew",
               "rules": "2014"
@@ -5701,7 +14394,11 @@ export const PARTY_JSON_DATA = {
           "folder": null,
           "sort": 0,
           "flags": {
-            "dnd5e": {}
+            "dnd5e": {},
+            "altarion-aitusa": {
+              "isResonantArcanaCard": true,
+              "resonantArcanaKey": "strength"
+            }
           }
         }
       },
@@ -7270,6 +15967,574 @@ export const PARTY_JSON_DATA = {
           "flags": {}
         }
       }
+    ],
+    "abilities": {
+      "str": {
+        "value": 8,
+        "proficient": 0
+      },
+      "dex": {
+        "value": 14,
+        "proficient": 1
+      },
+      "con": {
+        "value": 16,
+        "proficient": 0
+      },
+      "int": {
+        "value": 8,
+        "proficient": 0
+      },
+      "wis": {
+        "value": 12,
+        "proficient": 1
+      },
+      "cha": {
+        "value": 18,
+        "proficient": 0
+      }
+    },
+    "skills": {
+      "acr": 1,
+      "ins": 2,
+      "itm": 1,
+      "prc": 2,
+      "slt": 1,
+      "ste": 1
+    },
+    "spells": [
+      {
+        "origId": "HVhKRAUQycqQlE0x",
+        "doc": {
+          "name": "Mage Hand",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "256",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>A spectral, floating hand appears at a point you choose within range. The hand lasts for the duration or until you dismiss it as an action. The hand vanishes if it is ever more than 30 feet away from you or if you cast this spell again.</p><p>You can use your action to control the hand. You can use the hand to manipulate an object, open an unlocked door or container, stow or retrieve an item from an open container, or pour the contents out of a vial. You can move the hand up to 30 feet each time you use it.</p><p>The hand can't attack, activate magic items, or carry more than 10 pounds.</p></div>",
+              "chat": ""
+            },
+            "level": 0,
+            "school": "con",
+            "properties": [
+              "vocal",
+              "somatic"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "space",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "30",
+              "units": "ft"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "minute"
+            },
+            "ability": "cha",
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 2,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "mage-hand",
+            "sourceItem": "race:tiefling-shadow-touched"
+          },
+          "img": "icons/magic/light/orbs-hand-gray.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "mage%20hand_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {
+              "sourceId": "Actor.HVf1fVyJi40Jstlf.Item.HVhKRAUQycqQlE0x",
+              "advancementOrigin": "hc3drMe3fqXsFy5s.Z2V4FHRaP24wHS6W"
+            },
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "MAAmS8qvSD9YWD1A",
+        "doc": {
+          "name": "Shield",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "275",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>An invisible barrier of magical force appears and protects you. Until the start of your next turn, you have a +5 bonus to AC, including against the triggering attack, and you take no damage from @spell[magic missile].</p></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "abj",
+            "properties": [
+              "vocal",
+              "somatic"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "self",
+                "count": "0",
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "self"
+            },
+            "activation": {
+              "type": "reaction",
+              "condition": "which you take when you are hit by an attack or targeted by the magic missile spell",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "round"
+            },
+            "ability": "",
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "pact",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [
+                  {
+                    "_id": "6pbotGIvqQkraPva",
+                    "level": {}
+                  }
+                ],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "shield"
+          },
+          "img": "icons/magic/defensive/shield-barrier-deflect-teal.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "shield_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": [
+            {
+              "_id": "6pbotGIvqQkraPva",
+              "flags": {
+                "plutonium": {
+                  "dedupeId": "shield"
+                }
+              },
+              "changes": [
+                {
+                  "key": "system.attributes.ac.bonus",
+                  "mode": 2,
+                  "value": "5",
+                  "priority": null
+                }
+              ],
+              "disabled": false,
+              "duration": {
+                "startTime": null,
+                "rounds": 1,
+                "seconds": null,
+                "combat": null,
+                "turns": null,
+                "startRound": null,
+                "startTurn": null
+              },
+              "origin": "Item.FlLKKv7bQBlIAs11",
+              "tint": "#ffffff",
+              "transfer": false,
+              "name": "Shield",
+              "description": "<p>Until the start of your next turn, you have a +5 bonus to AC, including against the triggering attack, and you take no damage from magic missile.</p>",
+              "statuses": [],
+              "_stats": {
+                "compendiumSource": null,
+                "duplicateSource": null,
+                "coreVersion": "13.351",
+                "systemId": "dnd5e",
+                "systemVersion": "3.3.1",
+                "createdTime": null,
+                "modifiedTime": null,
+                "lastModifiedBy": null,
+                "exportSource": null
+              },
+              "img": "icons/magic/defensive/shield-barrier-deflect-teal.webp",
+              "type": "base",
+              "system": {},
+              "sort": 0
+            }
+          ]
+        }
+      },
+      {
+        "origId": "KPuXmONRo2Nj7GkG",
+        "doc": {
+          "name": "Wrathful Smite",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "289",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>The next time you hit with a melee weapon attack during this spell's duration, your attack deals an extra [[/damage 1d6 type=necrotic]] damage. Additionally, if the target is a creature, it must make a Wisdom saving throw or be &amp;Reference[condition=frightened] of you until the spell ends. As an action, the creature can make a Wisdom check against your spell save DC to steel its resolve and end this spell.</p></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "evo",
+            "properties": [
+              "vocal",
+              "concentration"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "self",
+                "count": "0",
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "self"
+            },
+            "activation": {
+              "type": "bonus",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "minute"
+            },
+            "ability": "",
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "pact",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "save",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "damage": {
+                  "onSave": "half",
+                  "parts": [
+                    {
+                      "number": 1,
+                      "denomination": 6,
+                      "bonus": "",
+                      "types": [
+                        "necrotic"
+                      ],
+                      "custom": {
+                        "enabled": false,
+                        "formula": ""
+                      },
+                      "scaling": {
+                        "mode": "",
+                        "number": null,
+                        "formula": ""
+                      }
+                    }
+                  ]
+                },
+                "save": {
+                  "ability": [
+                    "wis"
+                  ],
+                  "dc": {
+                    "calculation": "spellcasting",
+                    "formula": ""
+                  }
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "wrathful-smite"
+          },
+          "img": "icons/weapons/polearms/spear-flared-silver-pink.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "wrathful%20smite_phb",
+              "propDroppable": "spell"
+            },
+            "midiProperties": {
+              "confirmTargets": "default",
+              "saveDamage": "default",
+              "bonusSaveDamage": "default",
+              "autoFailFriendly": false,
+              "autoSaveFriendly": false,
+              "critOther": false,
+              "offHandWeapon": false,
+              "magicdam": false,
+              "magiceffect": false,
+              "noConcentrationCheck": false,
+              "toggleEffect": false,
+              "ignoreTotalCover": false,
+              "idr": false,
+              "idi": false,
+              "idv": false,
+              "ida": false
+            },
+            "midi-qol": {
+              "rollAttackPerTarget": "default",
+              "removeAttackDamageButtons": "default",
+              "itemCondition": "",
+              "effectCondition": ""
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      }
     ]
   },
   "parva": {
@@ -8328,10 +17593,90 @@ export const PARTY_JSON_DATA = {
             },
             "uses": {
               "spent": 0,
-              "max": "",
-              "recovery": []
+              "max": "1",
+              "recovery": [
+                {
+                  "period": "lr",
+                  "type": "recoverAll"
+                }
+              ]
             },
-            "activities": {},
+            "activities": {
+              "resArcTheMoon001": {
+                "_id": "resArcTheMoon001",
+                "type": "utility",
+                "name": "Use The Moon (WIS Save — 3d6 Psychic + Frightened)",
+                "activation": {
+                  "type": "action",
+                  "value": 1,
+                  "condition": "",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [
+                    {
+                      "type": "itemUses",
+                      "value": "1",
+                      "target": "",
+                      "scaling": {}
+                    }
+                  ],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": false
+                },
+                "description": {
+                  "chatFlavor": "As an action, target a creature within 30 ft (Wisdom Save vs your Spell Save DC): on a failure it takes 3d6 Psychic damage and is Frightened until the end of your next turn; on a success it takes half damage and isn't Frightened."
+                },
+                "duration": {
+                  "concentration": false,
+                  "value": "",
+                  "units": "inst",
+                  "special": "",
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "value": null,
+                  "units": "self",
+                  "special": "",
+                  "override": false
+                },
+                "target": {
+                  "template": {
+                    "count": "",
+                    "contiguous": false,
+                    "type": "",
+                    "size": "",
+                    "width": "",
+                    "height": "",
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "count": "",
+                    "type": "",
+                    "choice": false,
+                    "special": ""
+                  },
+                  "prompt": false,
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "prompt": false,
+                  "visible": false,
+                  "name": "",
+                  "formula": ""
+                },
+                "sort": 0
+              }
+            },
             "source": {
               "custom": "Coria Homebrew",
               "rules": "2014"
@@ -8341,7 +17686,11 @@ export const PARTY_JSON_DATA = {
           "folder": null,
           "sort": 0,
           "flags": {
-            "dnd5e": {}
+            "dnd5e": {},
+            "altarion-aitusa": {
+              "isResonantArcanaCard": true,
+              "resonantArcanaKey": "moon"
+            }
           }
         }
       },
@@ -9233,6 +18582,2843 @@ export const PARTY_JSON_DATA = {
           ],
           "folder": null,
           "sort": 0
+        }
+      }
+    ],
+    "abilities": {
+      "str": {
+        "value": 8,
+        "proficient": 0
+      },
+      "dex": {
+        "value": 16,
+        "proficient": 0
+      },
+      "con": {
+        "value": 14,
+        "proficient": 0
+      },
+      "int": {
+        "value": 10,
+        "proficient": 0
+      },
+      "wis": {
+        "value": 10,
+        "proficient": 1
+      },
+      "cha": {
+        "value": 18,
+        "proficient": 1
+      }
+    },
+    "skills": {
+      "dec": 1,
+      "his": 1,
+      "inv": 1,
+      "per": 1,
+      "rel": 1
+    },
+    "spells": [
+      {
+        "origId": "4PmkRsbfnSdFEL3O",
+        "doc": {
+          "name": "Eldritch Blast",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "237",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>A beam of crackling energy streaks toward a creature within range. Make a ranged spell attack against the target. On a hit, the target takes [[/damage 1d10 type=force]] damage.</p><p>The spell creates more than one beam when you reach higher levels: two beams at 5th level, three beams at 11th level, and four beams at 17th level. You can direct the beams at the same target or at different ones. Make a separate attack roll for each beam.</p></div>",
+              "chat": ""
+            },
+            "level": 0,
+            "school": "evo",
+            "properties": [
+              "vocal",
+              "somatic"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "120",
+              "units": "ft"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "",
+              "units": "inst"
+            },
+            "ability": "cha",
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 2,
+            "sourceItem": "class:warlock",
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "attack",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "attack": {
+                  "ability": "cha",
+                  "bonus": "",
+                  "critical": {
+                    "threshold": null
+                  },
+                  "flat": false,
+                  "type": {
+                    "value": "ranged",
+                    "classification": "spell"
+                  }
+                },
+                "damage": {
+                  "critical": {
+                    "bonus": ""
+                  },
+                  "includeBase": true,
+                  "parts": [
+                    {
+                      "number": 1,
+                      "denomination": 10,
+                      "bonus": "",
+                      "types": [
+                        "force"
+                      ],
+                      "custom": {
+                        "enabled": false,
+                        "formula": ""
+                      },
+                      "scaling": {
+                        "mode": "",
+                        "number": null,
+                        "formula": ""
+                      }
+                    }
+                  ]
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "eldritch-blast"
+          },
+          "img": "icons/magic/light/beam-explosion-pink-purple.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "eldritch%20blast_phb",
+              "propDroppable": "spell",
+              "parentClassName": "Warlock",
+              "parentClassSource": "PHB",
+              "parentSubclassName": "The Fathomless",
+              "parentSubclassSource": "TCE"
+            },
+            "tidy5e-sheet": {
+              "parentClass": "warlock"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "3ETFu5NyLBfrrTI8",
+        "doc": {
+          "name": "Friends",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "244",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>For the duration, you have advantage on all Charisma checks directed at one creature of your choice that isn't hostile toward you. When the spell ends, the creature realizes that you used magic to influence its mood and becomes hostile toward you. A creature prone to violence might attack you. Another creature might seek retribution in other ways (at the DM's discretion), depending on the nature of your interaction with it.</p></div>",
+              "chat": ""
+            },
+            "level": 0,
+            "school": "enc",
+            "properties": [
+              "somatic",
+              "material",
+              "concentration"
+            ],
+            "materials": {
+              "value": "a small amount of makeup applied to the face as this spell is cast",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "self",
+                "count": "0",
+                "choice": false
+              },
+              "template": {
+                "units": "self",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "self"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "minute"
+            },
+            "ability": "cha",
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 2,
+            "sourceItem": "class:warlock",
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "friends"
+          },
+          "img": "icons/consumables/drinks/alcohol-beer-mug-yellow.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "friends_phb",
+              "propDroppable": "spell",
+              "parentClassName": "Warlock",
+              "parentClassSource": "PHB",
+              "parentSubclassName": "The Fathomless",
+              "parentSubclassSource": "TCE"
+            },
+            "tidy5e-sheet": {
+              "parentClass": "warlock"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "8NjVXBGuxjd5gREY",
+        "doc": {
+          "name": "Shape Water",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "XGE",
+              "page": "164",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>You choose an area of water that you can see within range and that fits within a 5-foot cube. You manipulate it in one of the following ways:</p><ul class=\"rd__list\"><li class=\"rd__li \">You instantaneously move or otherwise change the flow of the water as you direct, up to 5 feet in any direction. This movement doesn't have enough force to cause damage.</li><li class=\"rd__li \">You cause the water to form into simple shapes and animate at your direction. This change lasts for 1 hour.</li><li class=\"rd__li \">You change the water's color or opacity. The water must be changed in the same way throughout. This change lasts for 1 hour.</li><li class=\"rd__li \">You freeze the water, provided that there are no creatures in it. The water unfreezes in 1 hour.</li></ul><p>If you cast this spell multiple times, you can have no more than two of its non-instantaneous effects active at a time, and you can dismiss such an effect as an action.</p></div>",
+              "chat": ""
+            },
+            "level": 0,
+            "school": "trs",
+            "properties": [
+              "somatic"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "type": "cube",
+                "size": "5",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "30",
+              "units": "ft"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "",
+              "units": "inst"
+            },
+            "ability": "cha",
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 2,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "shape-water"
+          },
+          "img": "icons/creatures/fish/fish-marlin-swordfight-blue.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "XGE",
+              "hash": "shape%20water_xge",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "WTIxMx7A09wbMCcw",
+        "doc": {
+          "name": "Mage Hand",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "256",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>A spectral, floating hand appears at a point you choose within range. The hand lasts for the duration or until you dismiss it as an action. The hand vanishes if it is ever more than 30 feet away from you or if you cast this spell again.</p><p>You can use your action to control the hand. You can use the hand to manipulate an object, open an unlocked door or container, stow or retrieve an item from an open container, or pour the contents out of a vial. You can move the hand up to 30 feet each time you use it.</p><p>The hand can't attack, activate magic items, or carry more than 10 pounds.</p></div>",
+              "chat": ""
+            },
+            "level": 0,
+            "school": "con",
+            "properties": [
+              "vocal",
+              "somatic"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "space",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "30",
+              "units": "ft"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "minute"
+            },
+            "ability": "cha",
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 2,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "mage-hand"
+          },
+          "img": "icons/magic/light/orbs-hand-gray.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "mage%20hand_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "HqAqKsKullSkWSs4",
+        "doc": {
+          "name": "Guidance",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "248",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>You touch one willing creature. Once before the spell ends, the target can roll a [[/r d4]] and add the number rolled to one ability check of its choice. It can roll the die before or after making the ability check. The spell then ends.</p></div>",
+              "chat": ""
+            },
+            "level": 0,
+            "school": "div",
+            "properties": [
+              "vocal",
+              "somatic",
+              "concentration"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "touch",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "touch"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "minute"
+            },
+            "ability": "cha",
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 2,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "guidance"
+          },
+          "img": "icons/skills/ranged/arrow-flying-ornate-gold.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "guidance_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "9NIRqJAr02mwTDmf",
+        "doc": {
+          "name": "Mending",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "259",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>This spell repairs a single break or tear in an object you touch, such as broken chain link, two halves of a broken key, a torn cloak, or a leaking wineskin. As long as the break or tear is no larger than 1 foot in any dimension, you mend it, leaving no trace of the former damage.</p><p>This spell can physically repair a magic item or construct, but the spell can't restore magic to such an object.</p></div>",
+              "chat": ""
+            },
+            "level": 0,
+            "school": "trs",
+            "properties": [
+              "vocal",
+              "somatic",
+              "material"
+            ],
+            "materials": {
+              "value": "two lodestones",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "object",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "touch",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "touch"
+            },
+            "activation": {
+              "type": "minute",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "",
+              "units": "inst"
+            },
+            "ability": "cha",
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 2,
+            "sourceItem": "class:sorcerer",
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "mending"
+          },
+          "img": "icons/skills/trades/textiles-stitching-leather-brown.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "mending_phb",
+              "propDroppable": "spell",
+              "parentClassName": "Sorcerer",
+              "parentClassSource": "PHB",
+              "parentSubclassName": "Divine Soul",
+              "parentSubclassSource": "XGE"
+            },
+            "tidy5e-sheet": {
+              "parentClass": "sorcerer"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "EcAhT3TzIEDmpqjm",
+        "doc": {
+          "name": "Message",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "259",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>You point your finger toward a creature within range and whisper a message. The target (and only the target) hears the message and can reply in a whisper that only you can hear.</p><p>You can cast this spell through solid objects if you are familiar with the target and know it is beyond the barrier. Magical silence, 1 foot of stone, 1 inch of common metal, a thin sheet of lead, or 3 feet of wood blocks the spell. The spell doesn't have to follow a straight line and can travel freely around corners or through openings.</p></div>",
+              "chat": ""
+            },
+            "level": 0,
+            "school": "trs",
+            "properties": [
+              "vocal",
+              "somatic",
+              "material"
+            ],
+            "materials": {
+              "value": "a short piece of copper wire",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "120",
+              "units": "ft"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "round"
+            },
+            "ability": "cha",
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 2,
+            "sourceItem": "class:sorcerer",
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "message"
+          },
+          "img": "icons/skills/social/diplomacy-writing-letter.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "message_phb",
+              "propDroppable": "spell",
+              "parentClassName": "Sorcerer",
+              "parentClassSource": "PHB",
+              "parentSubclassName": "Divine Soul",
+              "parentSubclassSource": "XGE"
+            },
+            "tidy5e-sheet": {
+              "parentClass": "sorcerer"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "nwWgw57LZ1MXG9Cm",
+        "doc": {
+          "name": "Minor Illusion",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "260",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>You create a sound or an image of an object within range that lasts for the duration. The illusion also ends if you dismiss it as an action or cast this spell again.</p><p>If you create a sound, its volume can range from a whisper to a scream. It can be your voice, someone else's voice, a lion's roar, a beating of drums, or any other sound you choose. The sound continues unabated throughout the duration, or you can make discrete sounds at different times before the spell ends.</p><p>If you create an image of an object—such as a chair, muddy footprints, or a small chest—it must be no larger than a 5-foot cube. The image can't create sound, light, smell, or any other sensory effect. Physical interaction with the image reveals it to be an illusion, because things can pass through it.</p><p>If a creature uses its action to examine the sound or image, the creature can determine that it is an illusion with a successful Intelligence (&amp;Reference[skill=Investigation]) check against your spell save DC. If a creature discerns the illusion for what it is, the illusion becomes faint to the creature.</p></div>",
+              "chat": ""
+            },
+            "level": 0,
+            "school": "ill",
+            "properties": [
+              "somatic",
+              "material"
+            ],
+            "materials": {
+              "value": "a bit of fleece",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "type": "cube",
+                "size": "5",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "30",
+              "units": "ft"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "minute"
+            },
+            "ability": "cha",
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 2,
+            "sourceItem": "class:sorcerer",
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "minor-illusion"
+          },
+          "img": "icons/magic/perception/eye-winged-pink.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "minor%20illusion_phb",
+              "propDroppable": "spell",
+              "parentClassName": "Sorcerer",
+              "parentClassSource": "PHB",
+              "parentSubclassName": "Divine Soul",
+              "parentSubclassSource": "XGE"
+            },
+            "tidy5e-sheet": {
+              "parentClass": "sorcerer"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "oYstnUNvnXcYLPom",
+        "doc": {
+          "name": "Prestidigitation",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "267",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>This spell is a minor magical trick that novice spellcasters use for practice. You create one of the following magical effects within range:</p><ul class=\"rd__list\"><li class=\"rd__li \">You create an instantaneous, harmless sensory effect, such as a shower of sparks, a puff of wind, faint musical notes, or an odd odor.</li><li class=\"rd__li \">You instantaneously light or snuff out a candle, a torch, or a small campfire.</li><li class=\"rd__li \">You instantaneously clean or soil an object no larger than 1 cubic foot.</li><li class=\"rd__li \">You chill, warm, or flavor up to 1 cubic foot of nonliving material for 1 hour.</li><li class=\"rd__li \">You make a color, a small mark, or a symbol appear on an object or a surface for 1 hour.</li><li class=\"rd__li \">You create a nonmagical trinket or an illusory image that can fit in your hand and that lasts until the end of your next turn.</li></ul><p>If you cast this spell multiple times, you can have up to three of its non-instantaneous effects active at a time, and you can dismiss such an effect as an action.</p></div>",
+              "chat": ""
+            },
+            "level": 0,
+            "school": "trs",
+            "properties": [
+              "vocal",
+              "somatic"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "10",
+              "units": "ft"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "hour"
+            },
+            "ability": "cha",
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 2,
+            "sourceItem": "class:sorcerer",
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "prestidigitation"
+          },
+          "img": "icons/magic/light/hand-sparks-smoke-green.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "prestidigitation_phb",
+              "propDroppable": "spell",
+              "parentClassName": "Sorcerer",
+              "parentClassSource": "PHB",
+              "parentSubclassName": "Divine Soul",
+              "parentSubclassSource": "XGE"
+            },
+            "tidy5e-sheet": {
+              "parentClass": "sorcerer"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "6JXa0wYrLJC6Foc1",
+        "doc": {
+          "name": "Cure Wounds",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "230",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>A creature you touch regains a number of hit points equal to [[/r 1d8]] + your spellcasting ability modifier. This spell has no effect on undead or constructs.</p></div><div class=\"rd__b  rd__b--3\"><div data-roll-name-ancestor=\"At Higher Levels\" class=\"rd__b  rd__b--3\"><span class=\"rd__h rd__h--3\" data-title-index=\"1\"> <span class=\"entry-title-inner\">At Higher Levels.</span></span> <p>When you cast this spell using a spell slot of 2nd level or higher, the healing increases by [[/r 1d8]] for each slot level above 1st.</p></div></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "evo",
+            "properties": [
+              "vocal",
+              "somatic"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "touch",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "touch"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "",
+              "units": "inst"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 2,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "heal",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "healing": {
+                  "number": 1,
+                  "denomination": 8,
+                  "bonus": "@mod",
+                  "types": [
+                    "healing"
+                  ],
+                  "custom": {
+                    "enabled": false,
+                    "formula": ""
+                  },
+                  "scaling": {
+                    "mode": "whole",
+                    "number": 1,
+                    "formula": ""
+                  }
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "cure-wounds"
+          },
+          "img": "icons/magic/life/cross-flared-green.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "cure%20wounds_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "RDcb8V3dtHUfpXV0",
+        "doc": {
+          "name": "Light",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "255",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>You touch one object that is no larger than 10 feet in any dimension. Until the spell ends, the object sheds bright light in a 20-foot radius and dim light for an additional 20 feet. The light can be colored as you like. Completely covering the object with something opaque blocks the light. The spell ends if you cast it again or dismiss it as an action.</p><p>If you target an object held or worn by a hostile creature, that creature must succeed on a Dexterity saving throw to avoid the spell.</p></div>",
+              "chat": ""
+            },
+            "level": 0,
+            "school": "evo",
+            "properties": [
+              "vocal",
+              "material"
+            ],
+            "materials": {
+              "value": "a firefly or phosphorescent moss",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "object",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "touch",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "touch"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "hour"
+            },
+            "ability": "cha",
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 2,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "save",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "damage": {
+                  "onSave": "none",
+                  "parts": []
+                },
+                "save": {
+                  "ability": [
+                    "dex"
+                  ],
+                  "dc": {
+                    "calculation": "cha",
+                    "formula": ""
+                  }
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "light",
+            "sourceItem": "race:aasimar-necrotic-shroud"
+          },
+          "img": "icons/magic/light/orb-lightbulb-gray.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "light_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {
+              "sourceId": "Actor.saSGJEUnw3E8rnG8.Item.RDcb8V3dtHUfpXV0",
+              "advancementOrigin": "S8IYmv25wljCv0uO.qkKNrplljPYwoIVu"
+            },
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "OWYYcTxqDACFqbRY",
+        "doc": {
+          "name": "Create or Destroy Water",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "229",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>You either create or destroy water.</p><div data-roll-name-ancestor=\"Create Water\" class=\"rd__b  rd__b--3\"><span class=\"rd__h rd__h--3\" data-title-index=\"1\"> <span class=\"entry-title-inner\">Create Water.</span></span> <p>You create up to 10 gallons of clean water within range in an open container. Alternatively, the water falls as rain in a 30-foot cube within range, extinguishing exposed flames in the area.</p></div><div data-roll-name-ancestor=\"Destroy Water\" class=\"rd__b  rd__b--3\"><span class=\"rd__h rd__h--3\" data-title-index=\"2\"> <span class=\"entry-title-inner\">Destroy Water.</span></span> <p>You destroy up to 10 gallons of water in an open container within range. Alternatively, you destroy fog in a 30-foot cube within range.</p></div></div><div class=\"rd__b  rd__b--3\"><div data-roll-name-ancestor=\"At Higher Levels\" class=\"rd__b  rd__b--3\"><span class=\"rd__h rd__h--3\" data-title-index=\"1\"> <span class=\"entry-title-inner\">At Higher Levels.</span></span> <p>When you cast this spell using a spell slot of 2nd level or higher, you create or destroy 10 additional gallons of water, or the size of the cube increases by 5 feet, for each slot level above 1st.</p></div></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "trs",
+            "properties": [
+              "vocal",
+              "somatic",
+              "material"
+            ],
+            "materials": {
+              "value": "a drop of water if creating water or a few grains of sand if destroying it",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "type": "cube",
+                "size": "30",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "30",
+              "units": "ft"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "",
+              "units": "inst"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "create-or-destroy-water"
+          },
+          "img": "icons/consumables/potions/potion-flash-open-blue.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "create%20or%20destroy%20water_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "TBuVzMjmTPFHoO80",
+        "doc": {
+          "name": "Fog Cloud",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "243",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>You create a 20-foot-radius sphere of fog centered on a point within range. The sphere spreads around corners, and its area is &amp;Reference[rule=heavilyobscured]{heavily obscured}. It lasts for the duration or until a wind of moderate or greater speed (at least 10 miles per hour) disperses it.</p></div><div class=\"rd__b  rd__b--3\"><div data-roll-name-ancestor=\"At Higher Levels\" class=\"rd__b  rd__b--3\"><span class=\"rd__h rd__h--3\" data-title-index=\"1\"> <span class=\"entry-title-inner\">At Higher Levels.</span></span> <p>When you cast this spell using a spell slot of 2nd level or higher, the radius of the fog increases by 20 feet for each slot level above 1st.</p></div></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "con",
+            "properties": [
+              "vocal",
+              "somatic",
+              "concentration"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "type": "sphere",
+                "size": "20",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "120",
+              "units": "ft"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "hour"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "fog-cloud"
+          },
+          "img": "icons/commodities/tech/smoke-spout-blue.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "fog%20cloud_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "AEr2xW0KUpFuUtMH",
+        "doc": {
+          "name": "Hex",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "251",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>You place a curse on a creature that you can see within range. Until the spell ends, you deal an extra [[/damage 1d6 type=necrotic]] damage to the target whenever you hit it with an attack. Also, choose one ability when you cast the spell. The target has disadvantage on ability checks made with the chosen ability.</p><p>If the target drops to 0 hit points before this spell ends, you can use a bonus action on a subsequent turn of yours to curse a new creature.</p><p>A @spell[remove curse] cast on the target ends this spell early.</p></div><div class=\"rd__b  rd__b--3\"><div data-roll-name-ancestor=\"At Higher Levels\" class=\"rd__b  rd__b--3\"><span class=\"rd__h rd__h--3\" data-title-index=\"1\"> <span class=\"entry-title-inner\">At Higher Levels.</span></span> <p>When you cast this spell using a spell slot of 3rd or 4th level, you can maintain your @status[concentration] on the spell for up to 8 hours. When you use a spell slot of 5th level or higher, you can maintain your @status[concentration] on the spell for up to 24 hours.</p></div></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "enc",
+            "properties": [
+              "vocal",
+              "somatic",
+              "material",
+              "concentration"
+            ],
+            "materials": {
+              "value": "the petrified eye of a newt",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "90",
+              "units": "ft"
+            },
+            "activation": {
+              "type": "bonus",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "hour"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "damage",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "damage": {
+                  "critical": {
+                    "allow": false,
+                    "bonus": ""
+                  },
+                  "parts": [
+                    {
+                      "number": 1,
+                      "denomination": 6,
+                      "bonus": "",
+                      "types": [
+                        "necrotic"
+                      ],
+                      "custom": {
+                        "enabled": false,
+                        "formula": ""
+                      },
+                      "scaling": {
+                        "mode": "",
+                        "number": null,
+                        "formula": ""
+                      }
+                    }
+                  ]
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "hex"
+          },
+          "img": "icons/magic/control/voodoo-doll-pain-damage-red.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "hex_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "2g3M9s7Zhk1rGQbc",
+        "doc": {
+          "name": "Magic Missile",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "257",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>You create three glowing darts of magical force. Each dart hits a creature of your choice that you can see within range. A dart deals [[/damage 1d4 + 1 type=force]] damage to its target. The darts all strike simultaneously, and you can direct them to hit one creature or several.</p></div><div class=\"rd__b  rd__b--3\"><div data-roll-name-ancestor=\"At Higher Levels\" class=\"rd__b  rd__b--3\"><span class=\"rd__h rd__h--3\" data-title-index=\"1\"> <span class=\"entry-title-inner\">At Higher Levels.</span></span> <p>When you cast this spell using a spell slot of 2nd level or higher, the spell creates one more dart for each slot level above 1st.</p></div></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "evo",
+            "properties": [
+              "vocal",
+              "somatic"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "120",
+              "units": "ft"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "",
+              "units": "inst"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "damage",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "damage": {
+                  "critical": {
+                    "allow": false,
+                    "bonus": ""
+                  },
+                  "parts": [
+                    {
+                      "number": null,
+                      "denomination": null,
+                      "bonus": "",
+                      "types": [
+                        "force"
+                      ],
+                      "custom": {
+                        "enabled": true,
+                        "formula": "(1d4 + 1) * (2 + @item.level)"
+                      },
+                      "scaling": {
+                        "mode": "",
+                        "number": null,
+                        "formula": ""
+                      }
+                    }
+                  ]
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "magic-missile"
+          },
+          "img": "icons/magic/light/projectile-stars-blue.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "magic%20missile_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "6Vm9nHLvZQnkJmEP",
+        "doc": {
+          "name": "Misty Step",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "260",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>Briefly surrounded by silvery mist, you teleport up to 30 feet to an unoccupied space that you can see.</p></div>",
+              "chat": ""
+            },
+            "level": 2,
+            "school": "con",
+            "properties": [
+              "vocal"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "space",
+                "count": "30",
+                "choice": false
+              },
+              "template": {
+                "units": "ft",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "self"
+            },
+            "activation": {
+              "type": "bonus",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "",
+              "units": "inst"
+            },
+            "uses": {
+              "max": "",
+              "spent": 0,
+              "recovery": []
+            },
+            "method": "spell",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "misty-step"
+          },
+          "img": "icons/magic/water/projectile-ice-impact-stone.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "misty%20step_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
+        }
+      },
+      {
+        "origId": "tHBRe6Sjw0lmp5e7",
+        "doc": {
+          "name": "Invisibility",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "254",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>A creature you touch becomes &amp;Reference[condition=invisible] until the spell ends. Anything the target is wearing or carrying is &amp;Reference[condition=invisible] as long as it is on the target's person. The spell ends for a target that attacks or casts a spell.</p></div><div class=\"rd__b  rd__b--3\"><div data-roll-name-ancestor=\"At Higher Levels\" class=\"rd__b  rd__b--3\"><span class=\"rd__h rd__h--3\" data-title-index=\"1\"> <span class=\"entry-title-inner\">At Higher Levels.</span></span> <p>When you cast this spell using a spell slot of 3rd level or higher, you can target one additional creature for each slot level above 2nd.</p></div></div>",
+              "chat": ""
+            },
+            "level": 2,
+            "school": "ill",
+            "properties": [
+              "vocal",
+              "somatic",
+              "material",
+              "concentration"
+            ],
+            "materials": {
+              "value": "an eyelash encased in gum arabic",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "touch",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "touch"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "1",
+              "units": "hour"
+            },
+            "uses": {
+              "max": "1",
+              "recovery": [
+                {
+                  "period": "lr",
+                  "type": "recoverAll"
+                }
+              ],
+              "spent": 0
+            },
+            "method": "innate",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "utility",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [
+                    {
+                      "type": "itemUses",
+                      "target": "",
+                      "value": "1",
+                      "scaling": {
+                        "mode": "",
+                        "formula": ""
+                      }
+                    }
+                  ],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [
+                  {
+                    "_id": "TeFxBRKYKIXtg6pS",
+                    "level": {}
+                  }
+                ],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "roll": {
+                  "formula": "",
+                  "name": "",
+                  "prompt": false,
+                  "visible": false
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "invisibility"
+          },
+          "img": "icons/creatures/reptiles/chameleon-camouflage-green-brown.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "invisibility_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": [
+            {
+              "name": "Invisibility",
+              "origin": "Compendium.dnd5e.spells.Item.1N8dDMMgZ1h1YJ3B",
+              "duration": {
+                "startTime": null,
+                "seconds": 3600,
+                "combat": null,
+                "rounds": null,
+                "turns": null,
+                "startRound": null,
+                "startTurn": null
+              },
+              "disabled": false,
+              "_id": "TeFxBRKYKIXtg6pS",
+              "changes": [],
+              "description": "<p>The target becomes Invisible until the spell ends. Anything the target is wearing or carrying is invisible as long as it is on the target's person. The spell ends for a target that attacks or casts a spell.</p>",
+              "transfer": false,
+              "statuses": [
+                "invisible"
+              ],
+              "flags": {
+                "plutonium": {
+                  "dedupeId": "invisibility"
+                }
+              },
+              "tint": "#ffffff",
+              "_stats": {
+                "compendiumSource": null,
+                "duplicateSource": null,
+                "coreVersion": "13.351",
+                "systemId": "dnd5e",
+                "systemVersion": "3.3.1",
+                "createdTime": null,
+                "modifiedTime": null,
+                "lastModifiedBy": null,
+                "exportSource": null
+              },
+              "img": "icons/creatures/reptiles/chameleon-camouflage-green-brown.webp",
+              "type": "base",
+              "system": {},
+              "sort": 0
+            }
+          ]
+        }
+      },
+      {
+        "origId": "hDIjrZ5LbFu3kqcB",
+        "doc": {
+          "name": "Inflict Wounds",
+          "type": "spell",
+          "system": {
+            "source": {
+              "custom": "",
+              "book": "PHB",
+              "page": "253",
+              "license": "",
+              "revision": 1,
+              "rules": "2014"
+            },
+            "description": {
+              "value": "<div class=\"rd__b  rd__b--3\"><p>Make a melee spell attack against a creature you can reach. On a hit, the target takes [[/damage 3d10 type=necrotic]] damage.</p></div><div class=\"rd__b  rd__b--3\"><div data-roll-name-ancestor=\"At Higher Levels\" class=\"rd__b  rd__b--3\"><span class=\"rd__h rd__h--3\" data-title-index=\"1\"> <span class=\"entry-title-inner\">At Higher Levels.</span></span> <p>When you cast this spell using a spell slot of 2nd level or higher, the damage increases by [[/damage 1d10]] for each slot level above 1st.</p></div></div>",
+              "chat": ""
+            },
+            "level": 1,
+            "school": "nec",
+            "properties": [
+              "vocal",
+              "somatic"
+            ],
+            "materials": {
+              "value": "",
+              "consumed": false,
+              "cost": 0,
+              "supply": 0
+            },
+            "target": {
+              "affects": {
+                "type": "creature",
+                "count": "1",
+                "choice": false
+              },
+              "template": {
+                "units": "touch",
+                "contiguous": false,
+                "stationary": false
+              }
+            },
+            "range": {
+              "value": "0",
+              "units": "touch"
+            },
+            "activation": {
+              "type": "action",
+              "condition": "",
+              "value": 1
+            },
+            "duration": {
+              "value": "",
+              "units": "inst"
+            },
+            "uses": {
+              "max": "1",
+              "recovery": [
+                {
+                  "period": "lr",
+                  "type": "recoverAll"
+                }
+              ],
+              "spent": 0
+            },
+            "method": "innate",
+            "prepared": 1,
+            "activities": {
+              "dnd5eactivity000": {
+                "_id": "dnd5eactivity000",
+                "type": "attack",
+                "activation": {
+                  "type": "action",
+                  "override": false
+                },
+                "consumption": {
+                  "targets": [
+                    {
+                      "type": "itemUses",
+                      "target": "",
+                      "value": "1",
+                      "scaling": {
+                        "mode": "",
+                        "formula": ""
+                      }
+                    }
+                  ],
+                  "scaling": {
+                    "allowed": false,
+                    "max": ""
+                  },
+                  "spellSlot": true
+                },
+                "description": {
+                  "chatFlavor": ""
+                },
+                "duration": {
+                  "units": "inst",
+                  "concentration": false,
+                  "override": false
+                },
+                "effects": [],
+                "range": {
+                  "units": "self",
+                  "override": false
+                },
+                "target": {
+                  "prompt": true,
+                  "template": {
+                    "contiguous": false,
+                    "stationary": false,
+                    "units": "ft"
+                  },
+                  "affects": {
+                    "choice": false
+                  },
+                  "override": false
+                },
+                "uses": {
+                  "spent": 0,
+                  "max": "",
+                  "recovery": []
+                },
+                "attack": {
+                  "ability": "",
+                  "bonus": "",
+                  "critical": {
+                    "threshold": null
+                  },
+                  "flat": false,
+                  "type": {
+                    "value": "melee",
+                    "classification": "spell"
+                  }
+                },
+                "damage": {
+                  "critical": {
+                    "bonus": ""
+                  },
+                  "includeBase": true,
+                  "parts": [
+                    {
+                      "number": 3,
+                      "denomination": 10,
+                      "bonus": "",
+                      "types": [
+                        "necrotic"
+                      ],
+                      "custom": {
+                        "enabled": false,
+                        "formula": ""
+                      },
+                      "scaling": {
+                        "mode": "whole",
+                        "number": 1,
+                        "formula": ""
+                      }
+                    }
+                  ]
+                },
+                "img": null,
+                "sort": 0,
+                "flags": {},
+                "visibility": {
+                  "level": {},
+                  "requireAttunement": false,
+                  "requireIdentification": false,
+                  "requireMagic": false
+                }
+              }
+            },
+            "identifier": "inflict-wounds"
+          },
+          "img": "icons/magic/control/voodoo-doll-pain-damage-pink.webp",
+          "flags": {
+            "plutonium": {
+              "page": "spells.html",
+              "source": "PHB",
+              "hash": "inflict%20wounds_phb",
+              "propDroppable": "spell"
+            },
+            "dnd5e": {},
+            "altarion-aitusa": {}
+          },
+          "effects": []
         }
       }
     ]

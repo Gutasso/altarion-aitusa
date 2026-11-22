@@ -37,6 +37,8 @@
  *      * Automatic rollback / trigger of Arcane Armor / Shadow Armor / Armor of Agathys melee retaliation damage
  */
 
+import { isIgnoredBackupActor } from "./sync-guard.js";
+
 const MODULE_ID = "altarion-aitusa";
 
 export class CoriaRollLedger {
@@ -2612,7 +2614,7 @@ export class CoriaRollLedger {
     // ------------------------------------------------------------------------
     const kyrion =
       AM.getKyrionActor?.() ||
-      game.actors?.find(a => a.name?.trim().toLowerCase().includes("kyrion"));
+      game.actors?.find(a => !isIgnoredBackupActor(a) && (a.name?.trim().toLowerCase() === "kyrion" || a.name?.trim().toLowerCase().startsWith("kyrion ")));
     if (kyrion && FM.isUserControllerOf(kyrion)) {
       const kyrionIsVictim = candidateVictims.some(v => v.id === kyrion.id);
       if (kyrionIsVictim && (!attackerActor || attackerActor.id !== kyrion.id)) {
@@ -2734,6 +2736,21 @@ export class CoriaRollLedger {
       }
     }
 
+    // ------------------------------------------------------------------------
+    // 5. CARD OF THE RESONANT ARCANA — THE FOOL (Flinn & GM only, when Flinn takes damage)
+    // ------------------------------------------------------------------------
+    const flinn = FM.getFlinnActor?.();
+    if (flinn && globalThis.CoriaResonantArcana?.buildTheFoolButtonHtml) {
+      const foolBtnHtml = globalThis.CoriaResonantArcana.buildTheFoolButtonHtml({
+        flinn,
+        candidateVictims,
+        dmgInfo
+      });
+      if (foolBtnHtml) {
+        pushBtnUnique(`the-fool:${flinn.id}`, foolBtnHtml);
+      }
+    }
+
     if (buttonsHtmlList.length === 0) return;
 
     const bar = document.createElement("div");
@@ -2815,6 +2832,15 @@ export class CoriaRollLedger {
 
     const { attackerActor, attackerName, attackerUuid } =
       this.resolveDamageRollParticipants(damageMessage);
+
+    // --- 0. CARD OF THE RESONANT ARCANA: THE FOOL (Flinn) ---
+    if (reactType === "the-fool") {
+      await globalThis.CoriaResonantArcana?.executeTheFoolReaction?.({
+        flinn: caster,
+        damageMessageId
+      });
+      return;
+    }
 
     // --- 1. SHADOW REBUKE (Kyrion) ---
     if (reactType === "shadow-rebuke") {
@@ -3680,6 +3706,7 @@ export class CoriaRollLedger {
       elementType = "fire",
       slotLevel = 1,
       rolledTempHp = 0,
+      foolRoll = 0,
       _fromSocket = false
     } = params;
 
@@ -3917,6 +3944,174 @@ export class CoriaRollLedger {
           }
         }
       });
+    }
+
+    // ========================================================================
+    // C. CARD OF THE RESONANT ARCANA — THE FOOL (Flinn, 1d4 Reaction)
+    //    1–2: Halve damage via roll-ledger + teleport up to 10 ft
+    //    3–4: Reduce damage to 0 via roll-ledger + reflect Force damage (max 15)
+    // ========================================================================
+    else if (reactType === "the-fool") {
+      const d4Val = Math.clamp(Number(foolRoll || 1), 1, 4);
+
+      if (d4Val <= 2) {
+        newTotalDamage = Math.floor(prevTotalDamage / 2);
+        damageReduction = Math.max(0, prevTotalDamage - newTotalDamage);
+        sourceLabel = `The Fool (1d4 = ${d4Val} — Halved)`;
+        stepDescription = `The Fool warped probability (1d4 = ${d4Val}): halved damage (${prevTotalDamage} &rarr; ${newTotalDamage}) + Teleport 10 ft`;
+
+        let refundSummary = `+${damageReduction} HP`;
+        if (customDmg && customDmg.autoApplied && damageReduction > 0) {
+          const revRes = await this.revertActorDamageLayered(victim, damageReduction, {
+            mode: "reaction-reduction",
+            damageMessage
+          });
+          if (revRes?.summaryText) refundSummary = revRes.summaryText;
+          if (revRes?.layers) customDmg.damageLayers = foundry.utils.deepClone(revRes.layers);
+        }
+
+        const foolHalfHtml = `
+          <div class="altarion-aitusa-ward-chat-tag altarion-arcane-armor-chat-card">
+            <div class="altarion-ward-header">
+              <i class="fas fa-hat-wizard"></i>
+              <span>The Fool (1d4 = ${d4Val}) — Damage Halved &amp; Teleport 10 ft!</span>
+            </div>
+            <div class="altarion-ward-body">
+              <strong>${foundry.utils.escapeHTML(victim.name)}</strong> expended <strong>Card of the Resonant Arcana (The Fool)</strong> (0/1 charge left, recovers on Long Rest) and rolled <strong>1d4 = ${d4Val} (1–2)</strong>!<br>
+              &bull; <strong>Damage Halved:</strong> Incoming damage reduced from <strong>${prevTotalDamage} &rarr; ${newTotalDamage}</strong>${
+                customDmg?.autoApplied ? ` (refunded <strong>${refundSummary}</strong>)` : ""
+              }.<br>
+              &bull; <strong>Probability Shift:</strong> <strong>${foundry.utils.escapeHTML(victim.name)}</strong> can immediately <strong>teleport up to 10 feet</strong> to an unoccupied space he can see!
+            </div>
+          </div>
+        `;
+
+        await ChatMessage.create({
+          speaker: ChatMessage.getSpeaker({ actor: victim }),
+          content: foolHalfHtml,
+          flags: {
+            [MODULE_ID]: {
+              isDamageReactionCard: true,
+              isResonantArcanaCard: true,
+              chatChannel: "combat"
+            }
+          }
+        });
+      } else {
+        // 3–4: Reduce damage to 0 + reflect Force damage (up to 15) to the damage source!
+        newTotalDamage = 0;
+        damageReduction = prevTotalDamage;
+        const reflectedForce = Math.min(15, prevTotalDamage);
+        sourceLabel = `The Fool (1d4 = ${d4Val} — Negated & Reflected)`;
+        stepDescription = `The Fool warped probability (1d4 = ${d4Val}): negated all damage (${prevTotalDamage} &rarr; 0) & reflected ${reflectedForce} Force damage`;
+
+        let refundSummary = `+${damageReduction} HP`;
+        if (customDmg && customDmg.autoApplied && damageReduction > 0) {
+          const revRes = await this.revertActorDamageLayered(victim, damageReduction, {
+            mode: "reaction-reduction",
+            damageMessage
+          });
+          if (revRes?.summaryText) refundSummary = revRes.summaryText;
+          if (revRes?.layers) customDmg.damageLayers = foundry.utils.deepClone(revRes.layers);
+        }
+
+        const { attackerActor, attackerName, attackerUuid } =
+          this.resolveDamageRollParticipants(damageMessage);
+
+        let reflectAutoApplied = false;
+        let reflectLayers = null;
+        let preAttHp = Number(attackerActor?.system?.attributes?.hp?.value ?? 0);
+        let preAttTemp = Number(attackerActor?.system?.attributes?.hp?.temp ?? 0);
+
+        if (attackerActor && attackerActor.id !== victim.id && reflectedForce > 0) {
+          const refRes = await AM.applyRetaliationDamageToTarget({
+            attackerUuid: attackerUuid || attackerActor.uuid || "",
+            attackerActorId: attackerActor.id,
+            damage: reflectedForce,
+            damageType: "force",
+            armorLabel: "The Fool (Reflected Force)"
+          });
+          reflectAutoApplied = Boolean(refRes?.applied);
+          reflectLayers = refRes?.damageLayers || null;
+        }
+
+        const reflectBtnRow =
+          attackerActor && attackerActor.id !== victim.id && reflectedForce > 0
+            ? `
+              <div class="altarion-arcane-armor-btn-row">
+                <button type="button" class="altarion-arcane-armor-undo-btn"
+                        data-attacker-uuid="${attackerUuid || attackerActor.uuid || ""}"
+                        data-attacker-id="${attackerActor.id}"
+                        data-damage="${reflectedForce}"
+                        data-armor-label="The Fool (Reflected Force)"
+                        ${reflectAutoApplied ? "" : "disabled"}>
+                  <i class="fas fa-undo"></i> Undo (+${reflectedForce} HP)
+                </button>
+                <button type="button" class="altarion-arcane-armor-apply-btn"
+                        data-attacker-uuid="${attackerUuid || attackerActor.uuid || ""}"
+                        data-attacker-id="${attackerActor.id}"
+                        data-damage="${reflectedForce}"
+                        data-damage-type="force"
+                        data-armor-label="The Fool (Reflected Force)">
+                  <i class="fas fa-bolt"></i> Re-apply (${reflectedForce} Force)
+                </button>
+              </div>
+            `
+            : "";
+
+        const foolReflectHtml = `
+          <div class="altarion-aitusa-ward-chat-tag altarion-arcane-armor-chat-card">
+            <div class="altarion-ward-header">
+              <i class="fas fa-hat-wizard"></i>
+              <span>The Fool (1d4 = ${d4Val}) — Damage Negated &amp; ${reflectedForce} Force Reflected!</span>
+            </div>
+            <div class="altarion-ward-body">
+              <strong>${foundry.utils.escapeHTML(victim.name)}</strong> expended <strong>Card of the Resonant Arcana (The Fool)</strong> (0/1 charge left, recovers on Long Rest) and rolled <strong>1d4 = ${d4Val} (3–4)</strong>!<br>
+              &bull; <strong>Damage Negated:</strong> Incoming damage reduced from <strong>${prevTotalDamage} &rarr; 0</strong>${
+                customDmg?.autoApplied ? ` (refunded <strong>${refundSummary}</strong>)` : ""
+              } — <strong>${foundry.utils.escapeHTML(victim.name)}</strong> takes <strong>no damage</strong>!<br>
+              &bull; <strong>Force Backlash (max 15):</strong> <strong>${foundry.utils.escapeHTML(attackerName || "The attacker")}</strong> takes <strong class="coria-custom-dmg-num">${reflectedForce}</strong> <strong>Force damage</strong>${
+                reflectAutoApplied ? " (auto-applied!)" : ""
+              }!
+            </div>
+            ${reflectBtnRow}
+          </div>
+        `;
+
+        await ChatMessage.create({
+          speaker: ChatMessage.getSpeaker({ actor: victim }),
+          content: foolReflectHtml,
+          flags: {
+            [MODULE_ID]: {
+              isDamageReactionCard: true,
+              isResonantArcanaCard: true,
+              chatChannel: "combat",
+              ...(attackerActor && attackerActor.id !== victim.id && reflectedForce > 0
+                ? {
+                    coriaCustomDamage: {
+                      cardKind: "the-fool-reflect",
+                      sourceName: "The Fool (Reflected Force)",
+                      attackerActorId: victim.id,
+                      attackerUuid: victim.uuid || "",
+                      attackerName: victim.name,
+                      targetActorId: attackerActor.id,
+                      targetUuid: attackerUuid || attackerActor.uuid || "",
+                      targetName: attackerName || attackerActor.name,
+                      damageType: "force",
+                      damageTypeLabel: "Force",
+                      origDamage: reflectedForce,
+                      currentDamage: reflectedForce,
+                      autoApplied: reflectAutoApplied,
+                      preHp: preAttHp,
+                      preTemp: preAttTemp,
+                      damageLayers: reflectLayers
+                    }
+                  }
+                : {})
+            }
+          }
+        });
+      }
     } else {
       return;
     }

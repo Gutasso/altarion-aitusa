@@ -19,6 +19,7 @@ import { DragonScalingManager } from "./dragon-scaling.js";
 import { CoriaAuraEngine } from "./aura-engine.js";
 import { createV2Dialog } from "./dialog-v2.js";
 import { CoriaRollLedger } from "./roll-ledger.js";
+import { isIgnoredBackupActor, shouldThisClientRunAutoSync } from "./sync-guard.js";
 
 export class AltarionAutomationManager {
   static _initialized = false;
@@ -170,33 +171,33 @@ export class AltarionAutomationManager {
   }
 
   static isAltarion(actor) {
-    if (!actor) return false;
+    if (!actor || isIgnoredBackupActor(actor)) return false;
     const norm = String(actor.name || "").trim().toLowerCase();
     const settingNorm = this.getAltarionName().toLowerCase();
     return norm === settingNorm || norm === "altarion" || norm === "altarion talendris" || norm.startsWith("altarion ");
   }
 
   static isAitusa(actor) {
-    if (!actor) return false;
+    if (!actor || isIgnoredBackupActor(actor)) return false;
     const norm = String(actor.name || "").trim().toLowerCase();
     const settingNorm = this.getAitusaName().toLowerCase();
     return norm === settingNorm || norm === "aitusa" || norm.startsWith("aitusa ");
   }
 
   static isKyrion(actor) {
-    if (!actor) return false;
+    if (!actor || isIgnoredBackupActor(actor)) return false;
     const norm = String(actor.name || "").trim().toLowerCase();
     return norm === "kyrion" || norm.startsWith("kyrion ");
   }
 
   static isParva(actor) {
-    if (!actor) return false;
+    if (!actor || isIgnoredBackupActor(actor)) return false;
     const norm = String(actor.name || "").trim().toLowerCase();
     return norm === "parva" || norm.startsWith("parva ");
   }
 
   static isFlinn(actor) {
-    if (!actor) return false;
+    if (!actor || isIgnoredBackupActor(actor)) return false;
     const norm = String(actor.name || "").trim().toLowerCase();
     return norm === "flinn" || norm === "flinn encantor" || norm.startsWith("flinn ");
   }
@@ -817,6 +818,7 @@ export class AltarionAutomationManager {
       durationTurns = null,
       expiresAtEndOfTurnOf = null,
       expiresAtStartOfTurnOf = null,
+      extraStatuses = [],
       extraFlags = {}
     }
   ) {
@@ -895,7 +897,7 @@ export class AltarionAutomationManager {
       img: img || "modules/altarion-aitusa/dr_icons/ancestral-magic.jpg",
       origin: actor.uuid,
       disabled: false,
-      statuses: [statusId],
+      statuses: Array.from(new Set([statusId, ...(Array.isArray(extraStatuses) ? extraStatuses : [])].filter(Boolean))),
       changes,
       description,
       duration: {
@@ -5292,20 +5294,34 @@ export class AltarionAutomationManager {
   static buildInteractiveSaveCardHtml(cardState, cardMessageId = "") {
     if (!cardState) return "";
 
-    if (cardState.cardType === "spirit-guardians" || cardState.cardType === "shadow-rebuke") {
+    if (
+      cardState.cardType === "spirit-guardians" ||
+      cardState.cardType === "shadow-rebuke" ||
+      cardState.cardType === "resonant-moon"
+    ) {
       const isShadowRebuke = cardState.cardType === "shadow-rebuke";
+      const isResonantMoon = cardState.cardType === "resonant-moon";
       const {
         slotLevel = isShadowRebuke ? 1 : 3,
-        damageType = isShadowRebuke ? "necrotic" : "radiant",
-        damageTypeLabel = isShadowRebuke ? "Necrotic" : "Radiant",
+        damageType = isShadowRebuke ? "necrotic" : isResonantMoon ? "psychic" : "radiant",
+        damageTypeLabel = isShadowRebuke ? "Necrotic" : isResonantMoon ? "Psychic" : "Radiant",
         spellDc = 14,
-        triggerReason = isShadowRebuke ? "Damaged Kyrion" : "Entered Aura",
+        triggerReason = isShadowRebuke ? "Damaged Kyrion" : isResonantMoon ? "Card of the Resonant Arcana" : "Entered Aura",
         rawDamage = 10
       } = cardState;
-      const spellTitle = isShadowRebuke ? "Shadow Rebuke" : "Spirit Guardians";
-      const iconClass = isShadowRebuke ? "fa-fire-alt" : "fa-dharmachakra";
+      const spellTitle = isShadowRebuke
+        ? "Shadow Rebuke"
+        : isResonantMoon
+          ? "The Moon"
+          : "Spirit Guardians";
+      const headerLabel = isResonantMoon
+        ? `Card of the Resonant Arcana (The Moon) — ${foundry.utils.escapeHTML(triggerReason)}`
+        : `${spellTitle} (Lvl ${slotLevel}) — ${foundry.utils.escapeHTML(triggerReason)}`;
+      const iconClass = isShadowRebuke ? "fa-fire-alt" : isResonantMoon ? "fa-moon" : "fa-dharmachakra";
       const saveLabel = isShadowRebuke ? "Dexterity Save" : "Wisdom Save";
-      const diceFormula = cardState.diceFormula || (isShadowRebuke ? `${ Number(slotLevel || 1) + 1 }d10` : `${slotLevel}d8`);
+      const diceFormula =
+        cardState.diceFormula ||
+        (isShadowRebuke ? `${Number(slotLevel || 1) + 1}d10` : isResonantMoon ? "3d6" : `${slotLevel}d8`);
       const t = cardState.targets?.sgTarget || {};
       const targetName = t.targetName || "Creature";
       const targetUuid = t.targetUuid || "";
@@ -5321,11 +5337,11 @@ export class AltarionAutomationManager {
           <div class="altarion-aitusa-ward-chat-tag altarion-arcane-armor-chat-card" data-interactive-card-id="${cardMessageId}">
             <div class="altarion-ward-header">
               <i class="fas ${iconClass}"></i>
-              <span>${spellTitle} (Lvl ${slotLevel}) — ${foundry.utils.escapeHTML(triggerReason)}</span>
+              <span>${headerLabel}</span>
             </div>
             <div class="altarion-ward-body">
               <strong>${foundry.utils.escapeHTML(targetName)}</strong> (${foundry.utils.escapeHTML(triggerReason)}):<br>
-              &bull; <strong>Base Damage Roll (${diceFormula} ${damageTypeLabel}):</strong> <strong>${rawDamage}</strong> <em>(${Math.max(1, Math.floor(rawDamage / 2))} on successful save)</em><br>
+              &bull; <strong>Base Damage Roll (${diceFormula} ${damageTypeLabel}):</strong> <strong>${rawDamage}</strong> <em>(${Math.max(1, Math.floor(rawDamage / 2))} on successful save)</em>${isResonantMoon ? `<br>&bull; <strong>On Failure:</strong> Full Psychic damage + <strong>Frightened</strong> until the end of ${foundry.utils.escapeHTML(cardState.casterName || "Parva")}'s next turn.` : ""}<br>
               &bull; <strong>${saveLabel} (DC ${spellDc}):</strong> <span class="coria-hl-gold">Awaiting roll...</span>
             </div>
             <div class="altarion-arcane-armor-btn-row">
@@ -5345,8 +5361,13 @@ export class AltarionAutomationManager {
       const appliedDamage = Number(t.appliedDamage ?? rawDamage);
       const modNote = t.modifiedBy ? ` <em class="coria-hl-info">[${foundry.utils.escapeHTML(t.modifiedBy)}]</em>` : "";
       const saveBadge = saveSuccess
-        ? `<span class="coria-hl-success">Succeeded (${saveTotal} vs DC ${spellDc}) — Half Damage</span>${modNote}`
-        : `<span class="coria-hl-failure">Failed (${saveTotal} vs DC ${spellDc}) — Full Damage</span>${modNote}`;
+        ? `<span class="coria-hl-success">Succeeded (${saveTotal} vs DC ${spellDc}) — Half Damage${isResonantMoon ? ", Not Frightened" : ""}</span>${modNote}`
+        : `<span class="coria-hl-failure">Failed (${saveTotal} vs DC ${spellDc}) — Full Damage${isResonantMoon ? " + Frightened!" : ""}</span>${modNote}`;
+      const moonCondLine = isResonantMoon
+        ? saveSuccess
+          ? `<br>&bull; <strong>Condition:</strong> <em>Not Frightened (saved).</em>`
+          : `<br>&bull; <strong>Condition Applied:</strong> <strong class="coria-hl-failure">Frightened</strong> until the end of <strong>${foundry.utils.escapeHTML(cardState.casterName || "Parva")}'s next turn</strong>!`
+        : "";
 
       const reactHtml =
         typeof globalThis.FlinnManager?.buildSavingThrowReactionButtonsHtml === "function"
@@ -5358,7 +5379,11 @@ export class AltarionAutomationManager {
               saveDc: spellDc,
               cardMessageId,
               targetKey: "sgTarget",
-              originMsgId: t.rollMessageId || ""
+              originMsgId: t.rollMessageId || "",
+              isSpellCard: !isResonantMoon,
+              spellCardName: spellTitle,
+              spellCardSchool: isShadowRebuke ? "evo" : "con",
+              spellCardSourceName: cardState.casterName || ""
             })
           : "";
 
@@ -5366,12 +5391,12 @@ export class AltarionAutomationManager {
         <div class="altarion-aitusa-ward-chat-tag altarion-arcane-armor-chat-card" data-interactive-card-id="${cardMessageId}">
           <div class="altarion-ward-header">
             <i class="fas ${iconClass}"></i>
-            <span>${spellTitle} (Lvl ${slotLevel}) — ${foundry.utils.escapeHTML(triggerReason)}</span>
+            <span>${headerLabel}</span>
           </div>
           <div class="altarion-ward-body">
             <strong>${foundry.utils.escapeHTML(targetName)}</strong> (${foundry.utils.escapeHTML(triggerReason)}):<br>
             &bull; <strong>${saveLabel}:</strong> ${saveBadge}<br>
-            &bull; <strong>Damage Roll (${diceFormula} ${damageTypeLabel}):</strong> Rolled <strong>${rawDamage}</strong> &rarr; Applied <strong>${appliedDamage} ${damageTypeLabel} damage</strong>!
+            &bull; <strong>Damage Roll (${diceFormula} ${damageTypeLabel}):</strong> Rolled <strong>${rawDamage}</strong> &rarr; Applied <strong>${appliedDamage} ${damageTypeLabel} damage</strong>!${moonCondLine}
           </div>
           <div class="altarion-arcane-armor-btn-row">
             <button type="button" class="altarion-arcane-armor-undo-btn"
@@ -5918,6 +5943,80 @@ export class AltarionAutomationManager {
   }
 
   /**
+   * Post an interactive Wisdom Save card for Parva's "Card of the Resonant Arcana (The Moon)".
+   * Failure: 3d6 Psychic damage + Frightened until the end of Parva's next turn.
+   * Success: Half Psychic damage, not Frightened.
+   */
+  static async postResonantMoonInteractiveSaveCard({
+    parva,
+    targetActor,
+    targetUuid = "",
+    targetName = "Target"
+  } = {}) {
+    if (!parva) return;
+    const diceFormula = "3d6";
+    const spellDc =
+      Number(parva.system?.attributes?.spell?.dc) ||
+      8 + Number(parva.system?.abilities?.cha?.mod ?? 4) + Number(parva.system?.attributes?.prof ?? 2);
+
+    const dmgRoll = await new Roll(diceFormula).evaluate();
+    try {
+      if (game.dice3d) await game.dice3d.showForRoll(dmgRoll, game.user, true);
+    } catch (_e) {}
+    const rawDamage = Math.max(1, Number(dmgRoll.total || 3));
+
+    const cardState = {
+      cardType: "resonant-moon",
+      saveAbility: "wis",
+      casterActorId: parva.id,
+      casterName: parva.name || "Parva",
+      diceFormula,
+      damageType: "psychic",
+      damageTypeLabel: "Psychic",
+      spellDc,
+      triggerReason: `Lunar Dread vs ${targetName}`,
+      rawDamage,
+      targets: {
+        sgTarget: {
+          targetKey: "sgTarget",
+          targetActorId: targetActor?.id || "",
+          targetUuid: targetUuid || targetActor?.uuid || "",
+          targetName: targetName || targetActor?.name || "Target",
+          rolled: false,
+          saveTotal: null,
+          saveNat: null,
+          saveSuccess: false,
+          appliedDamage: 0,
+          autoApplied: false,
+          rollMessageId: "",
+          modifiedBy: ""
+        }
+      }
+    };
+
+    const msg = await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: parva }),
+      content: this.buildInteractiveSaveCardHtml(cardState, ""),
+      flags: {
+        "altarion-aitusa": {
+          isSpiritGuardiansDamageCard: true,
+          isResonantMoonCard: true,
+          isResonantArcanaCard: true,
+          chatChannel: "combat",
+          interactiveSaveCard: cardState
+        }
+      }
+    });
+
+    if (msg?.id) {
+      await msg.update({
+        content: this.buildInteractiveSaveCardHtml(cardState, msg.id)
+      });
+    }
+    return msg;
+  }
+
+  /**
    * Execute a Saving Throw (Wisdom for Spirit Guardians / Ancestral Marking, Dexterity for Shadow Rebuke)
    * via Foundry's standard saving throw dialog when the GM or player clicks the "Roll Save (DC X)" button.
    */
@@ -6018,13 +6117,24 @@ export class AltarionAutomationManager {
     t.modifiedBy = "";
 
     let customDamageUpdate = null;
-    if (cardState.cardType === "spirit-guardians" || cardState.cardType === "shadow-rebuke") {
+    if (
+      cardState.cardType === "spirit-guardians" ||
+      cardState.cardType === "shadow-rebuke" ||
+      cardState.cardType === "resonant-moon"
+    ) {
       const isShadowRebuke = cardState.cardType === "shadow-rebuke";
-      const spellLabel = isShadowRebuke ? "Shadow Rebuke" : "Spirit Guardians";
-      const dmgType = cardState.damageType || (isShadowRebuke ? "necrotic" : "radiant");
+      const isResonantMoon = cardState.cardType === "resonant-moon";
+      const spellLabel = isShadowRebuke ? "Shadow Rebuke" : isResonantMoon ? "The Moon" : "Spirit Guardians";
+      const dmgType = cardState.damageType || (isShadowRebuke ? "necrotic" : isResonantMoon ? "psychic" : "radiant");
       const dmgTypeLabel =
         cardState.damageTypeLabel ||
-        (dmgType === "necrotic" ? "Necrotic" : dmgType === "radiant" ? "Radiant" : "Force");
+        (dmgType === "necrotic"
+          ? "Necrotic"
+          : dmgType === "psychic"
+            ? "Psychic"
+            : dmgType === "radiant"
+              ? "Radiant"
+              : "Force");
       const rawDamage = Math.max(1, Number(cardState.rawDamage || 1));
       const appliedDamage = saveSuccess ? Math.max(1, Math.floor(rawDamage / 2)) : rawDamage;
       t.appliedDamage = appliedDamage;
@@ -6042,9 +6152,29 @@ export class AltarionAutomationManager {
       t.autoApplied = Boolean(res.applied);
       t.damageLayers = res.damageLayers || null;
 
+      // The Moon (Parva): Apply Frightened until end of Parva's next turn on failed Wisdom Save!
+      if (isResonantMoon && !saveSuccess && targetActor?.isOwner) {
+        const casterName = cardState.casterName || "Parva";
+        await this.applyOrUpdateStatusEffect(targetActor, {
+          statusId: "resonant-moon-frightened",
+          extraStatuses: ["frightened"],
+          name: `Frightened (The Moon — ${casterName})`,
+          img: "icons/sundries/gaming/rune-card.webp",
+          description: `<p><strong>Card of the Resonant Arcana (The Moon):</strong> Failed Wisdom Saving Throw (DC ${spellDc}). <strong>Frightened</strong> of <strong>${foundry.utils.escapeHTML(casterName)}</strong> until the end of ${foundry.utils.escapeHTML(casterName)}'s next turn.</p>`,
+          changes: [],
+          durationRounds: 1,
+          durationTurns: 1,
+          expiresAtEndOfTurnOf: cardState.casterActorId || null,
+          extraFlags: {
+            isResonantMoonFrightened: true,
+            casterActorId: cardState.casterActorId || ""
+          }
+        });
+      }
+
       const casterActor = cardState.casterActorId ? game.actors?.get(cardState.casterActorId) : null;
       customDamageUpdate = {
-        cardKind: isShadowRebuke ? "shadow-rebuke" : "spirit-guardians",
+        cardKind: isShadowRebuke ? "shadow-rebuke" : isResonantMoon ? "resonant-moon" : "spirit-guardians",
         sourceName: spellLabel,
         attackerActorId: casterActor?.id || cardState.casterActorId || "",
         attackerUuid: casterActor?.uuid || "",
@@ -6181,13 +6311,24 @@ export class AltarionAutomationManager {
     t.modifiedBy = forceSuccess ? `${sourceLabel} — Auto Success` : `${sourceLabel} → ${updatedTotal}`;
 
     let customDamageUpdate = null;
-    if (cardState.cardType === "spirit-guardians" || cardState.cardType === "shadow-rebuke") {
+    if (
+      cardState.cardType === "spirit-guardians" ||
+      cardState.cardType === "shadow-rebuke" ||
+      cardState.cardType === "resonant-moon"
+    ) {
       const isShadowRebuke = cardState.cardType === "shadow-rebuke";
-      const spellLabel = isShadowRebuke ? "Shadow Rebuke" : "Spirit Guardians";
-      const dmgType = cardState.damageType || (isShadowRebuke ? "necrotic" : "radiant");
+      const isResonantMoon = cardState.cardType === "resonant-moon";
+      const spellLabel = isShadowRebuke ? "Shadow Rebuke" : isResonantMoon ? "The Moon" : "Spirit Guardians";
+      const dmgType = cardState.damageType || (isShadowRebuke ? "necrotic" : isResonantMoon ? "psychic" : "radiant");
       const dmgTypeLabel =
         cardState.damageTypeLabel ||
-        (dmgType === "necrotic" ? "Necrotic" : dmgType === "radiant" ? "Radiant" : "Force");
+        (dmgType === "necrotic"
+          ? "Necrotic"
+          : dmgType === "psychic"
+            ? "Psychic"
+            : dmgType === "radiant"
+              ? "Radiant"
+              : "Force");
       const rawDamage = Math.max(1, Number(cardState.rawDamage || 1));
       const newAppliedDamage = newSuccess ? Math.max(1, Math.floor(rawDamage / 2)) : rawDamage;
       t.appliedDamage = newAppliedDamage;
@@ -6218,9 +6359,33 @@ export class AltarionAutomationManager {
         newDamageLayers = res.damageLayers || null;
       }
 
+      // Sync The Moon's Frightened condition when a reroll/intervention flips the Wisdom Save outcome!
+      if (isResonantMoon && targetActor?.isOwner) {
+        if (!newSuccess) {
+          const casterName = cardState.casterName || "Parva";
+          await this.applyOrUpdateStatusEffect(targetActor, {
+            statusId: "resonant-moon-frightened",
+            extraStatuses: ["frightened"],
+            name: `Frightened (The Moon — ${casterName})`,
+            img: "icons/sundries/gaming/rune-card.webp",
+            description: `<p><strong>Card of the Resonant Arcana (The Moon):</strong> Failed Wisdom Saving Throw (DC ${spellDc}). <strong>Frightened</strong> of <strong>${foundry.utils.escapeHTML(casterName)}</strong> until the end of ${foundry.utils.escapeHTML(casterName)}'s next turn.</p>`,
+            changes: [],
+            durationRounds: 1,
+            durationTurns: 1,
+            expiresAtEndOfTurnOf: cardState.casterActorId || null,
+            extraFlags: {
+              isResonantMoonFrightened: true,
+              casterActorId: cardState.casterActorId || ""
+            }
+          });
+        } else {
+          await this.removeStatusEffect(targetActor, "resonant-moon-frightened");
+        }
+      }
+
       const casterActor = cardState.casterActorId ? game.actors?.get(cardState.casterActorId) : null;
       customDamageUpdate = {
-        cardKind: isShadowRebuke ? "shadow-rebuke" : "spirit-guardians",
+        cardKind: isShadowRebuke ? "shadow-rebuke" : isResonantMoon ? "resonant-moon" : "spirit-guardians",
         sourceName: spellLabel,
         attackerActorId: casterActor?.id || cardState.casterActorId || "",
         attackerUuid: casterActor?.uuid || "",
@@ -9041,7 +9206,7 @@ export class AltarionAutomationManager {
     Hooks.once("ready", async () => {
       try {
         const altarion = this.getAltarionActor();
-        if (altarion?.isOwner) {
+        if (altarion && shouldThisClientRunAutoSync(altarion)) {
           await this.ensureAltarionEchoesAndAbjurerSanitized(altarion);
         }
         if (game.user?.isGM) {
@@ -9448,7 +9613,7 @@ export class AltarionAutomationManager {
   static registerKyrionDarkVitalityHooks() {
     Hooks.once("ready", async () => {
       const kyrion = this.getKyrionActor();
-      if (kyrion?.isOwner) {
+      if (kyrion && shouldThisClientRunAutoSync(kyrion)) {
         await this.ensureKyrionDarkVitalityEffect(kyrion);
       }
     });

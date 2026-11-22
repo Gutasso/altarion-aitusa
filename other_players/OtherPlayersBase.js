@@ -8,6 +8,7 @@
 
 import { ArcanePlagueManager } from "../scripts/arcane-plague.js";
 import { createV2Dialog } from "../scripts/dialog-v2.js";
+import { isIgnoredBackupActor, shouldThisClientRunAutoSync } from "../scripts/sync-guard.js";
 
 const MODULE_ID = "altarion-aitusa";
 
@@ -29,7 +30,7 @@ export class OtherPlayersBase {
   }
 
   static getHandlerForActor(actor) {
-    if (!actor || actor.type !== "character") return null;
+    if (!actor || actor.type !== "character" || isIgnoredBackupActor(actor)) return null;
     const nameKey = (actor.name || "").trim().toLowerCase();
     if (!nameKey) return null;
     const exact = this._characterHandlers.get(nameKey);
@@ -178,7 +179,9 @@ export class OtherPlayersBase {
       const item = this.parent;
       const actor = item?.actor;
       const actorNameLow = String(actor?.name || "").trim().toLowerCase();
-      const isFlinn = Boolean(actor && (actorNameLow === "flinn" || actorNameLow.startsWith("flinn ")));
+      const isFlinn = Boolean(
+        actor && !isIgnoredBackupActor(actor) && (actorNameLow === "flinn" || actorNameLow.startsWith("flinn "))
+      );
       const ident = String(this.identifier || item?.name || "").trim().toLowerCase();
 
       if (isFlinn && this.spellcasting?.preparation) {
@@ -234,29 +237,39 @@ export class OtherPlayersBase {
     }
 
     // 6. Auto-sync hooks on Ready, Actor create/rename, and Class level change
+    //    Strictly guarded by `shouldThisClientRunAutoSync` & `hookUserId === game.user.id`
+    //    so players joining the GM's table NEVER trigger recursive sync loops!
     if (game?.ready) {
-      setTimeout(() => this.syncAllOtherPlayers(), 100);
+      if (shouldThisClientRunAutoSync(null)) {
+        setTimeout(() => this.syncAllOtherPlayers(), 100);
+      }
     } else {
       Hooks.once("ready", async () => {
-        await this.syncAllOtherPlayers();
+        if (shouldThisClientRunAutoSync(null)) {
+          await this.syncAllOtherPlayers();
+        }
       });
     }
 
-    Hooks.on("createActor", async (actor) => {
-      if (!actor || !actor.isOwner || this.isSyncing(actor.id)) return;
+    Hooks.on("createActor", async (actor, _options, userId) => {
+      if (!actor || isIgnoredBackupActor(actor) || this.isSyncing(actor.id)) return;
+      if (!shouldThisClientRunAutoSync(actor, { hookUserId: userId })) return;
       const handler = this.getHandlerForActor(actor);
       if (handler) {
         await handler.sync(actor);
       }
     });
 
-    Hooks.on("updateActor", async (actor, changed) => {
-      if (!actor || !actor.isOwner || this.isSyncing(actor.id)) return;
+    Hooks.on("updateActor", async (actor, changed, _options, userId) => {
+      if (!actor || !actor.isOwner || isIgnoredBackupActor(actor) || this.isSyncing(actor.id)) return;
+      if (userId && userId !== game.user?.id) return;
       const handler = this.getHandlerForActor(actor);
       if (!handler) return;
 
       if ("name" in (changed ?? {})) {
-        await handler.sync(actor);
+        if (shouldThisClientRunAutoSync(actor, { hookUserId: userId })) {
+          await handler.sync(actor);
+        }
         return;
       }
 
@@ -270,9 +283,13 @@ export class OtherPlayersBase {
     });
 
     for (const hookName of ["createItem", "updateItem", "deleteItem"]) {
-      Hooks.on(hookName, async (item, changed) => {
+      Hooks.on(hookName, async (item, changedOrOptions, optionsOrUserId, maybeUserId) => {
+        const hookUserId = hookName === "updateItem" ? maybeUserId : optionsOrUserId;
+        const changed = hookName === "updateItem" ? changedOrOptions : null;
+        if (hookUserId && hookUserId !== game.user?.id) return;
+
         const actor = item?.parent;
-        if (!actor || !actor.isOwner || this.isSyncing(actor.id)) return;
+        if (!actor || !actor.isOwner || isIgnoredBackupActor(actor) || this.isSyncing(actor.id)) return;
         const handler = this.getHandlerForActor(actor);
         if (!handler) return;
 
@@ -334,14 +351,14 @@ export class OtherPlayersBase {
 
           if (hookName === "updateItem") {
             const levelsChanged = Boolean(changed?.system && "levels" in changed.system);
-            if (levelsChanged && (!lastSig || curSig !== lastSig)) {
+            if (levelsChanged && (!lastSig || curSig !== lastSig) && shouldThisClientRunAutoSync(actor, { hookUserId })) {
               await handler.sync(actor);
             } else {
               this.refreshActor(actor);
             }
           } else {
-            // createItem / deleteItem: only trigger if outside post-sync cooldown AND signature actually differs
-            if (!inCooldown && (!lastSig || curSig !== lastSig)) {
+            // createItem / deleteItem: only trigger if outside post-sync cooldown, authoritative client, AND signature actually differs
+            if (!inCooldown && (!lastSig || curSig !== lastSig) && shouldThisClientRunAutoSync(actor, { hookUserId })) {
               await handler.sync(actor);
             } else {
               this.refreshActor(actor);
@@ -376,7 +393,9 @@ export class OtherPlayersBase {
 
   static async syncAllOtherPlayers() {
     if (!game?.actors) return;
+    if (!shouldThisClientRunAutoSync(null)) return;
     for (const actor of game.actors) {
+      if (isIgnoredBackupActor(actor)) continue;
       if (actor.isOwner && actor.items?.invalidDocumentIds?.size > 0) {
         try {
           await actor.deleteEmbeddedDocuments("Item", Array.from(actor.items.invalidDocumentIds));
@@ -387,7 +406,11 @@ export class OtherPlayersBase {
     }
     for (const [nameKey, handler] of this._characterHandlers.entries()) {
       const matchingActors = game.actors.filter(
-        a => a.type === "character" && a.name?.trim().toLowerCase() === nameKey && a.isOwner
+        a =>
+          a.type === "character" &&
+          !isIgnoredBackupActor(a) &&
+          (a.name?.trim().toLowerCase() === nameKey || a.name?.trim().toLowerCase().startsWith(`${nameKey} `)) &&
+          a.isOwner
       );
       for (const actor of matchingActors) {
         await handler.sync(actor);
@@ -857,6 +880,15 @@ export class OtherPlayersBase {
         deref = null;
       }
 
+      if (!deref && stub?.__prop === "classFeature" && globalThis.DataLoader?.pCacheAndGet && globalThis.UrlUtil?.URL_TO_HASH_BUILDER?.classFeature) {
+        try {
+          const cfHash = globalThis.UrlUtil.URL_TO_HASH_BUILDER.classFeature(stub);
+          deref = await globalThis.DataLoader.pCacheAndGet("classFeature", stub.source || "PHB", cfHash, { isCopy: true });
+        } catch (_e) {
+          deref = null;
+        }
+      }
+
       if (!deref) {
         const lowerTarget = (stub.name || "").trim().toLowerCase();
         const targetLvl = Number(stub.level || 1);
@@ -939,11 +971,13 @@ export class OtherPlayersBase {
       if (!ent) {
         const allOpt = await globalThis.DataLoader.pCacheAndGetAllSite(pageOpt);
         if (Array.isArray(allOpt)) {
-          const found = allOpt.find(
-            o =>
-              String(o?.name || "").trim().toLowerCase() === name.trim().toLowerCase() &&
-              (!source || String(o?.source || "").toLowerCase() === source.toLowerCase())
-          );
+          const found =
+            allOpt.find(
+              o =>
+                String(o?.name || "").trim().toLowerCase() === name.trim().toLowerCase() &&
+                (!source || String(o?.source || "").toLowerCase() === source.toLowerCase())
+            ) ||
+            allOpt.find(o => String(o?.name || "").trim().toLowerCase() === name.trim().toLowerCase());
           if (found) ent = foundry.utils.deepClone(found);
         }
       }
@@ -2704,8 +2738,14 @@ export class OtherPlayersBase {
     } = {}
   ) {
     if (!actor) return;
-    const chosenAlready = actor.getFlag("altarion-aitusa", flagKey);
-    if (Array.isArray(chosenAlready) && chosenAlready.length >= count && !forceOpen) return;
+    const chosenAlready = Array.isArray(actor.getFlag("altarion-aitusa", flagKey))
+      ? actor.getFlag("altarion-aitusa", flagKey)
+      : [];
+    const remainingCount = Math.max(0, count - chosenAlready.length);
+    if (remainingCount <= 0 && !forceOpen) return;
+
+    const slotsToPrompt = remainingCount > 0 ? remainingCount : count;
+    const chosenSet = new Set(chosenAlready);
 
     const lockKey = `${actor.id}:${flagKey}`;
     if (this._choiceDialogOpenFor.has(lockKey)) return;
@@ -2715,6 +2755,7 @@ export class OtherPlayersBase {
     try {
       const skillConfig = CONFIG.DND5E?.skills || {};
       const skillEntries = Object.entries(skillConfig).filter(([key]) => {
+        if (!forceOpen && chosenSet.has(key)) return false;
         if (Array.isArray(allowedSkills) && !allowedSkills.includes(key)) return false;
         if (requireProficiency) {
           const val = Number(actor.system?.skills?.[key]?.value || 0);
@@ -2723,20 +2764,22 @@ export class OtherPlayersBase {
         return true;
       });
 
-      // If requireProficiency filtered everything out (because the player hasn't picked base skills yet), allow all skills
+      // If requireProficiency filtered everything out (because the player hasn't picked base skills yet), allow all unchosen skills
       const finalSkills =
-        skillEntries.length >= count
+        skillEntries.length >= slotsToPrompt
           ? skillEntries
-          : Object.entries(skillConfig).filter(([key]) => !allowedSkills || allowedSkills.includes(key));
+          : Object.entries(skillConfig).filter(
+              ([key]) => (forceOpen || !chosenSet.has(key)) && (!allowedSkills || allowedSkills.includes(key))
+            );
 
       const selectsHtml = [];
-      for (let s = 0; s < count; s++) {
+      for (let s = 0; s < slotsToPrompt; s++) {
         const opts = finalSkills
           .map(([k, cfg], idx) => `<option value="${k}" ${idx === s ? "selected" : ""}>${cfg.label || k.toUpperCase()}</option>`)
           .join("");
         selectsHtml.push(`
           <div class="form-group" style="margin-bottom: 8px;">
-            <label style="font-weight: 600;">Expertise Skill #${s + 1}:</label>
+            <label style="font-weight: 600;">Expertise Skill #${chosenAlready.length + s + 1} of ${count}:</label>
             <select class="other-player-expertise-select" style="width: 100%; font-weight: 600;">
               ${opts}
             </select>
@@ -2764,16 +2807,17 @@ export class OtherPlayersBase {
               const chosen = Array.from(root.querySelectorAll(".other-player-expertise-select"))
                 .map(el => el.value)
                 .filter(Boolean);
-              const uniqueChosen = Array.from(new Set(chosen));
+              const uniqueNew = Array.from(new Set(chosen));
+              const mergedChosen = Array.from(new Set([...chosenAlready, ...uniqueNew]));
               const updates = {
-                [`flags.altarion-aitusa.${flagKey}`]: uniqueChosen
+                [`flags.altarion-aitusa.${flagKey}`]: mergedChosen
               };
-              for (const sk of uniqueChosen) {
+              for (const sk of uniqueNew) {
                 updates[`system.skills.${sk}.value`] = 2;
               }
               await actor.update(updates);
               ui.notifications.info(
-                `[${actor.name}] Applied Expertise to ${uniqueChosen.map(k => skillConfig[k]?.label || k).join(", ")}!`
+                `[${actor.name}] Applied Expertise to ${uniqueNew.map(k => skillConfig[k]?.label || k).join(", ")}!`
               );
             }
           },
