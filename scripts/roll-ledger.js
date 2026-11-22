@@ -3157,7 +3157,7 @@ export class CoriaRollLedger {
   static async revertActorDamageLayered(
     actor,
     amount,
-    { mode = "undo", damageMessage = null, damageLayers = null, onlyHp = false } = {}
+    { mode = "undo", damageMessage = null, damageLayers = null, onlyHp = false, persistMessageUpdate = false } = {}
   ) {
     const refund = Math.max(0, Math.floor(Number(amount || 0)));
     if (!actor || refund <= 0 || !actor.isOwner) {
@@ -3195,12 +3195,26 @@ export class CoriaRollLedger {
       matchedSource = found.source;
       matchedLayers = found.layers ? foundry.utils.deepClone(found.layers) : null;
 
-      const remWard = Math.max(0, Number(matchedLayers?.remainingWardToUndo ?? 0));
-      const remTemp = Math.max(0, Number(matchedLayers?.remainingTempToUndo ?? 0));
-      const remHp = Math.max(0, Number(matchedLayers?.remainingHpToUndo ?? 0));
-      const totalRem = remWard + remTemp + remHp;
+        const remWard = Math.max(0, Number(matchedLayers?.remainingWardToUndo ?? 0));
+        const remTemp = Math.max(0, Number(matchedLayers?.remainingTempToUndo ?? 0));
+        const remHp = Math.max(0, Number(matchedLayers?.remainingHpToUndo ?? 0));
+        const totalRem = remWard + remTemp + remHp;
 
-      if (matchedLayers && totalRem > 0) {
+        if (matchedLayers && totalRem === 0 && (matchedSource === "custom-msg" || matchedSource === "explicit")) {
+          // This exact damage event was ALREADY 100% reversed — never fall through and double-heal Arcane Ward/HP!
+          return {
+            applied: false,
+            alreadyUndone: true,
+            wardRestored: 0,
+            tempRestored: 0,
+            hpRestored: 0,
+            totalRestored: 0,
+            summaryText: "+0 HP",
+            layers: matchedLayers
+          };
+        }
+
+        if (matchedLayers && totalRem > 0) {
         if (mode === "reaction-reduction" && refund < totalRem) {
           // Exact partial reduction: compute what damage `(totalRem - refund)` would still have absorbed
           // through Ward -> Temp HP -> HP, and refund the difference from each layer!
@@ -3308,8 +3322,11 @@ export class CoriaRollLedger {
       });
     }
 
-    // Persist updated `damageLayers` back onto custom damage message if applicable
+    // Persist updated `damageLayers` back onto custom damage message ONLY when explicitly requested
+    // (skipping `damageMessage.update()` during Undo clicks prevents Foundry from re-rendering the chat card DOM
+    // and wiping out the just-disabled "Undone" button state!).
     if (
+      persistMessageUpdate &&
       matchedSource === "custom-msg" &&
       matchedLayers &&
       damageMessage?.update &&
@@ -3736,6 +3753,8 @@ export class CoriaRollLedger {
         i => i.type === "spell" && i.name?.trim().toLowerCase() === "absorb elements"
       );
 
+      const hadPermanentDrBefore = Array.from(victim._source?.system?.traits?.dr?.value || []).includes(elemKey);
+
       // 1. Apply Absorb Elements Status Effect (Resistance until end of next turn + +Xd6 on next attack hit)
       await AM.applyOrUpdateStatusEffect(victim, {
         statusId: "absorb-elements",
@@ -3757,6 +3776,7 @@ export class CoriaRollLedger {
           isAbsorbElementsEffect: true,
           elementType: elemKey,
           elementLabel: elemLabel,
+          hadPermanentDrBefore,
           slotLevel,
           casterActorId: victim.id
         }

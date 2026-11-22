@@ -203,9 +203,9 @@ export class DragonScalingManager {
 
     const updates = {};
 
-    // Force Resistance on Altarion (Dragon Ancestry)
+    // Force Resistance on Altarion (Dragon Ancestry) — always read `_source` so temporary ActiveEffect resistances never leak permanently!
     if (actor.system.traits?.dr) {
-      const drList = Array.from(actor.system.traits.dr.value || []);
+      const drList = Array.from(actor._source?.system?.traits?.dr?.value || []);
       if (!drList.includes("force")) {
         drList.push("force");
         updates["system.traits.dr.value"] = drList;
@@ -214,7 +214,7 @@ export class DragonScalingManager {
 
     // Force Immunity at level 11+ (Draconic Body)
     if (actor.system.traits?.di) {
-      const diList = Array.from(actor.system.traits.di.value || []);
+      const diList = Array.from(actor._source?.system?.traits?.di?.value || []);
       const hasForceImmunity = diList.includes("force");
       if (riderLevel >= 11 && !hasForceImmunity) {
         diList.push("force");

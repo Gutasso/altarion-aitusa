@@ -1992,6 +1992,70 @@ export class FeatureSyncManager {
         });
         await this.cleanupLegacyArmorOfAgathysEffects(actor);
 
+        // Repair & deduplicate Fighting Style: Defense ActiveEffect so dnd5e AC tooltip displays
+        // "+1 Fighting Style: Defense (+1 AC)" (exactly once, never "+1 Unknown" or duplicated!)
+        try {
+          const defItem = actor.items.find(
+            i => i.type === "feat" && i.name?.trim().toLowerCase() === "fighting style: defense"
+          );
+          if (defItem) {
+            const itemEffs = Array.from(defItem.effects || []);
+            if (itemEffs.length > 1) {
+              // Keep only the first effect and remove duplicate copies
+              const extraIds = itemEffs.slice(1).map(e => e.id).filter(Boolean);
+              if (extraIds.length > 0) {
+                await defItem.deleteEmbeddedDocuments("ActiveEffect", extraIds);
+              }
+            }
+            const keeper = Array.from(defItem.effects || [])[0];
+            if (keeper) {
+              if (keeper.origin || keeper.name !== "Fighting Style: Defense (+1 AC)") {
+                await keeper.update({
+                  name: "Fighting Style: Defense (+1 AC)",
+                  origin: null,
+                  transfer: true,
+                  disabled: false,
+                  img: defItem.img || "icons/equipment/shield/heater-steel-worn.webp",
+                  changes: [
+                    {
+                      key: "system.attributes.ac.bonus",
+                      mode: 2,
+                      value: "+1",
+                      priority: 20
+                    }
+                  ]
+                });
+              }
+            } else {
+              await defItem.createEmbeddedDocuments("ActiveEffect", [
+                {
+                  name: "Fighting Style: Defense (+1 AC)",
+                  img: defItem.img || "icons/equipment/shield/heater-steel-worn.webp",
+                  origin: null,
+                  transfer: true,
+                  disabled: false,
+                  changes: [
+                    {
+                      key: "system.attributes.ac.bonus",
+                      mode: 2,
+                      value: "+1",
+                      priority: 20
+                    }
+                  ]
+                }
+              ]);
+            }
+          }
+          // Remove any orphaned duplicate actor-level Fighting Style: Defense effects (since the Item already has a transfer effect!)
+          const orphanActorDefenseIds = (actor.effects || [])
+            .filter(aEff => String(aEff.name || "").trim().toLowerCase().startsWith("fighting style: defense"))
+            .map(aEff => aEff.id)
+            .filter(Boolean);
+          if (orphanActorDefenseIds.length > 0 && defItem) {
+            await actor.deleteEmbeddedDocuments("ActiveEffect", orphanActorDefenseIds);
+          }
+        } catch (_defErr) {}
+
         // Sync Ancestral Weapon in Altarion's inventory (level 3+)
         await this.syncAncestralWeapon(actor, drBundle.ancestralWeaponData, riderLevel);
 

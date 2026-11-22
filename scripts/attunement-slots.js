@@ -1,47 +1,118 @@
 /**
- * CoriaAttunementSlots — Slot-Based Magic Item Attunement Interface
- * Replaces D&D 5e's flat 3-item attunement cap with RPG body/equipment attunement slots:
- * - Head, Neck/Amulet, Cloak/Back, Armor/Chest, Hands/Wrists, Belt/Waist, Feet/Boots,
- *   Rings (x2), Weapons/Foci (x2), and Trinkets/Wondrous (x3) -> 14 total slots.
- * - Automatically syncs `actor.system.attributes.attunement.max` to the total slot count
- *   so Foundry dnd5e never blocks attuning > 3 items across distinct equipment slots.
- * - Enforces per-slot uniqueness when clicking native Inventory attunement toggles,
- *   auto-allocates attuned items into their best matching slot, and provides a rich
- *   DialogV2 "Slots de Sintonização" management window accessible right from the Inventory tab.
+ * CoriaAttunementSlots — Baldur's Gate 3-Style Paper-Doll Magic Item Attunement Interface
+ * - Replaces D&D 5e's flat 3-item attunement cap with 13 visual equipment slots around the
+ *   character's transparent-background full-body Idle art:
+ *     Left column (with body callout arrows): Head, Cloak, Gloves/Wrist, Shoes
+ *     Right column top (with body callout arrows): Necklace/Amulet, Armor, Belt/Waist
+ *     Right column bottom (no arrows): Rings (x2), Trinkets (x2)
+ *     Bottom center (no arrows): Main-Hand / Off-Hand (x2 — automatically collapses to 1 centered slot for Two-Handed weapons!)
+ * - `[+]` slot button styled & working like Kyrion's "Alimentar a Fome" item picker:
+ *   clicking `[+]` opens a visual item picker; selecting an item replaces `[+]` with the item's icon + name
+ *   and switches the side button between "Sintonizar" (purple) and "Quebrar Sintonização" (red unlink icon).
+ * - Dedicated Right-Click Header Color Customizer with a bespoke real-time Paper-Doll live preview.
  */
 
-import { createV2Dialog, CoriaHeaderColorManager, CoriaWindowThemeManager } from "./dialog-v2.js";
+import { createV2Dialog, CoriaHeaderColorManager } from "./dialog-v2.js";
 
 const MODULE_ID = "altarion-aitusa";
 
 export class CoriaAttunementSlots {
   static SLOTS = [
-    // Body / Worn Slots
-    { id: "head", category: "head", group: "body", label: "Cabeça", hint: "Elmos, tiaras, coroas, chapéus, óculos", icon: "fa-hat-wizard" },
-    { id: "neck", category: "neck", group: "body", label: "Pescoço / Amuleto", hint: "Amuletos, colares, medalhões, periaptos", icon: "fa-gem" },
-    { id: "cloak", category: "cloak", group: "body", label: "Capa / Costas", hint: "Capas, mantos, asas", icon: "fa-user-secret" },
-    { id: "armor", category: "armor", group: "body", label: "Armadura / Peito", hint: "Armaduras mágicas, vestes, robes", icon: "fa-shield-halved" },
-    { id: "hands", category: "hands", group: "body", label: "Mãos / Pulsos", hint: "Luvas, manoplas, braçadeiras", icon: "fa-hand-fist" },
-    { id: "belt", category: "belt", group: "body", label: "Cintura / Cinto", hint: "Cintos, faixas, cinturões", icon: "fa-ribbon" },
-    { id: "feet", category: "feet", group: "body", label: "Pés / Sapatos", hint: "Botas, sapatos, sandálias, grevas", icon: "fa-shoe-prints" },
+    // Left column (with SVG callout arrows)
+    { id: "head", category: "head", side: "left", hasArrow: true, label: "Head", hint: "Elmos, tiaras, coroas, chapéus, óculos", icon: "fa-hat-wizard" },
+    { id: "cloak", category: "cloak", side: "left", hasArrow: true, label: "Cloak", hint: "Capas, mantos, asas", icon: "fa-user-secret" },
+    { id: "hands", category: "hands", side: "left", hasArrow: true, label: "Gloves/Wrist", hint: "Luvas, manoplas, braçadeiras", icon: "fa-hand-fist" },
+    { id: "feet", category: "feet", side: "left", hasArrow: true, label: "Shoes", hint: "Botas, sapatos, sandálias, grevas", icon: "fa-shoe-prints" },
 
-    // Rings & Weapons / Arcane Foci
-    { id: "ring1", category: "ring", group: "gear", label: "Anel 1 (Mão Esq.)", hint: "Anéis mágicos", icon: "fa-ring" },
-    { id: "ring2", category: "ring", group: "gear", label: "Anel 2 (Mão Dir.)", hint: "Anéis mágicos", icon: "fa-ring" },
-    { id: "weapon1", category: "weapon", group: "gear", label: "Arma / Foco 1", hint: "Armas, varinhas, cajados, grimórios, focos, escudos", icon: "fa-wand-magic-sparkles" },
-    { id: "weapon2", category: "weapon", group: "gear", label: "Arma / Foco 2", hint: "Segunda arma, escudo mágico ou segundo foco", icon: "fa-khanda" },
+    // Right column top (with SVG callout arrows)
+    { id: "neck", category: "neck", side: "right", hasArrow: true, label: "Necklace/Amulet", hint: "Amuletos, colares, medalhões, periaptos", icon: "fa-gem" },
+    { id: "armor", category: "armor", side: "right", hasArrow: true, label: "Armor", hint: "Armaduras mágicas, vestes, robes", icon: "fa-shield-halved" },
+    { id: "belt", category: "belt", side: "right", hasArrow: true, label: "Belt/Waist", hint: "Cintos, faixas, cinturões", icon: "fa-ribbon" },
 
-    // Trinkets & Wondrous Relics
-    { id: "trinket1", category: "trinket", group: "trinket", label: "Trinket 1", hint: "Itens maravilhosos, cartas arcanas, pedras, talismãs", icon: "fa-star" },
-    { id: "trinket2", category: "trinket", group: "trinket", label: "Trinket 2", hint: "Itens maravilhosos, cartas arcanas, pedras, talismãs", icon: "fa-star" },
-    { id: "trinket3", category: "trinket", group: "trinket", label: "Trinket 3", hint: "Itens maravilhosos, cartas arcanas, pedras, talismãs", icon: "fa-star" }
+    // Right column bottom (no arrows)
+    { id: "ring1", category: "ring", side: "rings", hasArrow: false, label: "Ring 1", hint: "Anéis mágicos", icon: "fa-ring" },
+    { id: "ring2", category: "ring", side: "rings", hasArrow: false, label: "Ring 2", hint: "Anéis mágicos", icon: "fa-ring" },
+    { id: "trinket1", category: "trinket", side: "trinkets", hasArrow: false, label: "Trinket 1", hint: "Itens maravilhosos, cartas arcanas, talismãs", icon: "fa-star" },
+    { id: "trinket2", category: "trinket", side: "trinkets", hasArrow: false, label: "Trinket 2", hint: "Itens maravilhosos, cartas arcanas, talismãs", icon: "fa-star" },
+
+    // Bottom center (no arrows — collapses to 1 centered slot if a Two-Handed weapon is placed!)
+    { id: "weapon1", category: "weapon", side: "hands-gear", hasArrow: false, label: "Main-Hand", hint: "Arma principal, grimório, cajado, varinha ou foco", icon: "fa-wand-magic-sparkles" },
+    { id: "weapon2", category: "weapon", side: "hands-gear", hasArrow: false, label: "Off-Hand", hint: "Arma secundária, escudo mágico ou segundo foco", icon: "fa-khanda" }
   ];
 
-  static SLOT_GROUPS = [
-    { id: "body", label: "Equipamentos Corporais", icon: "fa-vest" },
-    { id: "gear", label: "Anéis, Armas & Focos Arcanos", icon: "fa-wand-magic-sparkles" },
-    { id: "trinket", label: "Trinkets & Relíquias Maravilhosas", icon: "fa-sparkles" }
-  ];
+  // Transparent-background full-body Idle portraits + custom body anchor points (x%, y% inside character figure box)
+  static PARTY_IDLE_PROFILES = {
+    altarion: {
+      img: "modules/altarion-aitusa/party_idle/altarion-idle.png",
+      anchors: {
+        head: { x: 35, y: 9 },
+        cloak: { x: 34, y: 24 },
+        hands: { x: 25, y: 46 },
+        feet: { x: 36, y: 90 },
+        neck: { x: 52, y: 17 },
+        armor: { x: 55, y: 29 },
+        belt: { x: 50, y: 42 }
+      }
+    },
+    aitusa: {
+      img: "modules/altarion-aitusa/party_idle/aitusa-idle.png",
+      anchors: {
+        head: { x: 53, y: 19 },
+        cloak: { x: 32, y: 34 },
+        hands: { x: 54, y: 66 },
+        feet: { x: 26, y: 88 },
+        neck: { x: 70, y: 37 },
+        armor: { x: 74, y: 54 },
+        belt: { x: 58, y: 62 }
+      }
+    },
+    kyrion: {
+      img: "modules/altarion-aitusa/party_idle/kyrion-idle.png",
+      anchors: {
+        head: { x: 33, y: 12 },
+        cloak: { x: 34, y: 27 },
+        hands: { x: 20, y: 49 },
+        feet: { x: 33, y: 91 },
+        neck: { x: 53, y: 22 },
+        armor: { x: 56, y: 34 },
+        belt: { x: 51, y: 44 }
+      }
+    },
+    flinn: {
+      img: "modules/altarion-aitusa/party_idle/flinn-idle.png",
+      anchors: {
+        head: { x: 33, y: 9 },
+        cloak: { x: 34, y: 26 },
+        hands: { x: 16, y: 51 },
+        feet: { x: 32, y: 91 },
+        neck: { x: 52, y: 21 },
+        armor: { x: 53, y: 33 },
+        belt: { x: 51, y: 43 }
+      }
+    },
+    parva: {
+      img: "modules/altarion-aitusa/party_idle/parva-idle.png",
+      anchors: {
+        head: { x: 37, y: 9 },
+        cloak: { x: 34, y: 23 },
+        hands: { x: 21, y: 47 },
+        feet: { x: 36, y: 91 },
+        neck: { x: 54, y: 18 },
+        armor: { x: 56, y: 30 },
+        belt: { x: 53, y: 43 }
+      }
+    }
+  };
+
+  static DEFAULT_ATTUNEMENT_THEME = {
+    windowBg: { mode: "gradient", color1: "#181426", color2: "#0d0b17" },
+    headerBg: { mode: "gradient", color1: "#2a1d44", color2: "#191229" },
+    accentColor: "#38bdf8",
+    slotBg: { mode: "gradient", color1: "#261f3d", color2: "#18132a" },
+    attuneBtnBg: { mode: "gradient", color1: "#7c3aed", color2: "#5b21b6" },
+    unattuneBtnBg: { mode: "gradient", color1: "#dc2626", color2: "#991b1b" },
+    textColor: "#f1f5f9"
+  };
 
   static _internalAttuneBypass = new Set();
   static _openDialogsByActor = new Map();
@@ -59,6 +130,32 @@ export class CoriaAttunementSlots {
     return this.SLOTS.find(s => s.id === slotId) || null;
   }
 
+  static getIdleProfileForActor(actor) {
+    const n = String(actor?.name || "").trim().toLowerCase();
+    if (n === "aitusa" || n.startsWith("aitusa ")) return this.PARTY_IDLE_PROFILES.aitusa;
+    if (n === "altarion" || n === "altarion talendris" || n.startsWith("altarion ")) return this.PARTY_IDLE_PROFILES.altarion;
+    if (n === "flinn" || n === "flinn encantor" || n.startsWith("flinn ")) return this.PARTY_IDLE_PROFILES.flinn;
+    if (n === "kyrion" || n.startsWith("kyrion ")) return this.PARTY_IDLE_PROFILES.kyrion;
+    if (n === "parva" || n.startsWith("parva ")) return this.PARTY_IDLE_PROFILES.parva;
+    return {
+      img: actor?.img || "icons/svg/mystery-man.svg",
+      anchors: this.PARTY_IDLE_PROFILES.altarion.anchors
+    };
+  }
+
+  /**
+   * Check whether an item is strictly Two-Handed (`two` property in D&D 5e).
+   * Note: Versatile (`ver`) weapons like Quarterstaff are NOT strictly two-handed.
+   */
+  static isTwoHandedItem(item) {
+    if (!item) return false;
+    const props = item.system?.properties;
+    if (props instanceof Set) return props.has("two");
+    if (Array.isArray(props)) return props.includes("two");
+    if (props && typeof props === "object") return Boolean(props.two);
+    return false;
+  }
+
   /**
    * Auto-detect the best matching equipment slot category for a D&D 5e Item.
    */
@@ -68,7 +165,7 @@ export class CoriaAttunementSlots {
     const itemType = String(item.type || "").toLowerCase();
     const equipSubType = String(item.system?.type?.value || "").toLowerCase();
 
-    // Explicit keyword rules (EN + PT-BR)
+    if (nameLow.startsWith("card of the resonant arcana")) return "trinket";
     if (/(cloak|mantle|cape|wings|shroud|capa|manto|asas)\b/i.test(nameLow)) return "cloak";
     if (/(amulet|necklace|periapt|medallion|brooch|choker|scarab|pendant|talisman of|amuleto|colar|medalh)/i.test(nameLow)) return "neck";
     if (/(helm|helmet|hat|circlet|crown|headband|goggles|eyes of|diadem|mask|hood|cap of|elmo|chap[eé]u|coroa|tiara|m[aá]scara|capuz)/i.test(nameLow)) return "head";
@@ -95,9 +192,17 @@ export class CoriaAttunementSlots {
     return "trinket";
   }
 
-  /**
-   * Read the actor's cleaned slot map (`{ [slotId]: itemId }`), pruning deleted or unattuned items.
-   */
+  static isItemAttuned(item) {
+    if (!item) return false;
+    return Boolean(item.system?.attuned === true || Number(item.system?.attunement) === 2);
+  }
+
+  static doesItemRequireAttunement(item) {
+    if (!item) return false;
+    const att = item.system?.attunement;
+    return att === "required" || att === "optional" || Number(att) === 1 || Number(att) === 2 || Boolean(item.system?.attuned);
+  }
+
   static getSlotMap(actor) {
     const raw = actor?.flags?.[MODULE_ID]?.attunementSlots || {};
     const validMap = {};
@@ -115,17 +220,6 @@ export class CoriaAttunementSlots {
     return validMap;
   }
 
-  static isItemAttuned(item) {
-    if (!item) return false;
-    return Boolean(item.system?.attuned === true || Number(item.system?.attunement) === 2);
-  }
-
-  static doesItemRequireAttunement(item) {
-    if (!item) return false;
-    const att = item.system?.attunement;
-    return att === "required" || att === "optional" || Number(att) === 1 || Number(att) === 2 || Boolean(item.system?.attuned);
-  }
-
   static findSlotForItem(actor, itemId) {
     const map = this.getSlotMap(actor);
     for (const [slotId, assignedId] of Object.entries(map)) {
@@ -134,29 +228,34 @@ export class CoriaAttunementSlots {
     return null;
   }
 
-  /**
-   * Pick the best free slot for `item` (preferring its detected category; optional fallback to trinket if `allowFallback`).
-   */
   static findFreeSlotForItem(actor, item, { slotMap = null, allowFallback = false } = {}) {
     const map = slotMap || this.getSlotMap(actor);
     const cat = this.detectCategoryForItem(item);
 
+    // Respect Two-Handed weapon occupying both weapon slots
+    const w1 = map.weapon1 ? actor.items?.get(map.weapon1) : null;
+    const w2 = map.weapon2 ? actor.items?.get(map.weapon2) : null;
+    const has2H = this.isTwoHandedItem(w1) || this.isTwoHandedItem(w2);
+
+    const isSlotAvailable = (s) => {
+      if (map[s.id]) return false;
+      if (s.category === "weapon" && has2H) return false;
+      if (s.category === "weapon" && this.isTwoHandedItem(item) && (map.weapon1 || map.weapon2)) return false;
+      return true;
+    };
+
     const catSlots = this.SLOTS.filter(s => s.category === cat);
-    const freeInCat = catSlots.find(s => !map[s.id]);
+    const freeInCat = catSlots.find(isSlotAvailable);
     if (freeInCat) return freeInCat;
 
     if (allowFallback) {
-      const freeTrinket = this.SLOTS.find(s => s.category === "trinket" && !map[s.id]);
+      const freeTrinket = this.SLOTS.find(s => s.category === "trinket" && isSlotAvailable(s));
       if (freeTrinket) return freeTrinket;
-      return this.SLOTS.find(s => !map[s.id]) || null;
+      return this.SLOTS.find(isSlotAvailable) || null;
     }
     return null;
   }
 
-  /**
-   * Ensure `actor.system.attributes.attunement.max` matches total equipment slots
-   * and auto-allocate any currently attuned items that aren't assigned to a slot yet.
-   */
   static async syncActorAttunementSlots(actor) {
     if (!actor || actor.type !== "character" || !actor.isOwner) return;
 
@@ -183,12 +282,13 @@ export class CoriaAttunementSlots {
       updateData["system.attributes.attunement.max"] = totalSlots;
     }
     if (mapChanged) {
-      // Clear removed keys cleanly using Foundry -= deletion syntax or replace whole flag object
       const cleanedFlag = {};
       for (const slot of this.SLOTS) {
         if (map[slot.id]) cleanedFlag[slot.id] = map[slot.id];
         else if (rawSaved[slot.id]) cleanedFlag[`-=${slot.id}`] = null;
       }
+      // Clean legacy trinket3 key if it existed from previous version
+      if (rawSaved.trinket3) cleanedFlag["-=trinket3"] = null;
       updateData[`flags.${MODULE_ID}.attunementSlots`] = cleanedFlag;
     }
 
@@ -199,9 +299,6 @@ export class CoriaAttunementSlots {
     }
   }
 
-  /**
-   * Assign `item` to `slotId`, attuning `item` (and unattuning any previous occupant of `slotId`).
-   */
   static async assignItemToSlot(actor, slotId, itemId) {
     if (!actor || !actor.isOwner) return false;
     const slotDef = this.getSlotDef(slotId);
@@ -209,29 +306,45 @@ export class CoriaAttunementSlots {
     if (!slotDef || !item) return false;
 
     const map = this.getSlotMap(actor);
-    const prevOccupantId = map[slotId] || null;
+    const is2H = this.isTwoHandedItem(item);
+
+    // If placing a Two-Handed weapon into weapon1 or weapon2, normalize it to weapon1 and unattune any Off-Hand item!
+    const effectiveSlotId = is2H && (slotId === "weapon1" || slotId === "weapon2") ? "weapon1" : slotId;
+    const itemsToUnattune = [];
+
+    const prevOccupantId = map[effectiveSlotId] || null;
+    if (prevOccupantId && prevOccupantId !== item.id) {
+      itemsToUnattune.push(prevOccupantId);
+    }
+
+    if (is2H && (effectiveSlotId === "weapon1" || effectiveSlotId === "weapon2")) {
+      const otherHand = effectiveSlotId === "weapon1" ? "weapon2" : "weapon1";
+      if (map[otherHand] && map[otherHand] !== item.id) {
+        itemsToUnattune.push(map[otherHand]);
+        delete map[otherHand];
+      }
+    }
 
     // Remove item from any other slot it previously occupied
     for (const [k, v] of Object.entries(map)) {
-      if (v === item.id && k !== slotId) {
+      if (v === item.id && k !== effectiveSlotId) {
         delete map[k];
       }
     }
 
-    // Unattune previous occupant in `slotId` if different
-    if (prevOccupantId && prevOccupantId !== item.id) {
-      const prevItem = actor.items.get(prevOccupantId);
-      if (prevItem && this.isItemAttuned(prevItem)) {
-        this._internalAttuneBypass.add(prevItem.id);
+    for (const oldId of itemsToUnattune) {
+      const oldItem = actor.items.get(oldId);
+      if (oldItem && this.isItemAttuned(oldItem)) {
+        this._internalAttuneBypass.add(oldItem.id);
         try {
-          await prevItem.update({ "system.attuned": false });
+          await oldItem.update({ "system.attuned": false });
         } finally {
-          this._internalAttuneBypass.delete(prevItem.id);
+          this._internalAttuneBypass.delete(oldItem.id);
         }
       }
     }
 
-    // Ensure item is attuned (if it's a homebrew/untagged item without attunement="required", set it cleanly)
+    // Attune the target item
     if (!this.isItemAttuned(item)) {
       this._internalAttuneBypass.add(item.id);
       try {
@@ -245,7 +358,7 @@ export class CoriaAttunementSlots {
       }
     }
 
-    map[slotId] = item.id;
+    map[effectiveSlotId] = item.id;
     const rawSaved = actor.flags?.[MODULE_ID]?.attunementSlots || {};
     const flagPatch = {};
     for (const s of this.SLOTS) {
@@ -261,15 +374,13 @@ export class CoriaAttunementSlots {
       { altarionBypassWard: true, coriaDamageReactionInternal: true }
     );
 
+    const effectiveDef = this.getSlotDef(effectiveSlotId) || slotDef;
     ui.notifications?.info?.(
-      `[Slots de Sintonização] ${item.name} sintonizado no slot "${slotDef.label}" (${actor.name}).`
+      `[Slots de Sintonização] ${item.name} sintonizado em "${is2H ? "Two-Handed (Main/Off-Hand)" : effectiveDef.label}" (${actor.name}).`
     );
     return true;
   }
 
-  /**
-   * Clear `slotId` and unattune the item occupying it.
-   */
   static async clearSlot(actor, slotId) {
     if (!actor || !actor.isOwner) return false;
     const slotDef = this.getSlotDef(slotId);
@@ -297,15 +408,283 @@ export class CoriaAttunementSlots {
     if (itemId) {
       const itemName = actor.items?.get(itemId)?.name || "Item";
       ui.notifications?.info?.(
-        `[Slots de Sintonização] ${itemName} removido do slot "${slotDef.label}" (${actor.name}).`
+        `[Slots de Sintonização] Sintonização quebrada: ${itemName} removido de "${slotDef.label}" (${actor.name}).`
       );
     }
     return true;
   }
 
-  /**
-   * Register Foundry hooks for Inventory tab UI injection, slot validation, and auto-sync.
-   */
+  /* ============================================================================
+   * Dedicated Attunement Window Theme Manager (with bespoke Live Paper-Doll Preview)
+   * ============================================================================ */
+
+  static getSavedAttunementTheme(actor) {
+    const raw = actor?.flags?.[MODULE_ID]?.attunementTheme;
+    const def = foundry.utils.deepClone(this.DEFAULT_ATTUNEMENT_THEME);
+    if (!raw || typeof raw !== "object") return def;
+    return foundry.utils.mergeObject(def, foundry.utils.deepClone(raw));
+  }
+
+  static _buildBg(cfg, fb1, fb2) {
+    const c1 = cfg?.color1 || fb1;
+    const c2 = cfg?.color2 || fb2 || c1;
+    return cfg?.mode === "gradient" ? `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)` : c1;
+  }
+
+  static _hexToRgb(hex) {
+    return CoriaHeaderColorManager.hexToRgb(hex || "#38bdf8");
+  }
+
+  static _isDark(hex) {
+    const { r, g, b } = this._hexToRgb(hex || "#181426");
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255 < 0.5;
+  }
+
+  static applyAttunementTheme(dialogEl, theme) {
+    if (!dialogEl || !theme) return;
+    const el = dialogEl instanceof HTMLElement ? dialogEl : dialogEl?.[0];
+    if (!el) return;
+
+    const accent = theme.accentColor || "#38bdf8";
+    const accentRgb = this._hexToRgb(accent);
+    const textCol = theme.textColor || "#f1f5f9";
+    const textDark = this._isDark(textCol);
+    const mutedCol = textDark ? "rgba(30, 41, 59, 0.72)" : "rgba(226, 232, 240, 0.76)";
+    const borderCol = `rgba(${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b}, 0.52)`;
+    const softGlow = `rgba(${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b}, 0.22)`;
+
+    el.style.setProperty("--coria-at-win-bg", this._buildBg(theme.windowBg, "#181426", "#0d0b17"));
+    el.style.setProperty("--coria-at-header-bg", this._buildBg(theme.headerBg, "#2a1d44", "#191229"));
+    el.style.setProperty("--coria-at-accent", accent);
+    el.style.setProperty("--coria-at-border", borderCol);
+    el.style.setProperty("--coria-at-glow", softGlow);
+    el.style.setProperty("--coria-at-slot-bg", this._buildBg(theme.slotBg, "#261f3d", "#18132a"));
+    el.style.setProperty("--coria-at-attune-bg", this._buildBg(theme.attuneBtnBg, "#7c3aed", "#5b21b6"));
+    el.style.setProperty("--coria-at-unattune-bg", this._buildBg(theme.unattuneBtnBg, "#dc2626", "#991b1b"));
+    el.style.setProperty("--coria-at-text", textCol);
+    el.style.setProperty("--coria-at-text-muted", mutedCol);
+  }
+
+  static openAttunementThemePicker(actor, targetDialogEl = null) {
+    if (!actor) return;
+    const saved = this.getSavedAttunementTheme(actor);
+    const draft = foundry.utils.deepClone(saved);
+    const idleProfile = this.getIdleProfileForActor(actor);
+
+    const sections = [
+      { key: "windowBg", label: "Fundo da Janela", hint: "Fundo principal do painel Paper-Doll" },
+      { key: "headerBg", label: "Cabeçalho", hint: "Barra superior de título da janela" },
+      { key: "slotBg", label: "Botões [+] / Moldura dos Slots", hint: "Fundo interno das caixas de equipamento" },
+      { key: "attuneBtnBg", label: "Botão Sintonizar", hint: "Botão roxo para confirmar sintonização" },
+      { key: "unattuneBtnBg", label: "Botão Quebrar Sintonização", hint: "Botão vermelho para dessintonizar o item" }
+    ];
+
+    const sectionRowsHtml = sections
+      .map(sec => {
+        const cfg = draft[sec.key] || this.DEFAULT_ATTUNEMENT_THEME[sec.key];
+        const isGrad = cfg.mode === "gradient";
+        return `
+          <div class="coria-at-tp-sec" data-at-sec="${sec.key}">
+            <div class="coria-at-tp-sec-head">
+              <div>
+                <strong>${sec.label}</strong>
+                <div class="coria-at-tp-hint">${sec.hint}</div>
+              </div>
+              <div class="coria-at-tp-modes">
+                <label><input type="radio" name="atMode_${sec.key}" value="solid" ${!isGrad ? "checked" : ""} /> Sólida</label>
+                <label><input type="radio" name="atMode_${sec.key}" value="gradient" ${isGrad ? "checked" : ""} /> Gradiente</label>
+              </div>
+            </div>
+            <div class="coria-at-tp-pickers">
+              <label><span class="at-c1-lbl">${isGrad ? "Cor 1:" : "Cor:"}</span><input type="color" class="at-c1" value="${cfg.color1}" /></label>
+              <label class="at-c2-wrap" style="display:${isGrad ? "flex" : "none"};"><span>Cor 2:</span><input type="color" class="at-c2" value="${cfg.color2 || cfg.color1}" /></label>
+            </div>
+          </div>
+        `;
+      })
+      .join("");
+
+    const content = `
+      <div class="coria-at-theme-editor">
+        <div class="coria-at-tp-preview-pane">
+          <div class="coria-at-tp-preview-title"><i class="fas fa-eye"></i> Preview em Tempo Real</div>
+          <div class="coria-at-tp-live-mock">
+            <div class="mock-header">
+              <span><i class="fas fa-gem"></i> Slots de Sintonização — ${foundry.utils.escapeHTML(actor.name)}</span>
+              <span class="mock-x">&times;</span>
+            </div>
+            <div class="mock-topbar">
+              <span><strong>2 / 13</strong> Ocupados</span>
+              <div class="mock-progress"><div class="mock-progress-fill"></div></div>
+            </div>
+            <div class="mock-body">
+              <div class="mock-col-left">
+                <div class="mock-slot-block">
+                  <div class="mock-slot-label">Head:</div>
+                  <div class="mock-slot-row">
+                    <span class="mock-btn-attune"><i class="fas fa-link"></i> Sintonizar</span>
+                    <span class="mock-plus-box">+</span>
+                  </div>
+                </div>
+                <div class="mock-slot-block">
+                  <div class="mock-slot-label">Cloak:</div>
+                  <div class="mock-slot-row">
+                    <span class="mock-btn-unattune"><i class="fas fa-unlink"></i></span>
+                    <span class="mock-plus-box is-filled"><i class="fas fa-user-secret"></i></span>
+                  </div>
+                  <div class="mock-item-name">Cloak of Protection</div>
+                </div>
+              </div>
+              <div class="mock-center">
+                <svg class="mock-arrows" viewBox="0 0 180 140" preserveAspectRatio="none">
+                  <polyline points="2,24 58,24 78,34" fill="none" stroke="var(--coria-at-accent)" stroke-width="2" />
+                  <circle cx="78" cy="34" r="3" fill="var(--coria-at-accent)" />
+                  <polyline points="2,86 52,86 68,54" fill="none" stroke="var(--coria-at-accent)" stroke-width="2" />
+                  <circle cx="68" cy="54" r="3" fill="var(--coria-at-accent)" />
+                  <polyline points="178,38 122,38 104,44" fill="none" stroke="var(--coria-at-accent)" stroke-width="2" />
+                  <circle cx="104" cy="44" r="3" fill="var(--coria-at-accent)" />
+                </svg>
+                <img src="${idleProfile.img}" class="mock-idle-img" alt="" />
+              </div>
+              <div class="mock-col-right">
+                <div class="mock-slot-block">
+                  <div class="mock-slot-label">Necklace:</div>
+                  <div class="mock-slot-row">
+                    <span class="mock-plus-box is-filled"><i class="fas fa-gem"></i></span>
+                    <span class="mock-btn-unattune"><i class="fas fa-unlink"></i></span>
+                  </div>
+                  <div class="mock-item-name">+1 Amulet</div>
+                </div>
+                <div class="mock-slot-block">
+                  <div class="mock-slot-label">Armor:</div>
+                  <div class="mock-slot-row">
+                    <span class="mock-plus-box">+</span>
+                    <span class="mock-btn-attune"><i class="fas fa-link"></i> Sintonizar</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="coria-at-tp-controls-pane">
+          <div class="coria-at-tp-inline-colors">
+            <label class="coria-at-tp-single">
+              <span><strong>Setas & Barra de Progresso</strong><small>Cor de destaque das setas SVG e rótulos</small></span>
+              <input type="color" class="at-accent-picker" value="${draft.accentColor}" />
+            </label>
+            <label class="coria-at-tp-single">
+              <span><strong>Cor dos Textos</strong><small>Nomes dos itens, títulos e contador</small></span>
+              <input type="color" class="at-text-picker" value="${draft.textColor}" />
+            </label>
+          </div>
+          ${sectionRowsHtml}
+        </div>
+      </div>
+    `;
+
+    let savedClicked = false;
+    const dlg = createV2Dialog(
+      {
+        title: `Personalizar Cores — Slots de Sintonização (${actor.name})`,
+        content,
+        buttons: {
+          save: {
+            icon: '<i class="fas fa-save"></i>',
+            label: "Salvar Cores",
+            callback: async () => {
+              savedClicked = true;
+              await actor.update(
+                { [`flags.${MODULE_ID}.attunementTheme`]: foundry.utils.deepClone(draft) },
+                { altarionBypassWard: true, coriaDamageReactionInternal: true }
+              );
+              if (targetDialogEl) this.applyAttunementTheme(targetDialogEl, draft);
+              ui.notifications?.info?.(`[Slots de Sintonização] Cores salvas para ${actor.name}!`);
+            }
+          },
+          reset: {
+            icon: '<i class="fas fa-undo"></i>',
+            label: "Restaurar Padrão",
+            callback: async () => {
+              savedClicked = true;
+              await actor.update(
+                { [`flags.${MODULE_ID}.-=attunementTheme`]: null },
+                { altarionBypassWard: true, coriaDamageReactionInternal: true }
+              );
+              if (targetDialogEl) this.applyAttunementTheme(targetDialogEl, this.DEFAULT_ATTUNEMENT_THEME);
+              ui.notifications?.info?.(`[Slots de Sintonização] Cores padrão restauradas para ${actor.name}.`);
+            }
+          },
+          cancel: {
+            icon: '<i class="fas fa-times"></i>',
+            label: "Cancelar"
+          }
+        },
+        default: "save",
+        close: () => {
+          if (!savedClicked && targetDialogEl) {
+            this.applyAttunementTheme(targetDialogEl, saved);
+          }
+        },
+        render: (root) => {
+          const mockEl = root.querySelector(".coria-at-tp-live-mock");
+          const syncLive = () => {
+            if (mockEl) this.applyAttunementTheme(mockEl, draft);
+            if (targetDialogEl) this.applyAttunementTheme(targetDialogEl, draft);
+          };
+          syncLive();
+
+          const accentInp = root.querySelector(".at-accent-picker");
+          accentInp?.addEventListener("input", () => {
+            draft.accentColor = accentInp.value;
+            syncLive();
+          });
+          const textInp = root.querySelector(".at-text-picker");
+          textInp?.addEventListener("input", () => {
+            draft.textColor = textInp.value;
+            syncLive();
+          });
+
+          for (const secEl of root.querySelectorAll(".coria-at-tp-sec")) {
+            const key = secEl.getAttribute("data-at-sec");
+            const c1 = secEl.querySelector(".at-c1");
+            const c2 = secEl.querySelector(".at-c2");
+            const c2Wrap = secEl.querySelector(".at-c2-wrap");
+            const c1Lbl = secEl.querySelector(".at-c1-lbl");
+            for (const rad of secEl.querySelectorAll(`input[name="atMode_${key}"]`)) {
+              rad.addEventListener("change", () => {
+                const isGrad = rad.value === "gradient";
+                draft[key].mode = rad.value;
+                if (c2Wrap) c2Wrap.style.display = isGrad ? "flex" : "none";
+                if (c1Lbl) c1Lbl.textContent = isGrad ? "Cor 1:" : "Cor:";
+                syncLive();
+              });
+            }
+            c1?.addEventListener("input", () => {
+              draft[key].color1 = c1.value;
+              syncLive();
+            });
+            c2?.addEventListener("input", () => {
+              draft[key].color2 = c2.value;
+              syncLive();
+            });
+          }
+        }
+      },
+      {
+        classes: ["coria-dialog", "coria-at-theme-dialog"],
+        width: 780,
+        height: 620,
+        resizable: true
+      }
+    );
+    dlg.render(true);
+  }
+
+  /* ============================================================================
+   * Foundry Hooks & Inventory Tab Controls
+   * ============================================================================ */
+
   static registerHooks() {
     Hooks.once("ready", async () => {
       for (const actor of game.actors || []) {
@@ -315,7 +694,6 @@ export class CoriaAttunementSlots {
       }
     });
 
-    // Enforce slot-based attunement when a player clicks the native Attune toggle in the Inventory list
     Hooks.on("preUpdateItem", (item, changed, _options, userId) => {
       if (game.user?.id !== userId) return;
       if (this._internalAttuneBypass.has(item.id)) return;
@@ -324,15 +702,14 @@ export class CoriaAttunementSlots {
       if (!foundry.utils.hasProperty(changed, "system.attuned")) return;
 
       const nextAttuned = Boolean(foundry.utils.getProperty(changed, "system.attuned"));
-      if (!nextAttuned) return; // Unattuning is always allowed; `updateItem` will free the slot
+      if (!nextAttuned) return;
 
       const map = this.getSlotMap(actor);
-      if (Object.values(map).includes(item.id)) return; // Already assigned to a slot
+      if (Object.values(map).includes(item.id)) return;
 
       const freeInCat = this.findFreeSlotForItem(actor, item, { slotMap: map, allowFallback: false });
-      if (freeInCat) return; // `updateItem` will place it into `freeInCat`
+      if (freeInCat) return;
 
-      // No free slot in the item's natural category! Block native toggle and open Slot Manager to replace/choose!
       const cat = this.detectCategoryForItem(item);
       const catSlotDefs = this.SLOTS.filter(s => s.category === cat);
       const occupants = catSlotDefs
@@ -340,13 +717,12 @@ export class CoriaAttunementSlots {
         .join(" | ");
 
       ui.notifications?.warn?.(
-        `[Slots de Sintonização] Slot cheio para "${item.name}" (${occupants}). Escolha um slot ou substitua o item na janela de Slots de Sintonização!`
+        `[Slots de Sintonização] Slot cheio para "${item.name}" (${occupants}). Escolha ou substitua na janela de Slots de Sintonização!`
       );
       setTimeout(() => this.openAttunementSlotsDialog(actor, { highlightItemId: item.id }), 30);
       return false;
     });
 
-    // Keep slot mapping synchronized whenever an item is attuned/unattuned or deleted
     Hooks.on("updateItem", async (item, changed, _options, userId) => {
       if (game.user?.id !== userId) return;
       if (this._internalAttuneBypass.has(item.id)) return;
@@ -370,7 +746,6 @@ export class CoriaAttunementSlots {
       }
     });
 
-    // Inject "Slots de Sintonização" toolbar button + click binding on native `.attunement-tracker`
     const onRenderSheet = (app, htmlOrEl) => {
       const actor = app?.actor || app?.document;
       if (!actor || actor.type !== "character") return;
@@ -383,7 +758,6 @@ export class CoriaAttunementSlots {
       setTimeout(inject, 140);
       setTimeout(inject, 450);
 
-      // Re-inject when switching tabs inside Tidy5e Svelte sheet
       if (!rootEl.dataset.coriaAttuneTabBound) {
         rootEl.dataset.coriaAttuneTabBound = "true";
         rootEl.addEventListener("click", (ev) => {
@@ -401,10 +775,6 @@ export class CoriaAttunementSlots {
     Hooks.on("renderTidy5eCharacterSheetQuadrone", onRenderSheet);
   }
 
-  /**
-   * Inject the compact "Slots de Sintonização (X/14)" button + active slot pills into the Inventory tab
-   * and make Tidy5e's native `.attunement-tracker` open the Slot Manager on click.
-   */
   static injectInventorySlotControls(actor, rootEl) {
     if (!actor || !rootEl) return;
 
@@ -412,12 +782,11 @@ export class CoriaAttunementSlots {
     const usedCount = Object.keys(map).length;
     const totalCount = this.getTotalSlotCount();
 
-    // 1. Make native `.attunement-tracker` clickable to open our Slot Manager
     for (const tracker of rootEl.querySelectorAll(".attunement-tracker")) {
       if (!tracker.dataset.coriaAttuneTrackerBound) {
         tracker.dataset.coriaAttuneTrackerBound = "true";
         tracker.style.cursor = "pointer";
-        tracker.title = `Slots de Sintonização (${usedCount}/${totalCount}) — Clique para gerenciar slots de equipamentos mágicos`;
+        tracker.title = `Slots de Sintonização (${usedCount}/${totalCount}) — Clique para abrir a janela de slots`;
         tracker.addEventListener("click", (ev) => {
           if (ev.target?.closest?.("input")) return;
           ev.preventDefault();
@@ -427,12 +796,10 @@ export class CoriaAttunementSlots {
       }
     }
 
-    // 2. Locate the Inventory tab content pane
     const inventoryTab =
       rootEl.querySelector('[data-tab-contents-for="inventory"]') ||
       rootEl.querySelector(".tidy-tab.inventory") ||
       rootEl.querySelector('.tab.inventory[data-tab="inventory"]');
-
     if (!inventoryTab) return;
 
     let toolbar = inventoryTab.querySelector(".coria-attunement-slots-toolbar");
@@ -449,7 +816,7 @@ export class CoriaAttunementSlots {
       btn.className = "coria-attunement-slots-btn coria-customizable-btn";
       btn.setAttribute("data-coria-color-key", "attunement-slots-btn");
       btn.setAttribute("data-coria-color-label", "Botão Slots de Sintonização");
-      btn.title = "Abrir gerenciador de Slots de Sintonização por equipamento | Clique direito para personalizar cor";
+      btn.title = "Abrir janela de Slots de Sintonização | Clique direito para personalizar cor";
       btn.addEventListener("click", (ev) => {
         ev.preventDefault();
         ev.stopPropagation();
@@ -463,7 +830,6 @@ export class CoriaAttunementSlots {
       btn.innerHTML = desiredLabel;
     }
 
-    // Compact summary pills of currently attuned slots right next to the button
     let pillsWrap = toolbar.querySelector(".coria-attune-summary-pills");
     if (!pillsWrap) {
       pillsWrap = document.createElement("div");
@@ -487,7 +853,7 @@ export class CoriaAttunementSlots {
             return `
               <span class="coria-attune-pill" data-item-id="${item.id}" title="${foundry.utils.escapeHTML(slotDef.label)}: ${foundry.utils.escapeHTML(item.name)} (Clique para gerenciar)">
                 <i class="fas ${slotDef.icon}"></i>
-                <span class="coria-attune-pill-slot">${foundry.utils.escapeHTML(slotDef.label.split(" ")[0])}:</span>
+                <span class="coria-attune-pill-slot">${foundry.utils.escapeHTML(slotDef.label)}:</span>
                 <span class="coria-attune-pill-name">${foundry.utils.escapeHTML(item.name)}</span>
               </span>
             `;
@@ -507,16 +873,78 @@ export class CoriaAttunementSlots {
     CoriaHeaderColorManager.applyAndBind(actor, toolbar);
   }
 
-  /**
-   * Open the interactive DialogV2 "Slots de Sintonização" equipment-slot manager for `actor`.
-   */
+  /* ============================================================================
+   * Baldur's Gate 3 Paper-Doll Attunement DialogV2 Window
+   * ============================================================================ */
+
+  static _drawPaperDollArrows(rootEl, idleProfile) {
+    const stage = rootEl.querySelector(".coria-pd-stage");
+    const svg = rootEl.querySelector(".coria-pd-arrows-svg");
+    const figBox = rootEl.querySelector(".coria-pd-figure-box");
+    const idleImg = rootEl.querySelector(".coria-pd-idle-img");
+    if (!stage || !svg || !figBox) return;
+
+    const stageRect = stage.getBoundingClientRect();
+    if (stageRect.width < 50 || stageRect.height < 50) return;
+
+    const targetBoxRect =
+      idleImg && idleImg.getBoundingClientRect().width > 30
+        ? idleImg.getBoundingClientRect()
+        : figBox.getBoundingClientRect();
+
+    svg.setAttribute("viewBox", `0 0 ${Math.round(stageRect.width)} ${Math.round(stageRect.height)}`);
+    const anchors = idleProfile?.anchors || this.PARTY_IDLE_PROFILES.altarion.anchors;
+
+    const paths = [];
+    for (const slot of this.SLOTS) {
+      if (!slot.hasArrow) continue;
+      const box = stage.querySelector(`.coria-pd-plus-box[data-slot-id="${slot.id}"]`);
+      const anc = anchors[slot.id];
+      if (!box || !anc) continue;
+
+      const bRect = box.getBoundingClientRect();
+      const startX =
+        slot.side === "left"
+          ? bRect.right - stageRect.left + 4
+          : bRect.left - stageRect.left - 4;
+      const startY = bRect.top + bRect.height / 2 - stageRect.top;
+
+      const endX = targetBoxRect.left - stageRect.left + (targetBoxRect.width * anc.x) / 100;
+      const endY = targetBoxRect.top - stageRect.top + (targetBoxRect.height * anc.y) / 100;
+
+      // Clean angled BG3-style callout line (horizontal elbow -> diagonal toward body anchor -> dot!)
+      const figEdgeX =
+        slot.side === "left"
+          ? targetBoxRect.left - stageRect.left - 12
+          : targetBoxRect.right - stageRect.left + 12;
+      const elbowX =
+        slot.side === "left"
+          ? Math.max(startX + 18, Math.min(figEdgeX, endX - 14))
+          : Math.min(startX - 18, Math.max(figEdgeX, endX + 14));
+
+      const occupied = box.classList.contains("is-occupied");
+      const opacity = occupied ? "0.95" : "0.72";
+      const strokeW = occupied ? "2.4" : "1.9";
+
+      paths.push(`
+        <g class="coria-pd-arrow-group ${occupied ? "is-occupied" : ""}" opacity="${opacity}">
+          <polyline points="${startX.toFixed(1)},${startY.toFixed(1)} ${elbowX.toFixed(1)},${startY.toFixed(1)} ${endX.toFixed(1)},${endY.toFixed(1)}"
+                    fill="none" stroke="var(--coria-at-accent, #38bdf8)" stroke-width="${strokeW}" stroke-linecap="round" stroke-linejoin="round" />
+          <circle cx="${startX.toFixed(1)}" cy="${startY.toFixed(1)}" r="3" fill="var(--coria-at-accent, #38bdf8)" />
+          <circle cx="${endX.toFixed(1)}" cy="${endY.toFixed(1)}" r="4.2" fill="var(--coria-at-accent, #38bdf8)" stroke="#0f172a" stroke-width="1.3" />
+        </g>
+      `);
+    }
+
+    svg.innerHTML = paths.join("");
+  }
+
   static async openAttunementSlotsDialog(actor, { highlightItemId = "" } = {}) {
     if (!actor) return;
     if (actor.isOwner) {
       await this.syncActorAttunementSlots(actor);
     }
 
-    // Close existing open dialog for this actor to prevent duplicate windows
     const prevDlg = this._openDialogsByActor.get(actor.id);
     if (prevDlg?.rendered) {
       try {
@@ -525,12 +953,28 @@ export class CoriaAttunementSlots {
     }
 
     let showAllItems = false;
-    const candidateItemTypes = new Set(["equipment", "weapon", "tool", "loot", "container", "consumable", "feat"]);
+    // Pending (selected-but-not-yet-attuned) item per slot: `{ [slotId]: itemId }`
+    const pendingBySlot = {};
+    // Currently open item-picker popup slotId (null when closed)
+    let activePickerSlotId = null;
+
+    if (highlightItemId) {
+      const hItem = actor.items?.get(highlightItemId);
+      if (hItem) {
+        const hCat = this.detectCategoryForItem(hItem);
+        const hSlot = this.SLOTS.find(s => s.category === hCat);
+        if (hSlot) pendingBySlot[hSlot.id] = hItem.id;
+      }
+    }
+
+    const candidateItemTypes = new Set(["equipment", "weapon", "tool", "loot", "container", "consumable"]);
+    const idleProfile = this.getIdleProfileForActor(actor);
+    let resizeObs = null;
 
     const dlg = createV2Dialog(
       {
         title: `Slots de Sintonização — ${actor.name}`,
-        content: `<div class="coria-attune-root"></div>`,
+        content: `<div class="coria-pd-root"></div>`,
         buttons: {
           close: {
             icon: '<i class="fas fa-times"></i>',
@@ -539,245 +983,450 @@ export class CoriaAttunementSlots {
         },
         default: "close",
         close: () => {
+          if (resizeObs) {
+            try {
+              resizeObs.disconnect();
+            } catch (_e) {}
+            resizeObs = null;
+          }
           if (this._openDialogsByActor.get(actor.id) === dlg) {
             this._openDialogsByActor.delete(actor.id);
           }
         },
         render: (root) => {
           const dialogRoot = root.closest(".application") || root.closest(".dialog") || root;
-          CoriaWindowThemeManager.bindTitleBarRightClick(
-            actor,
-            dialogRoot,
-            "attunement-slots",
-            "Slots de Sintonização"
-          );
+          const savedTheme = this.getSavedAttunementTheme(actor);
+          this.applyAttunementTheme(dialogRoot, savedTheme);
 
-          const container = root.querySelector(".coria-attune-root");
+          // Bind right-click on title bar to open our dedicated Attunement Paper-Doll Theme Editor!
+          const header = dialogRoot.querySelector(".window-header");
+          if (header && header.dataset.boundCoriaAtTheme !== "true") {
+            header.dataset.boundCoriaAtTheme = "true";
+            header.title = "Clique com o botão direito no cabeçalho para personalizar as cores desta janela";
+            header.style.cursor = "context-menu";
+            header.addEventListener("contextmenu", (ev) => {
+              ev.preventDefault();
+              ev.stopPropagation();
+              if (!actor.isOwner && !game.user?.isGM) return;
+              this.openAttunementThemePicker(actor, dialogRoot);
+            });
+          }
+
+          const container = root.querySelector(".coria-pd-root");
           if (!container) return;
 
-        const renderBody = () => {
-          const map = this.getSlotMap(actor);
-          const assignedItemIds = new Set(Object.values(map));
-          const usedCount = Object.keys(map).length;
-          const totalCount = this.getTotalSlotCount();
-          const pct = Math.round((usedCount / Math.max(1, totalCount)) * 100);
-          const canEdit = Boolean(actor.isOwner);
-
-          const highlightItem = highlightItemId ? actor.items?.get(highlightItemId) : null;
-          const highlightCat = highlightItem ? this.detectCategoryForItem(highlightItem) : "";
-
-          // Collect unattuned candidate items in actor's inventory/features
-          const availableItems = actor.items
-            .filter(i => {
-              if (assignedItemIds.has(i.id)) return false;
-              if (!candidateItemTypes.has(i.type)) return false;
-              if (i.type === "feat") {
-                const nLow = String(i.name || "").toLowerCase();
-                return nLow.includes("card of the resonant arcana") || this.doesItemRequireAttunement(i);
-              }
-              if (showAllItems) return true;
-              return this.doesItemRequireAttunement(i);
-            })
-            .sort((a, b) => a.name.localeCompare(b.name));
-
-          const highlightBannerHtml = highlightItem
-            ? `
-              <div class="coria-attune-alert-banner">
-                <i class="fas fa-exclamation-triangle"></i>
-                <span>
-                  O slot natural de <strong>${foundry.utils.escapeHTML(highlightItem.name)}</strong> está ocupado!
-                  Dessintonize o item atual ou selecione <strong>${foundry.utils.escapeHTML(highlightItem.name)}</strong> em outro slot abaixo.
-                </span>
-              </div>
-            `
-            : "";
-
-          const groupsHtml = this.SLOT_GROUPS.map(grp => {
-            const grpSlots = this.SLOTS.filter(s => s.group === grp.id);
-            const cardsHtml = grpSlots
-              .map(slot => {
-                const occId = map[slot.id];
-                const occItem = occId ? actor.items?.get(occId) : null;
-                const isHighlightSlot = Boolean(highlightCat && slot.category === highlightCat);
-
-                if (occItem) {
-                  const isEquipped = Boolean(occItem.system?.equipped);
-                  return `
-                    <div class="coria-attune-slot-card is-occupied ${isHighlightSlot ? "is-highlighted" : ""}" data-slot-id="${slot.id}">
-                      <div class="coria-attune-slot-head">
-                        <span class="coria-attune-slot-title">
-                          <i class="fas ${slot.icon}"></i>
-                          ${foundry.utils.escapeHTML(slot.label)}
-                        </span>
-                        <span class="coria-attune-status-badge is-active">Sintonizado</span>
-                      </div>
-                      <div class="coria-attune-slot-item-row">
-                        <img class="coria-attune-item-img" src="${occItem.img || "icons/svg/item-bag.svg"}" alt="${foundry.utils.escapeHTML(occItem.name)}" />
-                        <div class="coria-attune-item-info">
-                          <a class="coria-attune-item-name" data-open-item="${occItem.id}" title="Abrir ficha do item">
-                            ${foundry.utils.escapeHTML(occItem.name)}
-                          </a>
-                          <div class="coria-attune-item-meta">
-                            ${isEquipped ? `<span class="coria-attune-mini-tag"><i class="fas fa-check"></i> Equipado</span>` : `<span class="coria-attune-mini-tag is-muted">Na mochila</span>`}
-                          </div>
-                        </div>
-                        ${
-                          canEdit
-                            ? `<button type="button" class="coria-attune-remove-btn" data-clear-slot="${slot.id}" title="Dessintonizar e liberar este slot">
-                                 <i class="fas fa-unlink"></i>
-                               </button>`
-                            : ""
-                        }
-                      </div>
-                    </div>
-                  `;
-                }
-
-                // Empty slot -> dropdown of matching & other attunable items
-                const recommended = availableItems.filter(i => this.detectCategoryForItem(i) === slot.category);
-                const others = availableItems.filter(i => this.detectCategoryForItem(i) !== slot.category);
-
-                let optsHtml = `<option value="">— Selecionar item para ${foundry.utils.escapeHTML(slot.label)} —</option>`;
-                if (recommended.length > 0) {
-                  optsHtml += `<optgroup label="Recomendados para ${foundry.utils.escapeHTML(slot.label)}">`;
-                  for (const it of recommended) {
-                    const sel = highlightItem && it.id === highlightItem.id ? "selected" : "";
-                    optsHtml += `<option value="${it.id}" ${sel}>${foundry.utils.escapeHTML(it.name)}</option>`;
-                  }
-                  optsHtml += `</optgroup>`;
-                }
-                if (others.length > 0) {
-                  optsHtml += `<optgroup label="Outros itens disponíveis">`;
-                  for (const it of others) {
-                    const sel = !recommended.length && highlightItem && it.id === highlightItem.id ? "selected" : "";
-                    optsHtml += `<option value="${it.id}" ${sel}>${foundry.utils.escapeHTML(it.name)}</option>`;
-                  }
-                  optsHtml += `</optgroup>`;
-                }
-
-                return `
-                  <div class="coria-attune-slot-card is-empty ${isHighlightSlot ? "is-highlighted" : ""}" data-slot-id="${slot.id}">
-                    <div class="coria-attune-slot-head">
-                      <span class="coria-attune-slot-title">
-                        <i class="fas ${slot.icon}"></i>
-                        ${foundry.utils.escapeHTML(slot.label)}
-                      </span>
-                      <span class="coria-attune-status-badge is-empty">Livre</span>
-                    </div>
-                    <div class="coria-attune-slot-hint">${foundry.utils.escapeHTML(slot.hint)}</div>
-                    ${
-                      canEdit
-                        ? `<div class="coria-attune-assign-row">
-                             <select class="coria-attune-select" data-slot-select="${slot.id}" ${availableItems.length === 0 ? "disabled" : ""}>
-                               ${availableItems.length === 0 ? `<option value="">Nenhum item sintonizável livre</option>` : optsHtml}
-                             </select>
-                             <button type="button" class="coria-attune-assign-btn" data-assign-slot="${slot.id}" ${availableItems.length === 0 ? "disabled" : ""}>
-                               <i class="fas fa-link"></i> Sintonizar
-                             </button>
-                           </div>`
-                        : `<div class="coria-attune-readonly-note">Somente o jogador ou Mestre pode alterar.</div>`
-                    }
-                  </div>
-                `;
+          const getAvailableItemsForSlot = (slotId, map) => {
+            const assignedItemIds = new Set(Object.values(map));
+            const currentSlotItemId = map[slotId] || null;
+            return actor.items
+              .filter(i => {
+                if (!candidateItemTypes.has(i.type)) return false;
+                if (assignedItemIds.has(i.id) && i.id !== currentSlotItemId) return false;
+                if (showAllItems) return true;
+                return this.doesItemRequireAttunement(i);
               })
-              .join("");
+              .sort((a, b) => a.name.localeCompare(b.name));
+          };
+
+          const renderSlotWidget = (slot, map, { layout = "left", labelInside = true, twoHandBadge = false } = {}) => {
+            const attunedId = map[slot.id] || null;
+            const attunedItem = attunedId ? actor.items?.get(attunedId) : null;
+            const pendingId = !attunedItem ? pendingBySlot[slot.id] || null : null;
+            const pendingItem = pendingId ? actor.items?.get(pendingId) : null;
+            const displayItem = attunedItem || pendingItem;
+            const isAttuned = Boolean(attunedItem);
+            const canEdit = Boolean(actor.isOwner);
+
+            const boxHtml = displayItem
+              ? `
+                <button type="button"
+                        class="coria-pd-plus-box is-occupied ${isAttuned ? "is-attuned" : "is-pending"}"
+                        data-slot-id="${slot.id}"
+                        data-open-picker="${slot.id}"
+                        title="${foundry.utils.escapeHTML(displayItem.name)} — Clique para trocar item | Clique direito para abrir ficha do item">
+                  <img src="${displayItem.img || "icons/svg/item-bag.svg"}" alt="${foundry.utils.escapeHTML(displayItem.name)}" />
+                </button>
+              `
+              : `
+                <button type="button"
+                        class="coria-pd-plus-box is-empty"
+                        data-slot-id="${slot.id}"
+                        data-open-picker="${slot.id}"
+                        title="Adicionar item em ${foundry.utils.escapeHTML(slot.label)} (${foundry.utils.escapeHTML(slot.hint)})"
+                        ${!canEdit ? "disabled" : ""}>
+                  <span class="coria-pd-plus-sign">+</span>
+                </button>
+              `;
+
+            const actionBtnHtml = isAttuned
+              ? `
+                <button type="button"
+                        class="coria-pd-unattune-btn"
+                        data-clear-slot="${slot.id}"
+                        title="Quebrar sintonização de ${foundry.utils.escapeHTML(attunedItem.name)}"
+                        ${!canEdit ? "disabled" : ""}>
+                  <i class="fas fa-unlink"></i>
+                </button>
+              `
+              : `
+                <button type="button"
+                        class="coria-pd-attune-btn ${pendingItem ? "is-ready" : "is-idle"}"
+                        data-attune-slot="${slot.id}"
+                        title="${pendingItem ? `Sintonizar ${foundry.utils.escapeHTML(pendingItem.name)} em ${foundry.utils.escapeHTML(slot.label)}` : `Escolher e sintonizar item em ${foundry.utils.escapeHTML(slot.label)}`}"
+                        ${!canEdit ? "disabled" : ""}>
+                  <i class="fas fa-link"></i> Sintonizar
+                </button>
+              `;
+
+            const itemNameHtml = displayItem
+              ? `<a class="coria-pd-item-name ${isAttuned ? "is-attuned" : "is-pending"}" data-open-item="${displayItem.id}" title="Abrir ficha de ${foundry.utils.escapeHTML(displayItem.name)}">${foundry.utils.escapeHTML(displayItem.name)}${twoHandBadge ? ` <span class="coria-pd-2h-tag">2H</span>` : ""}</a>`
+              : `<span class="coria-pd-item-name is-empty-txt">${foundry.utils.escapeHTML(slot.hint.split(",")[0])}</span>`;
+
+            // Left column: [ActionBtn + Name] [+]  (so [+] faces the character for the arrow!)
+            // Right column: [+] [ActionBtn + Name] (so [+] faces the character for the arrow!)
+            // Compact (Rings / Trinkets / Main-Off-Hand): [+] on top, [Name] + [ActionBtn] neatly below!
+            if (layout === "left") {
+              return `
+                <div class="coria-pd-slot-unit is-left" data-unit-slot="${slot.id}">
+                  ${labelInside ? `<div class="coria-pd-slot-label">${foundry.utils.escapeHTML(slot.label)}:</div>` : ""}
+                  <div class="coria-pd-slot-row">
+                    <div class="coria-pd-slot-side-col is-left">
+                      ${itemNameHtml}
+                      <div class="coria-pd-slot-actions">${actionBtnHtml}</div>
+                    </div>
+                    ${boxHtml}
+                  </div>
+                </div>
+              `;
+            }
+
+            if (layout === "right") {
+              return `
+                <div class="coria-pd-slot-unit is-right" data-unit-slot="${slot.id}">
+                  ${labelInside ? `<div class="coria-pd-slot-label">${foundry.utils.escapeHTML(slot.label)}:</div>` : ""}
+                  <div class="coria-pd-slot-row">
+                    ${boxHtml}
+                    <div class="coria-pd-slot-side-col is-right">
+                      ${itemNameHtml}
+                      <div class="coria-pd-slot-actions">${actionBtnHtml}</div>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }
+
+            // Compact vertical card for Rings, Trinkets, and Main-Hand/Off-Hand
+            return `
+              <div class="coria-pd-slot-compact ${twoHandBadge ? "is-two-handed" : ""}" data-unit-slot="${slot.id}">
+                <div class="coria-pd-compact-top">
+                  ${boxHtml}
+                  <div class="coria-pd-compact-meta">
+                    ${itemNameHtml}
+                    <div class="coria-pd-slot-actions">${actionBtnHtml}</div>
+                  </div>
+                </div>
+              </div>
+            `;
+          };
+
+          const renderPickerOverlay = (slotId, map) => {
+            if (!slotId) return "";
+            const slotDef = this.getSlotDef(slotId);
+            if (!slotDef) return "";
+            const items = getAvailableItemsForSlot(slotId, map);
+            const recommended = items.filter(i => this.detectCategoryForItem(i) === slotDef.category);
+            const others = items.filter(i => this.detectCategoryForItem(i) !== slotDef.category);
+
+            const renderItemOpt = (it, isRec) => {
+              const is2H = this.isTwoHandedItem(it);
+              const reqAtt = this.doesItemRequireAttunement(it);
+              return `
+                <button type="button" class="coria-pd-picker-item ${isRec ? "is-rec" : ""}" data-pick-slot="${slotId}" data-pick-item="${it.id}">
+                  <img src="${it.img || "icons/svg/item-bag.svg"}" alt="${foundry.utils.escapeHTML(it.name)}" />
+                  <div class="coria-pd-picker-meta">
+                    <strong>${foundry.utils.escapeHTML(it.name)}</strong>
+                    <span>
+                      ${isRec ? `<em class="coria-pd-badge-rec">Recomendado</em>` : ""}
+                      ${is2H ? `<em class="coria-pd-badge-2h">Duas Mãos</em>` : ""}
+                      ${reqAtt ? `<em class="coria-pd-badge-att">Requer Sintonização</em>` : `<em class="coria-pd-badge-free">Equipamento</em>`}
+                    </span>
+                  </div>
+                  <i class="fas fa-plus-circle coria-pd-picker-add-ic"></i>
+                </button>
+              `;
+            };
+
+            const listHtml =
+              items.length === 0
+                ? `<div class="coria-pd-picker-empty">Nenhum item sintonizável livre no inventário.<br><small>Ative "Mostrar todos os equipamentos/itens" no topo para exibir itens sem flag de sintonização.</small></div>`
+                : `
+                    ${recommended.length > 0 ? `<div class="coria-pd-picker-section-lbl">Recomendados para ${foundry.utils.escapeHTML(slotDef.label)}</div>${recommended.map(it => renderItemOpt(it, true)).join("")}` : ""}
+                    ${others.length > 0 ? `<div class="coria-pd-picker-section-lbl">Outros Itens do Inventário</div>${others.map(it => renderItemOpt(it, false)).join("")}` : ""}
+                  `;
 
             return `
-              <section class="coria-attune-group">
-                <h3 class="coria-attune-group-title">
-                  <i class="fas ${grp.icon}"></i> ${foundry.utils.escapeHTML(grp.label)}
-                </h3>
-                <div class="coria-attune-grid">${cardsHtml}</div>
-              </section>
+              <div class="coria-pd-picker-backdrop">
+                <div class="coria-pd-picker-modal">
+                  <div class="coria-pd-picker-header">
+                    <span><i class="fas ${slotDef.icon}"></i> Selecionar Item — ${foundry.utils.escapeHTML(slotDef.label)}</span>
+                    <button type="button" class="coria-pd-picker-close" title="Fechar lista"><i class="fas fa-times"></i></button>
+                  </div>
+                  <div class="coria-pd-picker-list">${listHtml}</div>
+                </div>
+              </div>
             `;
-          }).join("");
+          };
 
-          container.innerHTML = `
-            <div class="coria-attune-header-bar">
-              <div class="coria-attune-counter-box">
-                <div class="coria-attune-counter-text">
-                  <i class="fas fa-gem"></i>
-                  <strong>${usedCount} / ${totalCount}</strong> Slots de Sintonização Ocupados
+          const renderPaperDoll = () => {
+            const map = this.getSlotMap(actor);
+            const usedCount = Object.keys(map).length;
+            const totalCount = this.getTotalSlotCount();
+            const pct = Math.round((usedCount / Math.max(1, totalCount)) * 100);
+            const canEdit = Boolean(actor.isOwner);
+
+            const leftSlots = this.SLOTS.filter(s => s.side === "left");
+            const rightBodySlots = this.SLOTS.filter(s => s.side === "right");
+            const ringSlots = this.SLOTS.filter(s => s.side === "rings");
+            const trinketSlots = this.SLOTS.filter(s => s.side === "trinkets");
+            const w1Def = this.getSlotDef("weapon1");
+            const w2Def = this.getSlotDef("weapon2");
+
+            // Check Two-Handed weapon collapse on Main-Hand / Off-Hand!
+            const w1Item = actor.items?.get(map.weapon1 || pendingBySlot.weapon1 || "");
+            const w2Item = actor.items?.get(map.weapon2 || pendingBySlot.weapon2 || "");
+            const w1Is2H = this.isTwoHandedItem(w1Item);
+            const w2Is2H = !w1Is2H && this.isTwoHandedItem(w2Item);
+            const isTwoHandedCollapsed = w1Is2H || w2Is2H;
+            const active2HSlotDef = w2Is2H ? w2Def : w1Def;
+
+            const handsHtml = isTwoHandedCollapsed
+              ? `
+                  <div class="coria-pd-hands-row is-single-2h">
+                    ${renderSlotWidget(active2HSlotDef, map, { layout: "compact", labelInside: false, twoHandBadge: true })}
+                  </div>
+                `
+              : `
+                  <div class="coria-pd-hands-row">
+                    ${renderSlotWidget(w1Def, map, { layout: "compact", labelInside: false })}
+                    ${renderSlotWidget(w2Def, map, { layout: "compact", labelInside: false })}
+                  </div>
+                `;
+
+            container.innerHTML = `
+              <div class="coria-pd-topbar">
+                <div class="coria-pd-progress-group">
+                  <span class="coria-pd-counter-pill">
+                    <i class="fas fa-gem"></i>
+                    <strong>${usedCount}/${totalCount}</strong> Slots de Sintonização Ocupados
+                  </span>
+                  <div class="coria-pd-progress-bar">
+                    <div class="coria-pd-progress-fill" style="width: ${pct}%;"></div>
+                  </div>
                 </div>
-                <div class="coria-attune-progress-track">
-                  <div class="coria-attune-progress-fill" style="width: ${pct}%;"></div>
+                <div class="coria-pd-top-controls">
+                  <label class="coria-pd-show-all-lbl" title="Incluir equipamentos/armas sem a flag padrão 'Requires Attunement'">
+                    <input type="checkbox" class="coria-pd-show-all-chk" ${showAllItems ? "checked" : ""} />
+                    <span>Todos os itens</span>
+                  </label>
+                  ${
+                    canEdit
+                      ? `<button type="button" class="coria-pd-autosort-btn" title="Auto-alocar itens sintonizados nos slots correspondentes">
+                           <i class="fas fa-wand-magic-sparkles"></i> Auto
+                         </button>`
+                      : ""
+                  }
                 </div>
               </div>
-              <div class="coria-attune-header-controls">
-                <label class="coria-attune-toggle-all" title="Permite sintonizar qualquer equipamento, arma, loot ou carta homebrew mesmo sem a flag padrão 'Requires Attunement'">
-                  <input type="checkbox" class="coria-attune-show-all-chk" ${showAllItems ? "checked" : ""} />
-                  <span>Mostrar todos os equipamentos/itens</span>
-                </label>
-                ${
-                  canEdit
-                    ? `<button type="button" class="coria-attune-autosort-btn" title="Auto-alocar quaisquer itens sintonizados que estejam sem slot">
-                         <i class="fas fa-wand-magic-sparkles"></i> Auto-Organizar
-                       </button>`
-                    : ""
-                }
+
+              <div class="coria-pd-stage">
+                <svg class="coria-pd-arrows-svg" aria-hidden="true"></svg>
+
+                <div class="coria-pd-col-left">
+                  ${leftSlots.map(s => renderSlotWidget(s, map, { layout: "left" })).join("")}
+                </div>
+
+                <div class="coria-pd-col-center">
+                  <div class="coria-pd-figure-box">
+                    <div class="coria-pd-figure-aura"></div>
+                    <img class="coria-pd-idle-img" src="${idleProfile.img}" alt="${foundry.utils.escapeHTML(actor.name)}" />
+                  </div>
+                  <div class="coria-pd-hands-section">
+                    <div class="coria-pd-group-heading">
+                      ${isTwoHandedCollapsed ? "Two-Handed Weapon:" : "Main-Hand / Off-Hand:"}
+                    </div>
+                    ${handsHtml}
+                  </div>
+                </div>
+
+                <div class="coria-pd-col-right">
+                  <div class="coria-pd-right-body-slots">
+                    ${rightBodySlots.map(s => renderSlotWidget(s, map, { layout: "right" })).join("")}
+                  </div>
+
+                  <div class="coria-pd-right-cluster">
+                    <div class="coria-pd-group-heading">Rings:</div>
+                    <div class="coria-pd-cluster-pair">
+                      ${ringSlots.map(s => renderSlotWidget(s, map, { layout: "compact", labelInside: false })).join("")}
+                    </div>
+                  </div>
+
+                  <div class="coria-pd-right-cluster">
+                    <div class="coria-pd-group-heading">Trinkets:</div>
+                    <div class="coria-pd-cluster-pair">
+                      ${trinketSlots.map(s => renderSlotWidget(s, map, { layout: "compact", labelInside: false })).join("")}
+                    </div>
+                  </div>
+                </div>
+
+                ${renderPickerOverlay(activePickerSlotId, map)}
               </div>
-            </div>
-            ${highlightBannerHtml}
-            <div class="coria-attune-scroll-area">
-              ${groupsHtml}
-            </div>
-          `;
+            `;
 
-          // Wire events
-          const chk = container.querySelector(".coria-attune-show-all-chk");
-          chk?.addEventListener("change", () => {
-            showAllItems = Boolean(chk.checked);
-            renderBody();
-          });
+            // Draw callout SVG arrows once layout & Idle image settle
+            const redraw = () => this._drawPaperDollArrows(container, idleProfile);
+            requestAnimationFrame(redraw);
+            setTimeout(redraw, 60);
+            const idleImgEl = container.querySelector(".coria-pd-idle-img");
+            if (idleImgEl && !idleImgEl.complete) {
+              idleImgEl.addEventListener("load", redraw, { once: true });
+            }
 
-          const autoBtn = container.querySelector(".coria-attune-autosort-btn");
-          autoBtn?.addEventListener("click", async (ev) => {
-            ev.preventDefault();
-            await this.syncActorAttunementSlots(actor);
-            renderBody();
-          });
-
-          for (const link of container.querySelectorAll("[data-open-item]")) {
-            link.addEventListener("click", (ev) => {
-              ev.preventDefault();
-              const it = actor.items?.get(link.getAttribute("data-open-item"));
-              it?.sheet?.render?.(true);
-            });
-          }
-
-          for (const rmBtn of container.querySelectorAll("[data-clear-slot]")) {
-            rmBtn.addEventListener("click", async (ev) => {
-              ev.preventDefault();
-              const sId = rmBtn.getAttribute("data-clear-slot");
-              await this.clearSlot(actor, sId);
-              renderBody();
-            });
-          }
-
-          for (const asBtn of container.querySelectorAll("[data-assign-slot]")) {
-            asBtn.addEventListener("click", async (ev) => {
-              ev.preventDefault();
-              const sId = asBtn.getAttribute("data-assign-slot");
-              const sel = container.querySelector(`[data-slot-select="${sId}"]`);
-              const itemId = sel?.value || "";
-              if (!itemId) {
-                ui.notifications?.warn?.("Selecione um item na lista antes de clicar em Sintonizar.");
-                return;
+            if (typeof ResizeObserver === "function") {
+              if (resizeObs) resizeObs.disconnect();
+              const stageEl = container.querySelector(".coria-pd-stage");
+              if (stageEl) {
+                resizeObs = new ResizeObserver(() => redraw());
+                resizeObs.observe(stageEl);
               }
-              await this.assignItemToSlot(actor, sId, itemId);
-              highlightItemId = "";
-              renderBody();
-            });
-          }
-        };
+            }
 
-        renderBody();
+            // Wire controls
+            const chk = container.querySelector(".coria-pd-show-all-chk");
+            chk?.addEventListener("change", () => {
+              showAllItems = Boolean(chk.checked);
+              renderPaperDoll();
+            });
+
+            const autoBtn = container.querySelector(".coria-pd-autosort-btn");
+            autoBtn?.addEventListener("click", async (ev) => {
+              ev.preventDefault();
+              await this.syncActorAttunementSlots(actor);
+              renderPaperDoll();
+            });
+
+            // Clicking [+] (or occupied icon) opens item picker; right-clicking an occupied icon opens the Item sheet
+            for (const box of container.querySelectorAll("[data-open-picker]")) {
+              const sId = box.getAttribute("data-open-picker");
+              box.addEventListener("click", (ev) => {
+                ev.preventDefault();
+                ev.stopPropagation();
+                if (!canEdit) return;
+                activePickerSlotId = sId;
+                renderPaperDoll();
+              });
+              box.addEventListener("contextmenu", (ev) => {
+                const itId = map[sId] || pendingBySlot[sId];
+                if (!itId) return;
+                ev.preventDefault();
+                ev.stopPropagation();
+                actor.items?.get(itId)?.sheet?.render?.(true);
+              });
+            }
+
+            // Clicking item name opens Item sheet
+            for (const link of container.querySelectorAll("[data-open-item]")) {
+              link.addEventListener("click", (ev) => {
+                ev.preventDefault();
+                ev.stopPropagation();
+                const it = actor.items?.get(link.getAttribute("data-open-item"));
+                it?.sheet?.render?.(true);
+              });
+            }
+
+            // Clicking purple "Sintonizar" button
+            for (const attBtn of container.querySelectorAll("[data-attune-slot]")) {
+              attBtn.addEventListener("click", async (ev) => {
+                ev.preventDefault();
+                ev.stopPropagation();
+                const sId = attBtn.getAttribute("data-attune-slot");
+                const chosenId = pendingBySlot[sId];
+                if (!chosenId) {
+                  // If nothing picked yet, open the [+] picker directly for effortless UX!
+                  activePickerSlotId = sId;
+                  renderPaperDoll();
+                  return;
+                }
+                const ok = await this.assignItemToSlot(actor, sId, chosenId);
+                if (ok) {
+                  delete pendingBySlot[sId];
+                  if (sId === "weapon1" || sId === "weapon2") {
+                    const it = actor.items?.get(chosenId);
+                    if (this.isTwoHandedItem(it)) {
+                      delete pendingBySlot.weapon1;
+                      delete pendingBySlot.weapon2;
+                    }
+                  }
+                }
+                renderPaperDoll();
+              });
+            }
+
+            // Clicking red "Quebrar Sintonização" button
+            for (const rmBtn of container.querySelectorAll("[data-clear-slot]")) {
+              rmBtn.addEventListener("click", async (ev) => {
+                ev.preventDefault();
+                ev.stopPropagation();
+                const sId = rmBtn.getAttribute("data-clear-slot");
+                await this.clearSlot(actor, sId);
+                delete pendingBySlot[sId];
+                renderPaperDoll();
+              });
+            }
+
+            // Picker overlay events
+            const backdrop = container.querySelector(".coria-pd-picker-backdrop");
+            const closePickerBtn = container.querySelector(".coria-pd-picker-close");
+            closePickerBtn?.addEventListener("click", (ev) => {
+              ev.preventDefault();
+              activePickerSlotId = null;
+              renderPaperDoll();
+            });
+            backdrop?.addEventListener("click", (ev) => {
+              if (ev.target === backdrop) {
+                activePickerSlotId = null;
+                renderPaperDoll();
+              }
+            });
+
+            for (const pickBtn of container.querySelectorAll("[data-pick-item]")) {
+              pickBtn.addEventListener("click", async (ev) => {
+                ev.preventDefault();
+                ev.stopPropagation();
+                const sId = pickBtn.getAttribute("data-pick-slot");
+                const itId = pickBtn.getAttribute("data-pick-item");
+                activePickerSlotId = null;
+
+                // If slot already had an attuned item and the user swapped to a different item, clear old attunement & stage new item
+                if (map[sId] && map[sId] !== itId) {
+                  await this.clearSlot(actor, sId);
+                }
+                // Clear pending if same item was pending in another slot
+                for (const [k, v] of Object.entries(pendingBySlot)) {
+                  if (v === itId) delete pendingBySlot[k];
+                }
+                pendingBySlot[sId] = itId;
+                renderPaperDoll();
+              });
+            }
+          };
+
+          renderPaperDoll();
         }
       },
       {
-        classes: ["coria-attune-dialog", "flinn-hs-dialog"],
-        width: 820,
-        height: 680,
+        classes: ["coria-dialog", "coria-attune-dialog"],
+        width: 980,
+        height: 700,
         resizable: true
       }
     );

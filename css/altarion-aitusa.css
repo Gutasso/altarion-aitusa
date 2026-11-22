@@ -1677,13 +1677,26 @@
   --button-focus-outline-color: transparent !important;
 }
 
-.coria-dialog.flinn-hs-dialog .window-header button:hover,
+.coria-dialog.flinn-hs-dialog .window-header button:not([data-action="close"]):not(.close):hover,
 .coria-dialog.flinn-hs-dialog .window-header button:focus,
 .coria-dialog.flinn-hs-dialog .window-header button:focus-visible,
 .coria-dialog.flinn-hs-dialog .window-header button:active {
   box-shadow: none !important;
   text-shadow: none !important;
   background: rgba(0, 0, 0, 0.14) !important;
+}
+
+/* Restore crisp red hover highlight ONLY on the top-right [X] close button in window headers */
+.coria-dialog.flinn-hs-dialog .window-header button[data-action="close"]:hover,
+.coria-dialog.flinn-hs-dialog .window-header .header-control.close:hover,
+.coria-dialog.flinn-hs-dialog .window-header a.header-button.close:hover,
+.coria-dialog.coria-attune-dialog .window-header button[data-action="close"]:hover,
+.coria-dialog.coria-attune-dialog .window-header .header-control.close:hover {
+  background: rgba(220, 38, 38, 0.88) !important;
+  color: #ffffff !important;
+  border-radius: 4px !important;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.7) !important;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.45) !important;
 }
 
 .coria-dialog.flinn-hs-dialog .window-header {
@@ -3033,26 +3046,32 @@
 }
 
 .coria-attunement-slots-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 11px;
-  border-radius: 6px;
-  border: 1px solid rgba(168, 85, 247, 0.65);
-  background: linear-gradient(135deg, #581c87 0%, #3b0764 100%);
-  color: #f8fafc !important;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  white-space: nowrap;
-  flex-shrink: 0;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
-  transition: transform 0.12s ease, filter 0.12s ease;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  padding: 6px 13px !important;
+  width: auto !important;
+  height: auto !important;
+  border-radius: 7px !important;
+  border: 1.5px solid #a78bfa !important;
+  background: linear-gradient(135deg, rgba(109, 40, 217, 0.94) 0%, rgba(59, 7, 100, 0.96) 100%) !important;
+  color: #f5f3ff !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 0 8px rgba(167, 139, 250, 0.25) !important;
+  outline: none !important;
+  transition: transform 0.14s ease, filter 0.14s ease, box-shadow 0.14s ease !important;
 }
 
 .coria-attunement-slots-btn:hover {
-  filter: brightness(1.12);
-  transform: translateY(-1px);
+  filter: brightness(1.14) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), 0 0 14px rgba(167, 139, 250, 0.5) !important;
 }
 
 .coria-attune-summary-pills {
@@ -3101,227 +3120,665 @@
   font-weight: 700;
 }
 
-/* DialogV2 Window Body */
-.coria-attune-root {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  height: 100%;
-  min-height: 520px;
-  color: var(--coria-win-text, #1f1209);
+/* ============================================================================
+ * BALDUR'S GATE 3 PAPER-DOLL ATTUNEMENT DIALOG (CoriaAttunementSlots)
+ * ============================================================================ */
+.coria-dialog.coria-attune-dialog {
+  background: var(--coria-at-win-bg, linear-gradient(135deg, #181426 0%, #0d0b17 100%)) !important;
+  border: 2px solid var(--coria-at-border, rgba(56, 189, 248, 0.5)) !important;
+  color: var(--coria-at-text, #f1f5f9) !important;
+  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.85) !important;
 }
 
-.coria-attune-header-bar {
+.coria-dialog.coria-attune-dialog .window-header {
+  background: var(--coria-at-header-bg, linear-gradient(135deg, #2a1d44 0%, #191229 100%)) !important;
+  border-bottom: 1.5px solid var(--coria-at-border, rgba(56, 189, 248, 0.45)) !important;
+  color: var(--coria-at-text, #f1f5f9) !important;
+}
+
+.coria-dialog.coria-attune-dialog .window-header .window-title,
+.coria-dialog.coria-attune-dialog .window-header button {
+  color: var(--coria-at-text, #f1f5f9) !important;
+}
+
+.coria-dialog.coria-attune-dialog .window-content {
+  background: transparent !important;
+  padding: 10px 14px 8px 14px !important;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden !important;
+}
+
+.coria-dialog.coria-attune-dialog .dialog-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.coria-dialog.coria-attune-dialog .dialog-buttons {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--coria-at-border, rgba(56, 189, 248, 0.3));
+}
+
+.coria-pd-root {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-height: 0;
+  color: var(--coria-at-text, #f1f5f9);
+}
+
+/* Top Progress Bar Row */
+.coria-pd-topbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 10px 12px;
+  padding: 7px 12px;
   border-radius: 8px;
-  background: var(--coria-win-panel-bg, #cbbca5);
-  border: 1px solid var(--coria-win-border, rgba(74, 48, 25, 0.38));
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--coria-at-border, rgba(56, 189, 248, 0.42));
 }
 
-.coria-attune-counter-box {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  min-width: 240px;
-  flex: 1 1 240px;
-}
-
-.coria-attune-counter-text {
-  font-size: 13px;
-  font-weight: 600;
+.coria-pd-progress-group {
   display: flex;
   align-items: center;
+  gap: 12px;
+  flex: 1 1 360px;
+}
+
+.coria-pd-counter-pill {
+  display: inline-flex;
+  align-items: center;
   gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--coria-at-text, #f1f5f9);
 }
 
-.coria-attune-counter-text i {
-  color: #6b21a8;
+.coria-pd-counter-pill i {
+  color: var(--coria-at-accent, #38bdf8);
 }
 
-.coria-attune-progress-track {
-  height: 8px;
+.coria-pd-progress-bar {
+  flex: 1 1 180px;
+  height: 12px;
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.18);
+  background: rgba(0, 0, 0, 0.55);
+  border: 1.5px solid var(--coria-at-border, rgba(56, 189, 248, 0.55));
   overflow: hidden;
-  border: 1px solid rgba(15, 23, 42, 0.22);
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.7);
 }
 
-.coria-attune-progress-fill {
+.coria-pd-progress-fill {
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, #7e22ce 0%, #c084fc 100%);
-  transition: width 0.2s ease;
+  background: var(--coria-at-accent, #38bdf8);
+  box-shadow: 0 0 10px var(--coria-at-glow, rgba(56, 189, 248, 0.45));
+  transition: width 0.22s ease;
 }
 
-.coria-attune-header-controls {
+.coria-pd-top-controls {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   gap: 10px;
 }
 
-.coria-attune-toggle-all {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.coria-attune-autosort-btn {
+.coria-pd-show-all-lbl {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 5px 10px;
-  border-radius: 6px;
-  border: 1px solid rgba(107, 33, 168, 0.55);
-  background: linear-gradient(135deg, #6b21a8 0%, #4c1d95 100%);
-  color: #f8fafc !important;
-  font-size: 12px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--coria-at-text, #f1f5f9);
+}
+
+.coria-pd-autosort-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  border-radius: 5px;
+  border: 1px solid var(--coria-at-border, rgba(56, 189, 248, 0.5));
+  background: var(--coria-at-attune-bg, linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%));
+  color: #ffffff !important;
+  font-size: 11.5px;
   font-weight: 700;
   cursor: pointer;
 }
 
-.coria-attune-autosort-btn:hover {
-  filter: brightness(1.1);
+.coria-pd-autosort-btn:hover {
+  filter: brightness(1.12);
 }
 
-.coria-attune-alert-banner {
+/* Main 3-Column Paper-Doll Stage */
+.coria-pd-stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 245px minmax(260px, 1fr) 295px;
+  gap: 10px;
+  align-items: stretch;
+  padding: 4px 2px;
+}
+
+.coria-pd-arrows-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+  overflow: visible;
+}
+
+.coria-pd-col-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 10px 4px 116px 4px;
+  gap: 10px;
+  z-index: 3;
+}
+
+.coria-pd-col-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 0;
+  z-index: 1;
+}
+
+.coria-pd-figure-box {
+  position: relative;
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 360px;
+  max-height: 455px;
   display: flex;
   align-items: center;
+  justify-content: center;
+}
+
+.coria-pd-figure-aura {
+  position: absolute;
+  width: 72%;
+  height: 76%;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--coria-at-glow, rgba(56, 189, 248, 0.22)) 0%, transparent 72%);
+  filter: blur(16px);
+  pointer-events: none;
+}
+
+.coria-pd-idle-img {
+  position: relative;
+  z-index: 1;
+  max-height: 100%;
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border: none !important;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.72));
+  user-select: none;
+}
+
+.coria-pd-col-right {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 10px 4px 8px 4px;
   gap: 8px;
-  padding: 8px 12px;
-  border-radius: 6px;
-  background: rgba(180, 83, 9, 0.16);
-  border: 1px solid rgba(180, 83, 9, 0.55);
-  font-size: 12.5px;
-  font-weight: 600;
+  z-index: 3;
 }
 
-.coria-attune-alert-banner i {
-  color: #b45309;
-  font-size: 15px;
-}
-
-.coria-attune-scroll-area {
-  flex: 1 1 auto;
-  overflow-y: auto;
-  padding-right: 4px;
+.coria-pd-right-body-slots {
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
 
-.coria-attune-group-title {
-  margin: 0 0 8px 0;
-  padding-bottom: 4px;
-  font-size: 13px;
+.coria-pd-right-cluster {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid var(--coria-at-border, rgba(56, 189, 248, 0.3));
+}
+
+.coria-pd-group-heading {
+  font-size: 11.5px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #6b21a8;
-  border-bottom: 1.5px solid rgba(107, 33, 168, 0.35);
-  display: flex;
-  align-items: center;
+  color: var(--coria-at-accent, #38bdf8);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+}
+
+.coria-pd-cluster-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
 }
 
-.coria-attune-grid {
+/* Main-Hand / Off-Hand Bottom Section */
+.coria-pd-hands-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.24);
+  border: 1px solid var(--coria-at-border, rgba(56, 189, 248, 0.32));
+  z-index: 3;
+}
+
+.coria-pd-hands-row {
+  width: 100%;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
 
-.coria-attune-slot-card {
+.coria-pd-hands-row.is-single-2h {
+  display: flex;
+  justify-content: center;
+}
+
+.coria-pd-hands-row.is-single-2h .coria-pd-slot-compact {
+  min-width: 210px;
+  max-width: 260px;
+}
+
+/* Individual Slot Units */
+.coria-pd-slot-unit {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 9px 10px;
-  border-radius: 7px;
-  background: var(--coria-win-row-bg, #d0c3ae);
-  border: 1px solid var(--coria-win-border, rgba(74, 48, 25, 0.35));
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  gap: 4px;
 }
 
-.coria-attune-slot-card.is-occupied {
-  border-color: rgba(107, 33, 168, 0.65);
-  box-shadow: inset 3px 0 0 #7e22ce;
+.coria-pd-slot-unit.is-left {
+  align-items: flex-end;
 }
 
-.coria-attune-slot-card.is-highlighted {
-  border-color: #d97706;
-  box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.35);
+.coria-pd-slot-unit.is-right {
+  align-items: flex-start;
 }
 
-.coria-attune-slot-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-}
-
-.coria-attune-slot-title {
-  font-size: 12.5px;
+.coria-pd-slot-label {
+  font-size: 11.5px;
   font-weight: 800;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+  letter-spacing: 0.03em;
+  color: var(--coria-at-accent, #38bdf8);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
 }
 
-.coria-attune-slot-title i {
-  color: #6b21a8;
-  width: 15px;
-  text-align: center;
-}
-
-.coria-attune-status-badge {
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  padding: 2px 6px;
-  border-radius: 999px;
-}
-
-.coria-attune-status-badge.is-active {
-  background: rgba(107, 33, 168, 0.18);
-  color: #581c87;
-  border: 1px solid rgba(107, 33, 168, 0.4);
-}
-
-.coria-attune-status-badge.is-empty {
-  background: rgba(15, 23, 42, 0.1);
-  color: var(--coria-win-text-muted, #473320);
-  border: 1px solid rgba(15, 23, 42, 0.18);
-}
-
-.coria-attune-slot-hint {
-  font-size: 11px;
-  opacity: 0.78;
-}
-
-.coria-attune-slot-item-row {
+.coria-pd-slot-row {
   display: flex;
   align-items: center;
   gap: 8px;
+  max-width: 100%;
 }
 
-.coria-attune-item-img {
-  width: 36px;
-  height: 36px;
+.coria-pd-slot-side-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  max-width: 170px;
+}
+
+.coria-pd-slot-side-col.is-left {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.coria-pd-slot-side-col.is-right {
+  align-items: flex-start;
+  text-align: left;
+}
+
+/* [+] / Item Icon Square Button (matching Kyrion's "Alimentar a Fome" style) */
+.coria-pd-plus-box {
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border-radius: 8px;
+  border: 2px dashed var(--coria-at-border, rgba(56, 189, 248, 0.6));
+  background: var(--coria-at-slot-bg, linear-gradient(135deg, #261f3d 0%, #18132a 100%));
+  color: var(--coria-at-accent, #38bdf8);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  overflow: hidden;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.45), inset 0 0 10px rgba(0, 0, 0, 0.35);
+  transition: transform 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease;
+}
+
+.coria-pd-plus-box:hover:not(:disabled) {
+  transform: scale(1.06);
+  border-color: var(--coria-at-accent, #38bdf8);
+  box-shadow: 0 0 14px var(--coria-at-glow, rgba(56, 189, 248, 0.55));
+}
+
+.coria-pd-plus-box.is-occupied {
+  border-style: solid;
+  border-color: var(--coria-at-accent, #38bdf8);
+}
+
+.coria-pd-plus-box.is-attuned {
+  box-shadow: 0 0 12px var(--coria-at-glow, rgba(56, 189, 248, 0.55)), 0 3px 10px rgba(0, 0, 0, 0.55);
+}
+
+.coria-pd-plus-box.is-pending {
+  border-style: dashed;
+  border-color: #facc15;
+}
+
+.coria-pd-plus-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: none !important;
+}
+
+.coria-pd-plus-sign {
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--coria-at-accent, #38bdf8);
+  text-shadow: 0 0 8px var(--coria-at-glow, rgba(56, 189, 248, 0.55));
+}
+
+.coria-pd-item-name {
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--coria-at-text, #f1f5f9);
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.coria-pd-item-name:hover:not(.is-empty-txt) {
+  text-decoration: underline;
+  color: var(--coria-at-accent, #38bdf8);
+}
+
+.coria-pd-item-name.is-empty-txt {
+  font-size: 10.5px;
+  font-weight: 500;
+  font-style: italic;
+  color: var(--coria-at-text-muted, rgba(226, 232, 240, 0.65));
+  cursor: default;
+}
+
+.coria-pd-item-name.is-pending {
+  color: #fde047;
+}
+
+.coria-pd-2h-tag {
+  display: inline-block;
+  padding: 0 4px;
+  border-radius: 3px;
+  font-size: 9.5px;
+  font-weight: 800;
+  background: rgba(250, 204, 21, 0.22);
+  border: 1px solid rgba(250, 204, 21, 0.55);
+  color: #fef08a;
+  margin-left: 3px;
+}
+
+/* Sintonizar / Quebrar Sintonização Buttons */
+.coria-pd-slot-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.coria-pd-attune-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  height: 24px;
+  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: var(--coria-at-attune-bg, linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%));
+  color: #ffffff !important;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
+  transition: filter 0.12s ease, transform 0.12s ease;
+}
+
+.coria-pd-attune-btn.is-idle {
+  opacity: 0.78;
+}
+
+.coria-pd-attune-btn.is-ready {
+  opacity: 1;
+  box-shadow: 0 0 10px rgba(250, 204, 21, 0.55);
+  border-color: #fde047;
+}
+
+.coria-pd-attune-btn:hover:not(:disabled) {
+  filter: brightness(1.16);
+  transform: translateY(-1px);
+}
+
+.coria-pd-unattune-btn {
+  width: 28px;
+  height: 24px;
+  padding: 0;
+  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: var(--coria-at-unattune-bg, linear-gradient(135deg, #dc2626 0%, #991b1b 100%));
+  color: #ffffff !important;
+  font-size: 11.5px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
+  transition: filter 0.12s ease, transform 0.12s ease;
+}
+
+.coria-pd-unattune-btn:hover:not(:disabled) {
+  filter: brightness(1.18);
+  transform: translateY(-1px);
+}
+
+/* Compact Slot Cards (Rings, Trinkets, Main/Off-Hand) */
+.coria-pd-slot-compact {
+  display: flex;
+  flex-direction: column;
+  padding: 4px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  min-width: 0;
+}
+
+.coria-pd-compact-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.coria-pd-slot-compact .coria-pd-plus-box {
+  width: 40px;
+  height: 40px;
+}
+
+.coria-pd-slot-compact .coria-pd-plus-sign {
+  font-size: 21px;
+}
+
+.coria-pd-compact-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.coria-pd-slot-compact .coria-pd-attune-btn {
+  padding: 2px 6px;
+  height: 21px;
+  font-size: 10px;
+}
+
+.coria-pd-slot-compact .coria-pd-unattune-btn {
+  width: 24px;
+  height: 21px;
+  font-size: 10.5px;
+}
+
+/* Item Picker Modal Overlay (styled like Kyrion's "Alimentar a Fome" item list!) */
+.coria-pd-picker-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  background: rgba(6, 8, 18, 0.72);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.coria-pd-picker-modal {
+  width: 440px;
+  max-width: 96%;
+  max-height: 88%;
+  display: flex;
+  flex-direction: column;
+  border-radius: 10px;
+  background: var(--coria-at-win-bg, #161224);
+  border: 2px solid var(--coria-at-accent, #38bdf8);
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.85);
+  overflow: hidden;
+}
+
+.coria-pd-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 12px;
+  background: var(--coria-at-header-bg, #24193a);
+  border-bottom: 1px solid var(--coria-at-border, rgba(56, 189, 248, 0.4));
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--coria-at-text, #f1f5f9);
+}
+
+.coria-pd-picker-header > span > i {
+  color: var(--coria-at-accent, #38bdf8);
+  margin-right: 5px;
+}
+
+.coria-pd-picker-close {
+  width: 26px;
+  height: 26px;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 5px;
+  border: none !important;
+  background: transparent;
+  color: var(--coria-at-text, #f1f5f9) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.coria-pd-picker-close i {
+  margin: 0 !important;
+  padding: 0 !important;
+  color: inherit !important;
+  line-height: 1 !important;
+  font-size: 13px !important;
+}
+
+.coria-pd-picker-close:hover {
+  background: rgba(220, 38, 38, 0.88) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.65) !important;
+}
+
+.coria-pd-picker-list {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.coria-pd-picker-section-lbl {
+  font-size: 10.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--coria-at-accent, #38bdf8);
+  margin: 6px 0 2px 2px;
+}
+
+.coria-pd-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 9px;
+  border-radius: 7px;
+  border: 1px solid var(--coria-at-border, rgba(56, 189, 248, 0.28));
+  background: var(--coria-at-slot-bg, rgba(30, 24, 52, 0.85));
+  color: var(--coria-at-text, #f1f5f9);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.1s ease, border-color 0.1s ease, filter 0.1s ease;
+}
+
+.coria-pd-picker-item:hover {
+  border-color: var(--coria-at-accent, #38bdf8);
+  filter: brightness(1.16);
+  transform: translateX(2px);
+}
+
+.coria-pd-picker-item img {
+  width: 34px;
+  height: 34px;
   border-radius: 5px;
   object-fit: cover;
-  border: 1.5px solid #7e22ce;
+  border: 1px solid var(--coria-at-accent, #38bdf8);
   flex-shrink: 0;
-  background: rgba(0, 0, 0, 0.25);
 }
 
-.coria-attune-item-info {
+.coria-pd-picker-meta {
   flex: 1 1 auto;
   min-width: 0;
   display: flex;
@@ -3329,106 +3786,365 @@
   gap: 2px;
 }
 
-.coria-attune-item-name {
-  font-size: 13px;
-  font-weight: 800;
-  color: var(--coria-win-text, #1f1209);
-  text-decoration: none;
+.coria-pd-picker-meta strong {
+  font-size: 12.5px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  cursor: pointer;
 }
 
-.coria-attune-item-name:hover {
-  text-decoration: underline;
-  color: #6b21a8;
-}
-
-.coria-attune-item-meta {
+.coria-pd-picker-meta span {
   display: flex;
-  gap: 5px;
   flex-wrap: wrap;
+  gap: 4px;
+  font-size: 10px;
 }
 
-.coria-attune-mini-tag {
-  font-size: 10.5px;
+.coria-pd-picker-meta em {
+  font-style: normal;
+  padding: 1px 5px;
+  border-radius: 4px;
   font-weight: 700;
-  color: #166534;
 }
 
-.coria-attune-mini-tag.is-muted {
-  color: var(--coria-win-text-muted, #574534);
-  font-weight: 600;
+.coria-pd-badge-rec {
+  background: rgba(34, 197, 94, 0.22);
+  color: #86efac;
+  border: 1px solid rgba(34, 197, 94, 0.45);
 }
 
-.coria-attune-remove-btn {
-  width: 30px;
-  height: 30px;
+.coria-pd-badge-2h {
+  background: rgba(250, 204, 21, 0.2);
+  color: #fde047;
+  border: 1px solid rgba(250, 204, 21, 0.45);
+}
+
+.coria-pd-badge-att {
+  background: rgba(168, 85, 247, 0.24);
+  color: #e9d5ff;
+  border: 1px solid rgba(168, 85, 247, 0.45);
+}
+
+.coria-pd-badge-free {
+  background: rgba(148, 163, 184, 0.18);
+  color: #cbd5e1;
+}
+
+.coria-pd-picker-add-ic {
+  font-size: 16px;
+  color: var(--coria-at-accent, #38bdf8);
+  flex-shrink: 0;
+}
+
+.coria-pd-picker-empty {
+  text-align: center;
+  padding: 22px 12px;
+  font-size: 12.5px;
+  opacity: 0.82;
+}
+
+/* ============================================================================
+ * DEDICATED ATTUNEMENT PAPER-DOLL THEME PICKER WITH REAL-TIME LIVE PREVIEW
+ * ============================================================================ */
+.coria-at-theme-editor {
+  display: grid;
+  grid-template-columns: 330px 1fr;
+  gap: 12px;
+  height: 100%;
+  min-height: 460px;
+}
+
+.coria-at-tp-preview-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.coria-at-tp-preview-title {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #38bdf8;
+  letter-spacing: 0.04em;
+}
+
+.coria-at-tp-live-mock {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--coria-at-win-bg, #181426);
+  border: 2px solid var(--coria-at-border, rgba(56, 189, 248, 0.55));
+  color: var(--coria-at-text, #f1f5f9);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65);
+}
+
+.coria-at-tp-live-mock .mock-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 9px;
+  background: var(--coria-at-header-bg, #2a1d44);
+  border-bottom: 1px solid var(--coria-at-border, rgba(56, 189, 248, 0.45));
+  font-size: 10.5px;
+  font-weight: 800;
+}
+
+.coria-at-tp-live-mock .mock-x {
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(220, 38, 38, 0.85);
+  color: #fff;
+  font-size: 13px;
+}
+
+.coria-at-tp-live-mock .mock-topbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 9px;
+  font-size: 10px;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.coria-at-tp-live-mock .mock-progress {
+  flex: 1;
+  height: 7px;
+  border-radius: 99px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--coria-at-border);
+  overflow: hidden;
+}
+
+.coria-at-tp-live-mock .mock-progress-fill {
+  width: 45%;
+  height: 100%;
+  background: var(--coria-at-accent);
+}
+
+.coria-at-tp-live-mock .mock-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 96px 1fr 96px;
+  align-items: center;
+  padding: 10px 6px;
+  gap: 4px;
+}
+
+.coria-at-tp-live-mock .mock-col-left,
+.coria-at-tp-live-mock .mock-col-right {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.coria-at-tp-live-mock .mock-slot-block {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.coria-at-tp-live-mock .mock-slot-label {
+  font-size: 9.5px;
+  font-weight: 800;
+  color: var(--coria-at-accent);
+}
+
+.coria-at-tp-live-mock .mock-slot-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.coria-at-tp-live-mock .mock-plus-box {
+  width: 24px;
+  height: 24px;
   border-radius: 5px;
-  border: 1px solid rgba(185, 28, 28, 0.55);
-  background: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%);
-  color: #fff !important;
-  cursor: pointer;
+  border: 1.5px solid var(--coria-at-accent);
+  background: var(--coria-at-slot-bg);
+  color: var(--coria-at-accent);
+  font-weight: 900;
+  font-size: 13px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 
-.coria-attune-remove-btn:hover {
-  filter: brightness(1.15);
+.coria-at-tp-live-mock .mock-btn-attune {
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: var(--coria-at-attune-bg);
+  color: #fff;
+  font-size: 8.5px;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
-.coria-attune-assign-row {
+.coria-at-tp-live-mock .mock-btn-unattune {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--coria-at-unattune-bg);
+  color: #fff;
+  font-size: 9px;
+}
+
+.coria-at-tp-live-mock .mock-item-name {
+  font-size: 8.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.coria-at-tp-live-mock .mock-center {
+  position: relative;
+  height: 220px;
   display: flex;
   align-items: center;
+  justify-content: center;
+}
+
+.coria-at-tp-live-mock .mock-arrows {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.coria-at-tp-live-mock .mock-idle-img {
+  max-height: 205px;
+  max-width: 100%;
+  object-fit: contain;
+  border: none !important;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.65));
+}
+
+.coria-at-tp-controls-pane {
+  overflow-y: auto;
+  padding-right: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.coria-at-tp-inline-colors {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.coria-at-tp-single {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  background: rgba(10, 14, 24, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  cursor: pointer;
+}
+
+.coria-at-tp-single span {
+  display: flex;
+  flex-direction: column;
+}
+
+.coria-at-tp-single strong {
+  font-size: 11.5px;
+  color: #f8fafc;
+}
+
+.coria-at-tp-single small {
+  font-size: 10px;
+  color: #94a3b8;
+}
+
+.coria-at-tp-single input[type="color"] {
+  width: 38px;
+  height: 28px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.coria-at-tp-sec {
+  padding: 8px 10px;
+  border-radius: 7px;
+  background: rgba(10, 14, 24, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.coria-at-tp-sec-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.coria-at-tp-sec-head strong {
+  font-size: 12px;
+  color: #f8fafc;
+}
+
+.coria-at-tp-hint {
+  font-size: 10.5px;
+  color: #94a3b8;
+}
+
+.coria-at-tp-modes {
+  display: flex;
   gap: 6px;
 }
 
-.coria-attune-select {
-  flex: 1 1 auto;
-  min-width: 0;
-  height: 28px;
-  padding: 2px 6px;
-  border-radius: 5px;
-  font-size: 11.5px;
-  background: var(--coria-win-input-bg, rgba(255, 255, 255, 0.65));
-  color: var(--coria-win-text, #1f1209);
-  border: 1px solid var(--coria-win-border, rgba(74, 48, 25, 0.4));
-}
-
-.coria-attune-assign-btn {
-  height: 28px;
-  padding: 0 9px;
-  border-radius: 5px;
-  border: 1px solid rgba(107, 33, 168, 0.6);
-  background: linear-gradient(135deg, #6b21a8 0%, #4c1d95 100%);
-  color: #f8fafc !important;
-  font-size: 11.5px;
-  font-weight: 700;
-  cursor: pointer;
-  white-space: nowrap;
-  flex-shrink: 0;
+.coria-at-tp-modes label {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-}
-
-.coria-attune-assign-btn:disabled {
-  opacity: 0.48;
-  cursor: not-allowed;
-}
-
-.coria-attune-assign-btn:not(:disabled):hover {
-  filter: brightness(1.12);
-}
-
-.coria-attune-readonly-note {
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #e0f2fe;
   font-size: 11px;
-  font-style: italic;
-  opacity: 0.7;
+  font-weight: 700;
+  cursor: pointer;
 }
+
+.coria-at-tp-pickers {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.coria-at-tp-pickers label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #bae6fd;
+}
+
+.coria-at-tp-pickers input[type="color"] {
+  flex: 1;
+  height: 26px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+}
+
 
 
 

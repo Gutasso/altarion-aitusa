@@ -665,7 +665,7 @@ export class ParvaManager {
         actorUpdates["system.attributes.movement.swim"] = 40;
       }
       if (actor.system.traits?.dr) {
-        const drSet = new Set(Array.from(actor.system.traits.dr.value || []));
+        const drSet = new Set(Array.from(actor._source?.system?.traits?.dr?.value || []));
         let drChanged = false;
         for (const d of ["necrotic", "radiant", ...(warlockLevel >= 6 ? ["cold"] : [])]) {
           if (!drSet.has(d)) {

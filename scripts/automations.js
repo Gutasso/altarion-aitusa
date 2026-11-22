@@ -3292,6 +3292,79 @@ export class AltarionAutomationManager {
         if (isConcSpiritShroud && parentActor.isOwner) {
           await this.removeStatusEffect(parentActor, "spirit-shroud");
         }
+
+        // 5. Absorb Elements removed: Guarantee temporary elemental resistance is completely removed
+        //    (clean any leaked element in `_source.system.traits.dr.value` if the actor didn't permanently have it before,
+        //    and remove any duplicate Absorb Elements effects on the actor!)
+        const isAbsorbElementsDel =
+          Boolean(flags.isAbsorbElementsEffect) ||
+          Boolean(statuses.has?.("absorb-elements")) ||
+          flags.statusId === "absorb-elements" ||
+          delNameLower.startsWith("absorb elements");
+        if (isAbsorbElementsDel && parentActor.isOwner) {
+          const elemKey = String(
+            flags.elementType ||
+              (effect.changes || []).find(c => c?.key === "system.traits.dr.value")?.value ||
+              ""
+          )
+            .trim()
+            .toLowerCase();
+          const hadPermanentBefore = Boolean(flags.hadPermanentDrBefore);
+
+          // Remove any duplicate residual Absorb Elements effects on the same actor
+          const dupAbsorbIds = parentActor.effects
+            .filter(
+              e =>
+                e.id !== effect.id &&
+                (e.flags?.["altarion-aitusa"]?.isAbsorbElementsEffect ||
+                  e.statuses?.has?.("absorb-elements") ||
+                  e.flags?.["altarion-aitusa"]?.statusId === "absorb-elements" ||
+                  String(e.name || "").trim().toLowerCase().startsWith("absorb elements"))
+            )
+            .map(e => e.id);
+          if (dupAbsorbIds.length > 0) {
+            await this.safeDeleteActorEffects(parentActor, dupAbsorbIds);
+          }
+
+          // Check whether `elemKey` leaked into `_source.system.traits.dr.value` and remove it unless innate/permanent
+          if (elemKey && !hadPermanentBefore) {
+            const innatePermanentDr = new Set();
+            if (this.isAltarion(parentActor) || this.isAitusa(parentActor)) innatePermanentDr.add("force");
+            if (this.isKyrion(parentActor)) {
+              innatePermanentDr.add("fire");
+              innatePermanentDr.add("poison");
+            }
+            if (this.isFlinn(parentActor)) {
+              innatePermanentDr.add("necrotic");
+              innatePermanentDr.add("radiant");
+            }
+            if (this.isParva(parentActor)) {
+              innatePermanentDr.add("necrotic");
+              innatePermanentDr.add("radiant");
+              const wLvl =
+                Number(
+                  parentActor.items.find(i => i.type === "class" && i.name?.toLowerCase().includes("warlock"))?.system
+                    ?.levels || 0
+                );
+              if (wLvl >= 6) innatePermanentDr.add("cold");
+            }
+
+            const srcDr = Array.from(parentActor._source?.system?.traits?.dr?.value || []);
+            if (srcDr.includes(elemKey) && !innatePermanentDr.has(elemKey)) {
+              const cleanedDr = srcDr.filter(v => v !== elemKey);
+              await parentActor.update(
+                { "system.traits.dr.value": cleanedDr },
+                { altarionBypassWard: true, coriaDamageReactionInternal: true }
+              );
+            }
+          }
+
+          // Re-render open sheet so the removed resistance disappears visually right away
+          try {
+            parentActor.prepareData?.();
+            if (parentActor.sheet?.rendered) parentActor.sheet.render(false);
+          } catch (_e) {}
+        }
       } catch (err) {
         console.warn("[Altarion & Aitusa] Error in deleteActiveEffect hook:", err);
       }
@@ -6839,6 +6912,14 @@ export class AltarionAutomationManager {
             armorLabel
           });
           if (res?.applied) {
+            // Store fresh damageLayers in memory so subsequent Undo clicks accurately reverse the re-applied damage
+            if (res.damageLayers && message?.flags?.["altarion-aitusa"]?.coriaCustomDamage) {
+              message.flags["altarion-aitusa"].coriaCustomDamage.damageLayers = foundry.utils.deepClone(res.damageLayers);
+            }
+            if (res.damageLayers && res.targetActor) {
+              globalThis.CoriaRollLedger?.pushActorDamageLayerEvent?.(res.targetActor, res.damageLayers, message?.id || "");
+            }
+            applyBtn.disabled = true;
             // Re-enable the paired Undo button so the user can toggle Undo / Re-apply repeatedly
             const row = applyBtn.closest(".altarion-arcane-armor-btn-row") || rootEl;
             const pairedUndoBtn = row.querySelector(".altarion-arcane-armor-undo-btn");
@@ -7196,6 +7277,10 @@ export class AltarionAutomationManager {
           const applySlow = sReapplyBtn.getAttribute("data-apply-slow") === "true";
           const casterActorId = sReapplyBtn.getAttribute("data-caster-actor-id") || "";
 
+          const RL = globalThis.CoriaRollLedger;
+          const targetPre = await this.resolveActorFromUuidOrId(targetUuid, targetActorId);
+          const beforeLayers = targetPre && RL?.captureActorVitalLayers ? RL.captureActorVitalLayers(targetPre) : null;
+
           await this.applySummonAttackEffect({
             targetUuid,
             targetActorId,
@@ -7205,6 +7290,16 @@ export class AltarionAutomationManager {
             applySlow,
             casterActorId
           });
+
+          const targetPost = await this.resolveActorFromUuidOrId(targetUuid, targetActorId);
+          const afterLayers = targetPost && RL?.captureActorVitalLayers ? RL.captureActorVitalLayers(targetPost) : null;
+          if (beforeLayers && afterLayers && RL?.computeDamageLayersDiff) {
+            const freshLayers = RL.computeDamageLayersDiff(beforeLayers, afterLayers, damage);
+            if (message?.flags?.["altarion-aitusa"]?.coriaCustomDamage) {
+              message.flags["altarion-aitusa"].coriaCustomDamage.damageLayers = foundry.utils.deepClone(freshLayers);
+            }
+            if (targetPost) RL.pushActorDamageLayerEvent?.(targetPost, freshLayers, message?.id || "");
+          }
 
           sReapplyBtn.disabled = true;
           const row = sReapplyBtn.closest(".altarion-arcane-armor-btn-row") || rootEl;

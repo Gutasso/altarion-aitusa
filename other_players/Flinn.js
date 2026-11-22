@@ -4127,7 +4127,7 @@ export class FlinnManager {
           actorUpdates["system.attributes.movement.walk"] = 30;
         }
         if (actor.system.traits?.dr) {
-          const drSet = new Set(Array.from(actor.system.traits.dr.value || []));
+          const drSet = new Set(Array.from(actor._source?.system?.traits?.dr?.value || []));
           let drChanged = false;
           for (const d of ["necrotic", "radiant"]) {
             if (!drSet.has(d)) {

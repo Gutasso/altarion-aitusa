@@ -1576,7 +1576,7 @@ export class KyrionManager {
           }
         }
         if (actor.system.traits?.dr) {
-          const drSet = new Set(Array.from(actor.system.traits.dr.value || []));
+          const drSet = new Set(Array.from(actor._source?.system?.traits?.dr?.value || []));
           let drChanged = false;
           for (const d of ["fire", "poison"]) {
             if (!drSet.has(d)) {

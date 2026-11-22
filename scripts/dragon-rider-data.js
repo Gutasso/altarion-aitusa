@@ -3099,13 +3099,33 @@ export class PlutoniumDataBridge {
               subtype: "fightingStyle"
             });
             defData.system.requirements = `Dragon Rider ${lvl}`;
+            // Clean transfer ActiveEffect with valid 16-char alphanumeric _id & null origin
+            // so dnd5e AC tooltip shows "+1 Fighting Style: Defense (+1 AC)" instead of "+1 Unknown"!
+            defData.effects = [
+              {
+                _id: "fightStyleDef001",
+                name: "Fighting Style: Defense (+1 AC)",
+                img: defData.img || "icons/equipment/shield/heater-steel-worn.webp",
+                origin: null,
+                transfer: true,
+                disabled: false,
+                changes: [
+                  {
+                    key: "system.attributes.ac.bonus",
+                    mode: 2, // CONST.ACTIVE_EFFECT_MODES.ADD
+                    value: "+1",
+                    priority: 20
+                  }
+                ]
+              }
+            ];
             defData.flags = foundry.utils.mergeObject(defData.flags || {}, {
               "altarion-aitusa": {
                 isPrimaryClassItem: true,
                 originCategory: "class",
                 levelRequired: lvl,
                 featureKey: "dragon-rider:optionalfeature:fighting-style-defense:2",
-                syncSchemaVersion: 6
+                syncSchemaVersion: 8
               }
             });
             features.push(defData);

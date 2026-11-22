@@ -1,15 +1,20 @@
 /**
  * Party JSON Synchronizer (Aitusa, Altarion Talendris, Flinn Encantor, Kyrion, Parva)
  * Imports curated Inventory, Currency, Tool Proficiencies, Languages, Missing Feats, Backgrounds,
- * Card of the Resonant Arcana, Equipped/Attuned States + ActiveEffects, and `professions-reworked-5e` flags
- * (remapping container IDs and `ferramentasEquipadas` tool IDs cleanly without duplicating existing items
- * or overwriting future player progress).
+ * Card of the Resonant Arcana (as attunable Equipment Trinkets in Inventory!), Equipped/Attuned States + ActiveEffects,
+ * and `professions-reworked-5e` flags.
+ * Also migrates legacy third-party `cdn.5e.tools` / `raw.githubusercontent.com` item images to verified local Foundry
+ * icons (eliminating Chrome third-party cookie warnings) and converts legacy `feat` Resonant Arcana cards to `equipment`.
  */
 
-import { PARTY_JSON_DATA, PARTY_JSON_SYNC_VERSION } from "./party-json-data.js";
+import {
+  PARTY_JSON_DATA,
+  PARTY_JSON_SYNC_VERSION,
+  EXTERNAL_IMG_MIGRATION_MAP
+} from "./party-json-data.js";
 
 const MODULE_ID = "altarion-aitusa";
-const FALLBACK_CARD_IMG = "icons/sundries/gaming/playing-cards.webp";
+const FALLBACK_CARD_IMG = "icons/sundries/gaming/rune-card.webp";
 
 export class PartyJsonSyncManager {
   static _syncInFlight = new Set();
@@ -29,21 +34,156 @@ export class PartyJsonSyncManager {
     return null;
   }
 
-  static _sanitizeItemImg(img) {
+  static _sanitizeItemImg(img, itemName = "") {
     const s = String(img || "").trim();
+    if (s && EXTERNAL_IMG_MIGRATION_MAP[s]) {
+      return EXTERNAL_IMG_MIGRATION_MAP[s];
+    }
+    const nameLow = String(itemName || "").toLowerCase();
     if (!s || s === "360_F_539323090_rgemn9ld3PWY4BTQ7X2Gz9gxHIblEjld.jpg") {
       return FALLBACK_CARD_IMG;
     }
+    if (/^https?:\/\/(?:cdn\.5e\.tools|raw\.githubusercontent\.com\/5etools)/i.test(s)) {
+      if (nameLow.includes("bag of holding")) return "icons/containers/bags/coinpouch-cloth-purple.webp";
+      if (nameLow.includes("cloak")) return "icons/equipment/back/cloak-collared-blue-gold.webp";
+      if (nameLow.includes("sending stone")) return "icons/commodities/gems/gem-faceted-oval-blue.webp";
+      if (nameLow.includes("rewarded")) return "icons/sundries/flags/banner-blue.webp";
+      if (nameLow.includes("ruined")) return "icons/environment/settlement/graveyard-tombstone-night.webp";
+      if (nameLow.includes("lucky charm")) return "icons/commodities/treasure/brooch-crown-gold.webp";
+      return "icons/svg/item-bag.svg";
+    }
     return s;
+  }
+
+  /**
+   * Lightweight idempotent migration that runs on existing actors to:
+   * 1. Replace third-party `cdn.5e.tools` / `raw.githubusercontent.com` / missing local image URLs
+   *    on items & active effects with verified local Foundry icons (stops Chrome third-party cookie console spam).
+   * 2. Convert any "Card of the Resonant Arcana (...)" item stored as `type: "feat"` into an attunable
+   *    `type: "equipment"` (trinket) so it shows up in the actor's Inventory and works natively with Attunement Slots!
+   */
+  static async migrateExistingActorItems(actor) {
+    if (!actor || !actor.isOwner) return;
+
+    const itemUpdates = [];
+    const legacyCardFeats = [];
+
+    for (const item of actor.items) {
+      const nameLow = String(item.name || "").trim().toLowerCase();
+
+      // 1. Detect legacy `feat` Card of the Resonant Arcana -> convert to `equipment` (trinket)
+      if (nameLow.startsWith("card of the resonant arcana") && item.type !== "equipment") {
+        legacyCardFeats.push(item);
+        continue;
+      }
+
+      // 2. Replace external cdn.5e.tools / githubusercontent / broken images on items & their embedded effects
+      const cleanImg = this._sanitizeItemImg(item.img, item.name);
+      const patch = {};
+      if (cleanImg !== item.img) {
+        patch.img = cleanImg;
+      }
+      if (nameLow.startsWith("card of the resonant arcana") && item.type === "equipment") {
+        if (item.img !== FALLBACK_CARD_IMG) patch.img = FALLBACK_CARD_IMG;
+        if (item.system?.attunement !== "required") patch["system.attunement"] = "required";
+        if (item.system?.type?.value !== "trinket") patch["system.type.value"] = "trinket";
+      }
+
+      if (Object.keys(patch).length > 0) {
+        itemUpdates.push({ _id: item.id, ...patch });
+      }
+
+      // Also fix any embedded ActiveEffect img that references external cdn.5e.tools
+      for (const eff of item.effects || []) {
+        const cleanEffImg = this._sanitizeItemImg(eff.img, item.name);
+        if (cleanEffImg !== eff.img) {
+          try {
+            await eff.update({ img: cleanEffImg });
+          } catch (_e) {}
+        }
+      }
+    }
+
+    // Also fix any actor-level ActiveEffect img referencing external cdn.5e.tools
+    for (const eff of actor.effects || []) {
+      const cleanEffImg = this._sanitizeItemImg(eff.img, eff.name);
+      if (cleanEffImg !== eff.img) {
+        try {
+          await eff.update({ img: cleanEffImg });
+        } catch (_e) {}
+      }
+    }
+
+    if (itemUpdates.length > 0) {
+      await actor.updateEmbeddedDocuments("Item", itemUpdates);
+    }
+
+    if (legacyCardFeats.length > 0) {
+      const toCreateEquip = [];
+      const toDeleteIds = [];
+
+      for (const oldFeat of legacyCardFeats) {
+        const nameLow = String(oldFeat.name || "").trim().toLowerCase();
+        const alreadyEquip = actor.items.some(
+          i => i.type === "equipment" && String(i.name || "").trim().toLowerCase() === nameLow
+        );
+        if (!alreadyEquip) {
+          const oldObj = oldFeat.toObject();
+          toCreateEquip.push({
+            name: oldObj.name,
+            type: "equipment",
+            img: FALLBACK_CARD_IMG,
+            system: {
+              description: oldObj.system?.description || { value: "", chat: "" },
+              quantity: 1,
+              weight: { value: 0, units: "lb" },
+              price: { value: 0, denomination: "gp" },
+              rarity: "veryRare",
+              identified: true,
+              attunement: "required",
+              attuned: false,
+              equipped: false,
+              properties: ["mgc"],
+              type: { value: "trinket", baseItem: "" },
+              armor: { value: null, magicalBonus: null, dex: null },
+              uses: { spent: 0, max: "", recovery: [] },
+              activities: {},
+              source: { custom: "Coria Homebrew", rules: "2014" }
+            },
+            flags: {
+              ...(oldObj.flags || {}),
+              [MODULE_ID]: {
+                ...(oldObj.flags?.[MODULE_ID] || {}),
+                isResonantArcanaCard: true
+              }
+            }
+          });
+        }
+        toDeleteIds.push(oldFeat.id);
+      }
+
+      if (toCreateEquip.length > 0) {
+        await actor.createEmbeddedDocuments("Item", toCreateEquip);
+      }
+      if (toDeleteIds.length > 0) {
+        await actor.deleteEmbeddedDocuments("Item", toDeleteIds);
+      }
+    }
   }
 
   static async syncAllPartyActors({ force = false, silent = false } = {}) {
     if (!game.actors) return [];
     const results = [];
     for (const actor of game.actors) {
+      if (!actor.isOwner) continue;
+      // Clean third-party cookie image URLs & migrate Resonant Arcana cards on all owned PCs/companions
+      if (actor.type === "character" || this.getCharKeyForActor(actor)) {
+        try {
+          await this.migrateExistingActorItems(actor);
+        } catch (_e) {}
+      }
       const charKey = this.getCharKeyForActor(actor);
       if (!charKey) continue;
-      if (!actor.isOwner) continue;
       const res = await this.syncActorFromJson(actor, { force, silent });
       if (res) results.push(res);
     }
@@ -62,10 +202,48 @@ export class PartyJsonSyncManager {
       return { actorName: actor.name, charKey, skipped: true };
     }
 
+    // If upgrading from v1 -> v2 (actor already synced once), run item migration + ensure Resonant Arcana card
+    // exists in Inventory WITHOUT overwriting currency or professions progress!
+    const isIncrementalUpgrade = !force && syncedVer >= 1 && syncedVer < PARTY_JSON_SYNC_VERSION;
+
     if (this._syncInFlight.has(actor.id)) return null;
     this._syncInFlight.add(actor.id);
 
     try {
+      await this.migrateExistingActorItems(actor);
+
+      if (isIncrementalUpgrade) {
+        // Ensure the actor's Resonant Arcana Card exists as equipment in Inventory if somehow missing
+        const cardEntry = (data.items || []).find(x =>
+          String(x.doc?.name || "").trim().toLowerCase().startsWith("card of the resonant arcana")
+        );
+        if (cardEntry) {
+          const cardNameLow = String(cardEntry.doc.name || "").trim().toLowerCase();
+          const hasCardEquip = actor.items.some(
+            i => i.type === "equipment" && String(i.name || "").trim().toLowerCase() === cardNameLow
+          );
+          if (!hasCardEquip) {
+            const clone = foundry.utils.deepClone(cardEntry.doc);
+            clone.img = this._sanitizeItemImg(clone.img, clone.name);
+            clone.flags ??= {};
+            clone.flags[MODULE_ID] = {
+              ...(clone.flags[MODULE_ID] || {}),
+              partyJsonItemKey: `${charKey}:${cardEntry.origId}`,
+              isResonantArcanaCard: true
+            };
+            await actor.createEmbeddedDocuments("Item", [clone]);
+          }
+        }
+        await actor.update(
+          { [`flags.${MODULE_ID}.partyJsonSyncVersion`]: PARTY_JSON_SYNC_VERSION },
+          { altarionBypassWard: true, coriaDamageReactionInternal: true }
+        );
+        try {
+          await globalThis.CoriaAttunementSlots?.syncActorAttunementSlots?.(actor);
+        } catch (_e) {}
+        return { actorName: actor.name, charKey, migratedToV2: true };
+      }
+
       const origIdToRealId = new Map();
       const matchedExistingIds = new Set();
 
@@ -98,7 +276,7 @@ export class PartyJsonSyncManager {
       const toCreateContainers = [];
       const containerOrigOrder = [];
 
-      // Pass 1: Containers (so we know their real embedded Item IDs before creating contained items!)
+      // Pass 1: Containers
       for (const entry of containerEntries) {
         const existing = findExistingItem(entry.origId, entry.doc);
         if (existing) {
@@ -107,7 +285,7 @@ export class PartyJsonSyncManager {
           continue;
         }
         const clone = foundry.utils.deepClone(entry.doc);
-        clone.img = this._sanitizeItemImg(clone.img);
+        clone.img = this._sanitizeItemImg(clone.img, clone.name);
         clone.flags ??= {};
         clone.flags[MODULE_ID] = {
           ...(clone.flags[MODULE_ID] || {}),
@@ -144,7 +322,7 @@ export class PartyJsonSyncManager {
           continue;
         }
         const clone = foundry.utils.deepClone(entry.doc);
-        clone.img = this._sanitizeItemImg(clone.img);
+        clone.img = this._sanitizeItemImg(clone.img, clone.name);
         if (clone.system && "container" in clone.system) {
           const origCont = clone.system.container;
           if (origCont && origIdToRealId.has(origCont)) {
@@ -156,7 +334,10 @@ export class PartyJsonSyncManager {
         clone.flags ??= {};
         clone.flags[MODULE_ID] = {
           ...(clone.flags[MODULE_ID] || {}),
-          partyJsonItemKey: `${charKey}:${entry.origId}`
+          partyJsonItemKey: `${charKey}:${entry.origId}`,
+          ...(String(clone.name || "").toLowerCase().startsWith("card of the resonant arcana")
+            ? { isResonantArcanaCard: true }
+            : {})
         };
         toCreateOthers.push(clone);
         otherOrigOrder.push(entry.origId);
@@ -176,7 +357,6 @@ export class PartyJsonSyncManager {
         }
       }
 
-      // Build Actor-level updates (Currency, Tool Proficiencies, Languages, Background ref, professions-reworked-5e)
       const actorUpdates = {};
 
       // 1. Background reference
@@ -188,7 +368,7 @@ export class PartyJsonSyncManager {
         actorUpdates["system.details.background"] = backgroundItemId;
       }
 
-      // 2. Currency (apply on first sync or force if current currency is empty or force=true)
+      // 2. Currency
       if (data.currency && typeof data.currency === "object") {
         const curC = actor.system?.currency || {};
         const curTotalCoins =
@@ -211,7 +391,7 @@ export class PartyJsonSyncManager {
         }
       }
 
-      // 3. Tool Proficiencies (merge without downgrading existing proficiencies)
+      // 3. Tool Proficiencies
       if (data.tools && typeof data.tools === "object") {
         const curTools = actor.system?.tools || {};
         for (const [toolKey, toolCfg] of Object.entries(data.tools)) {
@@ -225,7 +405,7 @@ export class PartyJsonSyncManager {
         }
       }
 
-      // 4. Languages (union of existing + JSON languages)
+      // 4. Languages
       if (data.languages) {
         const curLangVal = Array.from(actor.system?.traits?.languages?.value || []);
         const mergedLangs = Array.from(new Set([...curLangVal, ...(data.languages.value || [])]));
@@ -235,7 +415,7 @@ export class PartyJsonSyncManager {
         }
       }
 
-      // 5. `professions-reworked-5e` flags (remap `ferramentasEquipadas` to the real embedded Tool Item IDs!)
+      // 5. `professions-reworked-5e` flags
       if (data.professionsFlags && typeof data.professionsFlags === "object") {
         const existingProf = actor.flags?.["professions-reworked-5e"] || null;
         const hasExistingProfProgress = Boolean(
@@ -254,7 +434,6 @@ export class PartyJsonSyncManager {
               if (origToolId && origIdToRealId.has(origToolId)) {
                 remapped[profName] = origIdToRealId.get(origToolId);
               } else {
-                // Fallback: locate matching tool on actor by profession keyword
                 const profLow = profName.toLowerCase();
                 const toolMatch = actor.items.find(i => {
                   if (i.type !== "tool") return false;
@@ -278,7 +457,6 @@ export class PartyJsonSyncManager {
 
       await actor.update(actorUpdates, { altarionBypassWard: true, coriaDamageReactionInternal: true });
 
-      // 6. Auto-allocate newly synced Attuned magic items into equipment Attunement Slots!
       try {
         await globalThis.CoriaAttunementSlots?.syncActorAttunementSlots?.(actor);
       } catch (_e) {}

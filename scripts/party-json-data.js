@@ -1,13 +1,21 @@
 /**
  * Curated Character JSON Snapshot Data for Party Sync (Aitusa, Altarion Talendris, Flinn Encantor, Kyrion, Parva)
- * Extracted from the GM's exported character JSONs with user-confirmed filters:
- * - Includes Inventory, Currency, Tool Proficiencies, Languages, Missing Feats, Backgrounds,
- *   Card of the Resonant Arcana (5 cards), Equipped/Attuned states + ActiveEffects, and professions-reworked-5e flags.
- * - Excludes Dragon's Blade (Altarion), Shadow Blade (só nivel 5) & New Consumable (Kyrion),
- *   Lucky (Flinn), Telekinetic (Parva), and default coria-hub flags.
+ * - Uses verified local Foundry icons (zero third-party cdn.5e.tools / githubusercontent cookie warnings).
+ * - Converts the 5 "Card of the Resonant Arcana" homebrew magic items into attunable Equipment (Trinket) items
+ *   so they appear in Inventory and work natively with Slot-Based Attunement.
  */
 
-export const PARTY_JSON_SYNC_VERSION = 1;
+export const PARTY_JSON_SYNC_VERSION = 2;
+
+export const EXTERNAL_IMG_MIGRATION_MAP = {
+  "https://cdn.5e.tools/2024/img/items/DMG/Bag%20of%20Holding.webp": "icons/containers/bags/coinpouch-cloth-purple.webp",
+  "https://cdn.5e.tools/2024/img/items/DMG/Cloak%20of%20Protection.webp": "icons/equipment/back/cloak-collared-blue-gold.webp",
+  "https://raw.githubusercontent.com/5etools-mirror-2/5etools-img/main/items/DMG/Sending%20Stones.webp": "icons/commodities/gems/gem-faceted-oval-blue.webp",
+  "https://raw.githubusercontent.com/5etools-mirror-2/5etools-img/main/backgrounds/BMT/Rewarded.webp": "icons/sundries/flags/banner-blue.webp",
+  "https://raw.githubusercontent.com/5etools-mirror-2/5etools-img/main/backgrounds/BMT/Ruined.webp": "icons/environment/settlement/graveyard-tombstone-night.webp",
+  "https://raw.githubusercontent.com/5etools-mirror-2/5etools-img/main/items/PHB/Trinket%20(PHB).webp": "icons/commodities/treasure/brooch-crown-gold.webp",
+  "360_F_539323090_rgemn9ld3PWY4BTQ7X2Gz9gxHIblEjld.jpg": "icons/sundries/gaming/rune-card.webp"
+};
 
 export const PARTY_JSON_DATA = {
   "aitusa": {
@@ -76,133 +84,49 @@ export const PARTY_JSON_DATA = {
         "origId": "Mmo9uud7LwkI3HTY",
         "doc": {
           "name": "Card of the Resonant Arcana (The High Priestess)",
-          "type": "feat",
-          "img": "360_F_539323090_rgemn9ld3PWY4BTQ7X2Gz9gxHIblEjld.jpg",
+          "type": "equipment",
+          "img": "icons/sundries/gaming/rune-card.webp",
           "system": {
             "description": {
               "value": "<p>This rectangular slab of polished black quartz appears to hold a fragment of the night sky within it. While you are attuned to the card, stardust drifts inside the stone to form the illustration of a Major Arcana that resonates with your soul.</p><p data-path-to-node=\"4\">The card has 1 charge. You can expend this charge to use the property of the arcana engraved upon it. The card regains its expended charge daily at dawn.</p><p></p><p><strong>The High Priestess.</strong> While holding this card, you can expend its charge to cast the <em data-path-to-node=\"9\" data-index-in-node=\"81\">detect magic</em> spell without expending a spell slot or requiring components. Additionally, if the user focuses it's sight on an object, creature, or magical effect within 30 feet, it gains truesight against that specific target for 10 minutes.</p>",
               "chat": ""
             },
-            "source": {
-              "custom": "",
-              "revision": 1,
-              "rules": "2014"
+            "quantity": 1,
+            "weight": {
+              "value": 0,
+              "units": "lb"
             },
-            "cover": null,
-            "crewed": false,
-            "uses": {
-              "max": "1",
-              "recovery": [
-                {
-                  "period": "dawn",
-                  "type": "recoverAll"
-                }
-              ],
-              "spent": 0
+            "price": {
+              "value": 0,
+              "denomination": "gp"
             },
-            "type": {
-              "value": "feat",
-              "subtype": ""
-            },
-            "prerequisites": {
-              "level": null,
-              "items": [],
-              "repeatable": false
-            },
+            "rarity": "veryRare",
+            "identified": true,
+            "attunement": "required",
+            "attuned": false,
+            "equipped": false,
             "properties": [
               "mgc"
             ],
-            "requirements": "",
-            "activities": {
-              "dnd5eactivity000": {
-                "_id": "dnd5eactivity000",
-                "type": "utility",
-                "activation": {
-                  "type": "",
-                  "value": 1,
-                  "condition": "",
-                  "override": false
-                },
-                "consumption": {
-                  "targets": [
-                    {
-                      "type": "itemUses",
-                      "target": "",
-                      "value": "1",
-                      "scaling": {
-                        "mode": "",
-                        "formula": ""
-                      }
-                    }
-                  ],
-                  "scaling": {
-                    "allowed": false,
-                    "max": ""
-                  },
-                  "spellSlot": true
-                },
-                "description": {
-                  "chatFlavor": ""
-                },
-                "duration": {
-                  "concentration": false,
-                  "value": "",
-                  "units": "inst",
-                  "special": "",
-                  "override": false
-                },
-                "effects": [],
-                "range": {
-                  "value": "30",
-                  "units": "self",
-                  "special": "",
-                  "override": false
-                },
-                "target": {
-                  "template": {
-                    "count": "",
-                    "contiguous": false,
-                    "type": "",
-                    "size": "",
-                    "width": "",
-                    "height": "",
-                    "units": "ft",
-                    "stationary": false
-                  },
-                  "affects": {
-                    "count": "1",
-                    "type": "",
-                    "choice": false,
-                    "special": ""
-                  },
-                  "prompt": true,
-                  "override": false
-                },
-                "uses": {
-                  "spent": 0,
-                  "max": "",
-                  "recovery": []
-                },
-                "roll": {
-                  "formula": "",
-                  "name": "",
-                  "prompt": false,
-                  "visible": false
-                },
-                "img": null,
-                "sort": 0,
-                "flags": {},
-                "visibility": {
-                  "level": {},
-                  "requireAttunement": false,
-                  "requireIdentification": false,
-                  "requireMagic": false
-                }
-              }
+            "type": {
+              "value": "trinket",
+              "baseItem": ""
             },
-            "advancement": {},
-            "identifier": "card-of-the-resonant-arcana-the-high-priestess",
-            "enchant": {}
+            "armor": {
+              "value": null,
+              "magicalBonus": null,
+              "dex": null
+            },
+            "uses": {
+              "spent": 0,
+              "max": "",
+              "recovery": []
+            },
+            "activities": {},
+            "source": {
+              "custom": "Coria Homebrew",
+              "rules": "2014"
+            }
           },
           "effects": [],
           "folder": null,
@@ -1164,7 +1088,7 @@ export const PARTY_JSON_DATA = {
               "value": []
             }
           },
-          "img": "https://raw.githubusercontent.com/5etools-mirror-2/5etools-img/main/items/DMG/Sending%20Stones.webp",
+          "img": "icons/commodities/gems/gem-faceted-oval-blue.webp",
           "flags": {
             "plutonium": {
               "page": "items.html",
@@ -1181,133 +1105,49 @@ export const PARTY_JSON_DATA = {
         "origId": "JZzQqRnkFsiMFVyI",
         "doc": {
           "name": "Card of the Resonant Arcana (The Hierophant)",
-          "type": "feat",
-          "img": "360_F_539323090_rgemn9ld3PWY4BTQ7X2Gz9gxHIblEjld.jpg",
+          "type": "equipment",
+          "img": "icons/sundries/gaming/rune-card.webp",
           "system": {
             "description": {
               "value": "<p>This rectangular slab of polished black quartz appears to hold a fragment of the night sky within it. While you are attuned to the card, stardust drifts inside the stone to form the illustration of a Major Arcana that resonates with your soul.</p><p data-path-to-node=\"4\">The card has 1 charge. You can expend this charge to use the property of the arcana engraved upon it. The card regains its expended charge daily at dawn.</p><p></p><p><strong>The Hierophant.</strong> As a reaction when you or a creature you can see within 30 feet of you fails a saving throw against a spell, you can expend the card's charge to allow the target to reroll the saving throw. If the school of the spell is from Ilusion or Enchantment, the target rolls with advantage. If the target success against the save, it becomes immune to illusions created by that specific source for 1 minute.</p>",
               "chat": ""
             },
-            "source": {
-              "custom": "",
-              "revision": 1,
-              "rules": "2014"
+            "quantity": 1,
+            "weight": {
+              "value": 0,
+              "units": "lb"
             },
-            "cover": null,
-            "crewed": false,
-            "uses": {
-              "max": "1",
-              "recovery": [
-                {
-                  "period": "dawn",
-                  "type": "recoverAll"
-                }
-              ],
-              "spent": 0
+            "price": {
+              "value": 0,
+              "denomination": "gp"
             },
-            "type": {
-              "value": "feat",
-              "subtype": ""
-            },
-            "prerequisites": {
-              "level": null,
-              "items": [],
-              "repeatable": false
-            },
+            "rarity": "veryRare",
+            "identified": true,
+            "attunement": "required",
+            "attuned": false,
+            "equipped": false,
             "properties": [
               "mgc"
             ],
-            "requirements": "",
-            "activities": {
-              "dnd5eactivity000": {
-                "_id": "dnd5eactivity000",
-                "type": "utility",
-                "activation": {
-                  "type": "",
-                  "value": 1,
-                  "condition": "",
-                  "override": false
-                },
-                "consumption": {
-                  "targets": [
-                    {
-                      "type": "itemUses",
-                      "target": "",
-                      "value": "1",
-                      "scaling": {
-                        "mode": "",
-                        "formula": ""
-                      }
-                    }
-                  ],
-                  "scaling": {
-                    "allowed": false,
-                    "max": ""
-                  },
-                  "spellSlot": true
-                },
-                "description": {
-                  "chatFlavor": ""
-                },
-                "duration": {
-                  "concentration": false,
-                  "value": "",
-                  "units": "inst",
-                  "special": "",
-                  "override": false
-                },
-                "effects": [],
-                "range": {
-                  "value": "3",
-                  "units": "self",
-                  "special": "",
-                  "override": false
-                },
-                "target": {
-                  "template": {
-                    "count": "",
-                    "contiguous": false,
-                    "type": "",
-                    "size": "",
-                    "width": "",
-                    "height": "",
-                    "units": "ft",
-                    "stationary": false
-                  },
-                  "affects": {
-                    "count": "1",
-                    "type": "",
-                    "choice": false,
-                    "special": ""
-                  },
-                  "prompt": true,
-                  "override": false
-                },
-                "uses": {
-                  "spent": 0,
-                  "max": "",
-                  "recovery": []
-                },
-                "roll": {
-                  "formula": "",
-                  "name": "",
-                  "prompt": false,
-                  "visible": false
-                },
-                "img": null,
-                "sort": 0,
-                "flags": {},
-                "visibility": {
-                  "level": {},
-                  "requireAttunement": false,
-                  "requireIdentification": false,
-                  "requireMagic": false
-                }
-              }
+            "type": {
+              "value": "trinket",
+              "baseItem": ""
             },
-            "advancement": {},
-            "identifier": "card-of-the-resonant-arcana-the-hierophant",
-            "enchant": {}
+            "armor": {
+              "value": null,
+              "magicalBonus": null,
+              "dex": null
+            },
+            "uses": {
+              "spent": 0,
+              "max": "",
+              "recovery": []
+            },
+            "activities": {},
+            "source": {
+              "custom": "Coria Homebrew",
+              "rules": "2014"
+            }
           },
           "effects": [],
           "folder": null,
@@ -1727,7 +1567,7 @@ export const PARTY_JSON_DATA = {
             }
           },
           "effects": [],
-          "img": "https://raw.githubusercontent.com/5etools-mirror-2/5etools-img/main/backgrounds/BMT/Rewarded.webp",
+          "img": "icons/sundries/flags/banner-blue.webp",
           "folder": null,
           "sort": 0
         }
@@ -3128,7 +2968,7 @@ export const PARTY_JSON_DATA = {
               "value": []
             }
           },
-          "img": "https://raw.githubusercontent.com/5etools-mirror-2/5etools-img/main/items/DMG/Sending%20Stones.webp",
+          "img": "icons/commodities/gems/gem-faceted-oval-blue.webp",
           "flags": {
             "plutonium": {
               "page": "items.html",
@@ -3145,132 +2985,49 @@ export const PARTY_JSON_DATA = {
         "origId": "t7lHG0NOqjPhOLtc",
         "doc": {
           "name": "Card of the Resonant Arcana (The Fool)",
-          "type": "feat",
-          "img": "360_F_539323090_rgemn9ld3PWY4BTQ7X2Gz9gxHIblEjld.jpg",
+          "type": "equipment",
+          "img": "icons/sundries/gaming/rune-card.webp",
           "system": {
             "description": {
               "value": "<p>This rectangular slab of polished black quartz appears to hold a fragment of the night sky within it. While you are attuned to the card, stardust drifts inside the stone to form the illustration of a Major Arcana that resonates with your soul.</p><p data-path-to-node=\"4\">The card has 1 charge. You can expend this charge to use the property of the arcana engraved upon it. The card regains its expended charge daily at dawn.</p><p></p><p><strong>The Fool.</strong> As a reaction when you take damage from an attack or spell, you can expend the card's charge to warp the probability around you. Roll 1d4:</p><ul data-path-to-node=\"12\"><li><p data-path-to-node=\"12,0,0\"><strong data-path-to-node=\"12,0,0\" data-index-in-node=\"0\">1–2:</strong> The damage from that attack is halved, and you teleport up to 10 feet to an unoccupied space you can see.</p></li><li><p data-path-to-node=\"12,1,0\"><strong data-path-to-node=\"12,1,0\" data-index-in-node=\"0\">3–4:</strong> You take no damage from the attack. Additionally, the attacker takes force damage equal to the damage you would have taken (up to a maximum of 15 force damage).</p></li></ul>",
               "chat": ""
             },
-            "source": {
-              "custom": "",
-              "revision": 1,
-              "rules": "2014"
+            "quantity": 1,
+            "weight": {
+              "value": 0,
+              "units": "lb"
             },
-            "cover": null,
-            "crewed": false,
-            "uses": {
-              "max": "1",
-              "recovery": [
-                {
-                  "period": "dawn",
-                  "type": "recoverAll"
-                }
-              ],
-              "spent": 0
+            "price": {
+              "value": 0,
+              "denomination": "gp"
             },
-            "type": {
-              "value": "feat",
-              "subtype": ""
-            },
-            "prerequisites": {
-              "level": null,
-              "items": [],
-              "repeatable": false
-            },
+            "rarity": "veryRare",
+            "identified": true,
+            "attunement": "required",
+            "attuned": false,
+            "equipped": false,
             "properties": [
               "mgc"
             ],
-            "requirements": "",
-            "activities": {
-              "dnd5eactivity000": {
-                "_id": "dnd5eactivity000",
-                "type": "utility",
-                "activation": {
-                  "type": "",
-                  "value": 1,
-                  "condition": "",
-                  "override": false
-                },
-                "consumption": {
-                  "targets": [
-                    {
-                      "type": "itemUses",
-                      "target": "",
-                      "value": "1",
-                      "scaling": {
-                        "mode": "",
-                        "formula": ""
-                      }
-                    }
-                  ],
-                  "scaling": {
-                    "allowed": false,
-                    "max": ""
-                  },
-                  "spellSlot": true
-                },
-                "description": {
-                  "chatFlavor": ""
-                },
-                "duration": {
-                  "concentration": false,
-                  "value": "",
-                  "units": "inst",
-                  "special": "",
-                  "override": false
-                },
-                "effects": [],
-                "range": {
-                  "units": "self",
-                  "special": "",
-                  "override": false
-                },
-                "target": {
-                  "template": {
-                    "count": "",
-                    "contiguous": false,
-                    "type": "",
-                    "size": "",
-                    "width": "",
-                    "height": "",
-                    "units": "ft",
-                    "stationary": false
-                  },
-                  "affects": {
-                    "count": "",
-                    "type": "",
-                    "choice": false,
-                    "special": ""
-                  },
-                  "prompt": true,
-                  "override": false
-                },
-                "uses": {
-                  "spent": 0,
-                  "max": "",
-                  "recovery": []
-                },
-                "roll": {
-                  "formula": "",
-                  "name": "",
-                  "prompt": false,
-                  "visible": false
-                },
-                "img": null,
-                "sort": 0,
-                "flags": {},
-                "visibility": {
-                  "level": {},
-                  "requireAttunement": false,
-                  "requireIdentification": false,
-                  "requireMagic": false
-                }
-              }
+            "type": {
+              "value": "trinket",
+              "baseItem": ""
             },
-            "advancement": {},
-            "identifier": "card-of-the-resonant-arcana-the-fool",
-            "enchant": {}
+            "armor": {
+              "value": null,
+              "magicalBonus": null,
+              "dex": null
+            },
+            "uses": {
+              "spent": 0,
+              "max": "",
+              "recovery": []
+            },
+            "activities": {},
+            "source": {
+              "custom": "Coria Homebrew",
+              "rules": "2014"
+            }
           },
           "effects": [],
           "folder": null,
@@ -4099,7 +3856,7 @@ export const PARTY_JSON_DATA = {
             "attuned": false,
             "identifier": "bag-of-holding"
           },
-          "img": "https://cdn.5e.tools/2024/img/items/DMG/Bag%20of%20Holding.webp",
+          "img": "icons/containers/bags/coinpouch-cloth-purple.webp",
           "flags": {
             "plutonium": {
               "page": "items.html",
@@ -4282,7 +4039,7 @@ export const PARTY_JSON_DATA = {
             }
           },
           "effects": [],
-          "img": "https://raw.githubusercontent.com/5etools-mirror-2/5etools-img/main/backgrounds/BMT/Ruined.webp",
+          "img": "icons/environment/settlement/graveyard-tombstone-night.webp",
           "folder": null,
           "sort": 0
         }
@@ -5896,133 +5653,49 @@ export const PARTY_JSON_DATA = {
         "origId": "yOZtUW5fxsLEQtKq",
         "doc": {
           "name": "Card of the Resonant Arcana (The Strength)",
-          "type": "feat",
-          "img": "360_F_539323090_rgemn9ld3PWY4BTQ7X2Gz9gxHIblEjld.jpg",
+          "type": "equipment",
+          "img": "icons/sundries/gaming/rune-card.webp",
           "system": {
             "description": {
               "value": "<p>This rectangular slab of polished black quartz appears to hold a fragment of the night sky within it. While you are attuned to the card, stardust drifts inside the stone to form the illustration of a Major Arcana that resonates with your soul.</p><p data-path-to-node=\"4\">The card has 1 charge. You can expend this charge to use the property of the arcana engraved upon it. The card regains its expended charge daily at dawn.</p><p></p><p><strong>The Strength.</strong> As a bonus action, you can expend the card's charge to tame your inner essence for 1 minute. You gain temporary hit points equal to 1d8 + your Proficiency Bonus + your Constitution modifier. While you have any of these temporary hit points, you deal an extra 1d4 psychic damage whenever you hit a creature with a melee weapon attack.</p>",
               "chat": ""
             },
-            "source": {
-              "custom": "",
-              "revision": 1,
-              "rules": "2014"
+            "quantity": 1,
+            "weight": {
+              "value": 0,
+              "units": "lb"
             },
-            "cover": null,
-            "crewed": false,
-            "uses": {
-              "max": "1",
-              "recovery": [
-                {
-                  "period": "dawn",
-                  "type": "recoverAll"
-                }
-              ],
-              "spent": 0
+            "price": {
+              "value": 0,
+              "denomination": "gp"
             },
-            "type": {
-              "value": "feat",
-              "subtype": ""
-            },
-            "prerequisites": {
-              "level": null,
-              "items": [],
-              "repeatable": false
-            },
+            "rarity": "veryRare",
+            "identified": true,
+            "attunement": "required",
+            "attuned": false,
+            "equipped": false,
             "properties": [
               "mgc"
             ],
-            "requirements": "",
-            "activities": {
-              "dnd5eactivity000": {
-                "_id": "dnd5eactivity000",
-                "type": "utility",
-                "activation": {
-                  "type": "",
-                  "value": 1,
-                  "condition": "",
-                  "override": false
-                },
-                "consumption": {
-                  "targets": [
-                    {
-                      "type": "itemUses",
-                      "target": "",
-                      "value": "1",
-                      "scaling": {
-                        "mode": "",
-                        "formula": ""
-                      }
-                    }
-                  ],
-                  "scaling": {
-                    "allowed": false,
-                    "max": ""
-                  },
-                  "spellSlot": true
-                },
-                "description": {
-                  "chatFlavor": ""
-                },
-                "duration": {
-                  "concentration": false,
-                  "value": "",
-                  "units": "inst",
-                  "special": "",
-                  "override": false
-                },
-                "effects": [],
-                "range": {
-                  "value": "30",
-                  "units": "self",
-                  "special": "",
-                  "override": false
-                },
-                "target": {
-                  "template": {
-                    "count": "",
-                    "contiguous": false,
-                    "type": "",
-                    "size": "",
-                    "width": "",
-                    "height": "",
-                    "units": "ft",
-                    "stationary": false
-                  },
-                  "affects": {
-                    "count": "1",
-                    "type": "",
-                    "choice": false,
-                    "special": ""
-                  },
-                  "prompt": true,
-                  "override": false
-                },
-                "uses": {
-                  "spent": 0,
-                  "max": "",
-                  "recovery": []
-                },
-                "roll": {
-                  "formula": "",
-                  "name": "",
-                  "prompt": false,
-                  "visible": false
-                },
-                "img": null,
-                "sort": 0,
-                "flags": {},
-                "visibility": {
-                  "level": {},
-                  "requireAttunement": false,
-                  "requireIdentification": false,
-                  "requireMagic": false
-                }
-              }
+            "type": {
+              "value": "trinket",
+              "baseItem": ""
             },
-            "advancement": {},
-            "identifier": "card-of-the-resonant-arcana-the-strength",
-            "enchant": {}
+            "armor": {
+              "value": null,
+              "magicalBonus": null,
+              "dex": null
+            },
+            "uses": {
+              "spent": 0,
+              "max": "",
+              "recovery": []
+            },
+            "activities": {},
+            "source": {
+              "custom": "Coria Homebrew",
+              "rules": "2014"
+            }
           },
           "effects": [],
           "folder": null,
@@ -6498,7 +6171,7 @@ export const PARTY_JSON_DATA = {
               "value": []
             }
           },
-          "img": "https://cdn.5e.tools/2024/img/items/DMG/Cloak%20of%20Protection.webp",
+          "img": "icons/equipment/back/cloak-collared-blue-gold.webp",
           "flags": {
             "plutonium": {
               "page": "items.html",
@@ -6509,7 +6182,7 @@ export const PARTY_JSON_DATA = {
           "effects": [
             {
               "name": "Bonus AC",
-              "img": "https://cdn.5e.tools/2024/img/items/DMG/Cloak%20of%20Protection.webp",
+              "img": "icons/equipment/back/cloak-collared-blue-gold.webp",
               "description": "",
               "changes": [
                 {
@@ -6544,7 +6217,7 @@ export const PARTY_JSON_DATA = {
             },
             {
               "name": "Saving Throw Bonus",
-              "img": "https://cdn.5e.tools/2024/img/items/DMG/Cloak%20of%20Protection.webp",
+              "img": "icons/equipment/back/cloak-collared-blue-gold.webp",
               "description": "",
               "changes": [
                 {
@@ -8603,7 +8276,7 @@ export const PARTY_JSON_DATA = {
             "container": null,
             "identifier": "lucky-charm"
           },
-          "img": "https://raw.githubusercontent.com/5etools-mirror-2/5etools-img/main/items/PHB/Trinket%20(PHB).webp",
+          "img": "icons/commodities/treasure/brooch-crown-gold.webp",
           "flags": {
             "plutonium": {
               "page": "items.html",
@@ -8620,133 +8293,49 @@ export const PARTY_JSON_DATA = {
         "origId": "Kawi1zi0TVxOKzTB",
         "doc": {
           "name": "Card of the Resonant Arcana (The Moon)",
-          "type": "feat",
-          "img": "360_F_539323090_rgemn9ld3PWY4BTQ7X2Gz9gxHIblEjld.jpg",
+          "type": "equipment",
+          "img": "icons/sundries/gaming/rune-card.webp",
           "system": {
             "description": {
               "value": "<p>This rectangular slab of polished black quartz appears to hold a fragment of the night sky within it. While you are attuned to the card, stardust drifts inside the stone to form the illustration of a Major Arcana that resonates with your soul.</p><p data-path-to-node=\"4\">The card has 1 charge. You can expend this charge to use the property of the arcana engraved upon it. The card regains its expended charge daily at dawn.</p><p></p><p><strong>The Moon.</strong> As an action, you can expend the card's charge and target one creature you can see within 30 feet of you. The target must succeed on a Wisdom saving throw against your spell save DC. On a failed save, the creature takes 3d6 psychic damage and is frightened of you until the end of your next turn. On a successful save, the target takes half as much damage and isn't frightened.</p>",
               "chat": ""
             },
-            "source": {
-              "custom": "",
-              "revision": 1,
-              "rules": "2014"
+            "quantity": 1,
+            "weight": {
+              "value": 0,
+              "units": "lb"
             },
-            "cover": null,
-            "crewed": false,
-            "uses": {
-              "max": "1",
-              "recovery": [
-                {
-                  "period": "dawn",
-                  "type": "recoverAll"
-                }
-              ],
-              "spent": 0
+            "price": {
+              "value": 0,
+              "denomination": "gp"
             },
-            "type": {
-              "value": "feat",
-              "subtype": ""
-            },
-            "prerequisites": {
-              "level": null,
-              "items": [],
-              "repeatable": false
-            },
+            "rarity": "veryRare",
+            "identified": true,
+            "attunement": "required",
+            "attuned": false,
+            "equipped": false,
             "properties": [
               "mgc"
             ],
-            "requirements": "",
-            "activities": {
-              "dnd5eactivity000": {
-                "_id": "dnd5eactivity000",
-                "type": "utility",
-                "activation": {
-                  "type": "",
-                  "value": 1,
-                  "condition": "",
-                  "override": false
-                },
-                "consumption": {
-                  "targets": [
-                    {
-                      "type": "itemUses",
-                      "target": "",
-                      "value": "1",
-                      "scaling": {
-                        "mode": "",
-                        "formula": ""
-                      }
-                    }
-                  ],
-                  "scaling": {
-                    "allowed": false,
-                    "max": ""
-                  },
-                  "spellSlot": true
-                },
-                "description": {
-                  "chatFlavor": ""
-                },
-                "duration": {
-                  "concentration": false,
-                  "value": "",
-                  "units": "inst",
-                  "special": "",
-                  "override": false
-                },
-                "effects": [],
-                "range": {
-                  "value": "30",
-                  "units": "self",
-                  "special": "",
-                  "override": false
-                },
-                "target": {
-                  "template": {
-                    "count": "",
-                    "contiguous": false,
-                    "type": "",
-                    "size": "",
-                    "width": "",
-                    "height": "",
-                    "units": "ft",
-                    "stationary": false
-                  },
-                  "affects": {
-                    "count": "1",
-                    "type": "",
-                    "choice": false,
-                    "special": ""
-                  },
-                  "prompt": true,
-                  "override": false
-                },
-                "uses": {
-                  "spent": 0,
-                  "max": "",
-                  "recovery": []
-                },
-                "roll": {
-                  "formula": "",
-                  "name": "",
-                  "prompt": false,
-                  "visible": false
-                },
-                "img": null,
-                "sort": 0,
-                "flags": {},
-                "visibility": {
-                  "level": {},
-                  "requireAttunement": false,
-                  "requireIdentification": false,
-                  "requireMagic": false
-                }
-              }
+            "type": {
+              "value": "trinket",
+              "baseItem": ""
             },
-            "advancement": {},
-            "identifier": "card-of-the-resonant-arcana-the-moon",
-            "enchant": {}
+            "armor": {
+              "value": null,
+              "magicalBonus": null,
+              "dex": null
+            },
+            "uses": {
+              "spent": 0,
+              "max": "",
+              "recovery": []
+            },
+            "activities": {},
+            "source": {
+              "custom": "Coria Homebrew",
+              "rules": "2014"
+            }
           },
           "effects": [],
           "folder": null,
@@ -9562,7 +9151,7 @@ export const PARTY_JSON_DATA = {
               "value": []
             }
           },
-          "img": "https://cdn.5e.tools/2024/img/items/DMG/Cloak%20of%20Protection.webp",
+          "img": "icons/equipment/back/cloak-collared-blue-gold.webp",
           "flags": {
             "plutonium": {
               "page": "items.html",
@@ -9573,7 +9162,7 @@ export const PARTY_JSON_DATA = {
           "effects": [
             {
               "name": "Bonus AC",
-              "img": "https://cdn.5e.tools/2024/img/items/DMG/Cloak%20of%20Protection.webp",
+              "img": "icons/equipment/back/cloak-collared-blue-gold.webp",
               "description": "",
               "changes": [
                 {
@@ -9608,7 +9197,7 @@ export const PARTY_JSON_DATA = {
             },
             {
               "name": "Saving Throw Bonus",
-              "img": "https://cdn.5e.tools/2024/img/items/DMG/Cloak%20of%20Protection.webp",
+              "img": "icons/equipment/back/cloak-collared-blue-gold.webp",
               "description": "",
               "changes": [
                 {
