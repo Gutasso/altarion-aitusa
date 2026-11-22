@@ -727,6 +727,10 @@ export class CoriaHeaderColorManager {
     const mode = cfg.mode === "gradient" ? "gradient" : "solid";
     const c1 = cfg.color1 || "#38bdf8";
     const c2 = mode === "gradient" ? cfg.color2 || "#facc15" : c1;
+    const sig = `${mode}|${c1}|${c2}`;
+    if (el.dataset.coriaAppliedColorSig === sig) return;
+    el.dataset.coriaAppliedColorSig = sig;
+
     const rgb1 = this.hexToRgb(c1);
     const rgb2 = this.hexToRgb(c2);
     const text1 = this.brightenHex(c1, 0.58);
@@ -782,14 +786,15 @@ export class CoriaHeaderColorManager {
     const savedMap = this.getSavedIndicatorColors(actor);
     const elements = containerEl.matches?.("[data-coria-color-key]")
       ? [containerEl]
-      : Array.from(containerEl.querySelectorAll("[data-coria-color-key]"));
+      : containerEl.querySelectorAll("[data-coria-color-key]");
 
     for (const el of elements) {
       const key = el.getAttribute("data-coria-color-key");
       if (!key) continue;
       if (savedMap[key]) {
         this.applyColorConfigToElement(el, savedMap[key]);
-      } else {
+      } else if (el.dataset.coriaAppliedColorSig && el.dataset.coriaAppliedColorSig !== "default") {
+        el.dataset.coriaAppliedColorSig = "default";
         for (const prop of [
           "background",
           "border",
@@ -801,6 +806,9 @@ export class CoriaHeaderColorManager {
           "color"
         ]) {
           el.style.removeProperty(prop);
+        }
+        for (const child of el.querySelectorAll("i, strong")) {
+          child.style.removeProperty("color");
         }
       }
 
@@ -1083,6 +1091,13 @@ export class CoriaHeaderColorManager {
       ...(savedMap["class-secondary"] || {})
     };
 
+    const hasCustomPrim = Boolean(savedMap["class-primary"]);
+    const hasCustomSec = Boolean(savedMap["class-secondary"]);
+    const varsSig = `${primCfg.mode}|${primCfg.color1}|${primCfg.color2}|${secCfg.mode}|${secCfg.color1}|${secCfg.color2}|${hasCustomPrim ? 1 : 0}|${hasCustomSec ? 1 : 0}`;
+    if (targetEl.dataset?.coriaClassVarsSig === varsSig) {
+      return { primCfg, secCfg, hasCustomPrim, hasCustomSec };
+    }
+
     const setTierCssVars = (prefix, cfg) => {
       const c1 = cfg.color1 || "#38bdf8";
       const c2 = cfg.mode === "gradient" ? cfg.color2 || c1 : c1;
@@ -1124,10 +1139,9 @@ export class CoriaHeaderColorManager {
     setTierCssVars("prim", primCfg);
     setTierCssVars("sec", secCfg);
 
-    const hasCustomPrim = Boolean(savedMap["class-primary"]);
-    const hasCustomSec = Boolean(savedMap["class-secondary"]);
     targetEl.toggleAttribute("data-coria-custom-prim-color", hasCustomPrim);
     targetEl.toggleAttribute("data-coria-custom-sec-color", hasCustomSec);
+    if (targetEl.dataset) targetEl.dataset.coriaClassVarsSig = varsSig;
 
     return { primCfg, secCfg, hasCustomPrim, hasCustomSec };
   }
@@ -1152,7 +1166,7 @@ export class CoriaHeaderColorManager {
       const cardTxt = (card.textContent || "").toLowerCase();
       let footerTier = "primary";
       if (charKey === "flinn") {
-        footerTier = abil === "wis" || cardTxt.includes("cleric") ? "secondary" : "primary";
+        footerTier = cardTxt.includes("cleric") || (abil === "wis" && !cardTxt.includes("wizard")) ? "secondary" : "primary";
       } else if (charKey === "altarion") {
         footerTier = cardTxt.includes("wizard") ? "secondary" : "primary";
       } else if (charKey === "aitusa") {
@@ -1177,6 +1191,7 @@ export class CoriaHeaderColorManager {
     if (charKey === "flinn") return;
 
     const canToggleClass = charKey === "altarion" || charKey === "parva";
+    const isOwner = Boolean(actor.isOwner);
 
     for (const el of rootEl.querySelectorAll("[data-item-id]")) {
       const itemId = el.getAttribute("data-item-id");
@@ -1199,6 +1214,13 @@ export class CoriaHeaderColorManager {
           prepMode === "pact");
       const isPrep = isCantrip || isAlways || prepVal >= 1;
       const prepState = isPrep ? "prepared" : "unprepared";
+
+      // Fast-path cache: skip redundant DOM queries & attribute writes when row is already decorated identically
+      const rowSig = `${tier}|${prepState}|${tierCfg.label}|${tierCfg.icon}|${isOwner ? 1 : 0}`;
+      if (el.dataset.coriaSpellSig === rowSig && el.querySelector(".coria-spell-class-pill")) {
+        continue;
+      }
+      el.dataset.coriaSpellSig = rowSig;
 
       if (el.getAttribute("data-coria-spell-tier") !== tier) {
         el.setAttribute("data-coria-spell-tier", tier);

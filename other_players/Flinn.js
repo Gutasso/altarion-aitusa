@@ -798,9 +798,8 @@ export class FlinnManager {
     const getPrepStats = () => {
       const { wizardLevel, clericLevel } = this.getLevels(actor);
       const intMod = Number(actor.system?.abilities?.int?.mod ?? 0);
-      const wisMod = Number(actor.system?.abilities?.wis?.mod ?? 0);
       const wizMax = Math.max(1, wizardLevel + intMod);
-      const clrMax = Math.max(1, clericLevel + wisMod);
+      const clrMax = Math.max(1, clericLevel + intMod);
       let wizPrep = 0;
       let clrPrep = 0;
       let wizHidden = 0;
@@ -1752,10 +1751,33 @@ export class FlinnManager {
     // 0. Inject "Flinn's Portent Rolls" floating button when Foundry is ready & keep it updated
     Hooks.once("ready", async () => {
       const flinn = this.getFlinnActor();
-      if (flinn && shouldThisClientRunAutoSync(flinn) && !Array.isArray(flinn.flags?.[MODULE_ID]?.portentDice)) {
-        const { wizardLevel } = this.getLevels(flinn);
-        if (wizardLevel >= 2) {
+      if (flinn && shouldThisClientRunAutoSync(flinn)) {
+        const { wizardLevel, clericLevel } = this.getLevels(flinn);
+        if (!Array.isArray(flinn.flags?.[MODULE_ID]?.portentDice) && wizardLevel >= 2) {
           await this.rollFlinnPortentsBlind(flinn);
+        }
+        // One-shot migration: switch Flinn's Cleric Spellcasting Ability to Intelligence & enforce strict Cleric-level Domain Spells (1/3/5/7/9)
+        if (!flinn.getFlag(MODULE_ID, "flinnClericIntDomainV1")) {
+          try {
+            const clericCls = flinn.items.find(
+              i => i.type === "class" && (i.system?.identifier?.toLowerCase() === "cleric" || i.name?.trim().toLowerCase() === "cleric")
+            );
+            if (clericCls) {
+              await clericCls.update({
+                "system.spellcasting.ability": "int",
+                "system.spellcasting.preparation.formula": "max(1, @classes.cleric.levels + @abilities.int.mod)"
+              });
+            }
+            await this.syncFlinnSpellsAndClericList(flinn, {
+              wizardLevel: wizardLevel || this.PRIMARY_CLASS.defaultLevel,
+              clericLevel: clericLevel || this.SECONDARY_CLASS.defaultLevel
+            });
+            await flinn.setFlag(MODULE_ID, "flinnClericIntDomainV1", true);
+            OtherPlayersBase.refreshActor(flinn);
+            if (flinn.sheet?.rendered) flinn.sheet.render(false);
+          } catch (err) {
+            console.warn("[Flinn] Non-fatal warning migrating Cleric INT & Domain Spells:", err);
+          }
         }
       }
       this.refreshPortentFloatingButton();
@@ -3475,27 +3497,29 @@ export class FlinnManager {
       });
     }
 
-    // 2. Knowledge Domain Spells (always prepared Cleric spells)
+    // 2. Knowledge Domain Spells (always prepared Cleric spells) — STRICTLY gated by Cleric level (1 / 3 / 5 / 7 / 9),
+    //    NOT by combined spell slot level!
+    const KNOWLEDGE_DOMAIN_SPELLS = [
+      { name: "Command", level: 1, minClericLevel: 1, onBaseClericList: true },
+      { name: "Identify", level: 1, minClericLevel: 1, onBaseClericList: false },
+      { name: "Augury", level: 2, minClericLevel: 3, onBaseClericList: true },
+      { name: "Suggestion", level: 2, minClericLevel: 3, onBaseClericList: false },
+      { name: "Nondetection", level: 3, minClericLevel: 5, onBaseClericList: false },
+      { name: "Speak with Dead", level: 3, minClericLevel: 5, onBaseClericList: true },
+      { name: "Arcane Eye", level: 4, minClericLevel: 7, onBaseClericList: false },
+      { name: "Confusion", level: 4, minClericLevel: 7, onBaseClericList: false },
+      { name: "Legend Lore", level: 5, minClericLevel: 9, onBaseClericList: true },
+      { name: "Scrying", level: 5, minClericLevel: 9, onBaseClericList: true }
+    ];
+
     const domainSpellNames = new Set();
-    if (clericLevel >= 1) {
-      domainSpellNames.add("command");
-      domainSpellNames.add("identify");
-    }
-    if (maxSlotLevel >= 2 && clericLevel >= 2) {
-      domainSpellNames.add("augury");
-      domainSpellNames.add("suggestion");
-    }
-    if (maxSlotLevel >= 3 && clericLevel >= 3) {
-      domainSpellNames.add("nondetection");
-      domainSpellNames.add("speak with dead");
-    }
-    if (maxSlotLevel >= 4 && clericLevel >= 7) {
-      domainSpellNames.add("arcane eye");
-      domainSpellNames.add("confusion");
-    }
-    if (maxSlotLevel >= 5 && clericLevel >= 9) {
-      domainSpellNames.add("legend lore");
-      domainSpellNames.add("scrying");
+    const nonClericDomainNamesAll = new Set();
+    for (const def of KNOWLEDGE_DOMAIN_SPELLS) {
+      const lower = def.name.toLowerCase();
+      if (!def.onBaseClericList) nonClericDomainNamesAll.add(lower);
+      if (clericLevel >= def.minClericLevel) {
+        domainSpellNames.add(lower);
+      }
     }
 
     // 3. Collect all desired Cleric spells for levels 1..maxSlotLevel
@@ -3511,35 +3535,32 @@ export class FlinnManager {
         });
       }
     }
-    // Also ensure Knowledge Domain spells that aren't on the base Cleric list (e.g. Identify, Suggestion, Nondetection) are included
-    const extraDomainDefs = [
-      { name: "Identify", level: 1 },
-      { name: "Suggestion", level: 2 },
-      { name: "Nondetection", level: 3 },
-      { name: "Arcane Eye", level: 4 },
-      { name: "Confusion", level: 4 }
-    ];
-    for (const ed of extraDomainDefs) {
-      const lower = ed.name.toLowerCase();
-      if (domainSpellNames.has(lower) && ed.level <= maxSlotLevel && !desiredClericSpells.has(lower)) {
-        desiredClericSpells.set(lower, { name: ed.name, level: ed.level, isDomain: true });
+    // Include Knowledge Domain spells that aren't on the base Cleric list ONLY once Flinn reaches their Cleric level (1/3/5/7/9)
+    for (const def of KNOWLEDGE_DOMAIN_SPELLS) {
+      if (def.onBaseClericList) continue;
+      const lower = def.name.toLowerCase();
+      if (clericLevel >= def.minClericLevel && !desiredClericSpells.has(lower)) {
+        desiredClericSpells.set(lower, { name: def.name, level: def.level, isDomain: true });
       }
     }
 
-    // 4. Prune auto-imported Cleric spells above maxSlotLevel if Flinn leveled down
+    // 4. Prune auto-imported Cleric spells above maxSlotLevel OR out-of-tier non-Cleric Knowledge Domain spells
+    //    (e.g. Nondetection if Cleric < 5, Suggestion if Cleric < 3)
     const excessClericSpellIds = actor.items
-      .filter(
-        i =>
-          i.type === "spell" &&
-          i.flags?.[MODULE_ID]?.isClericSpellListImport &&
-          Number(i.system?.level || 0) > maxSlotLevel
-      )
+      .filter(i => {
+        if (i.type !== "spell" || !i.flags?.[MODULE_ID]?.isClericSpellListImport) return false;
+        const lower = i.name.trim().toLowerCase();
+        if (nonClericDomainNamesAll.has(lower) && !domainSpellNames.has(lower)) {
+          return true;
+        }
+        return Number(i.system?.level || 0) > maxSlotLevel && !domainSpellNames.has(lower);
+      })
       .map(i => i.id);
     if (excessClericSpellIds.length > 0) {
       await actor.deleteEmbeddedDocuments("Item", excessClericSpellIds);
     }
 
-    // 5. Batch-import any missing Cleric spells for levels 1..maxSlotLevel
+    // 5. Batch-import any missing Cleric spells for levels 1..maxSlotLevel (and unlocked Domain Spells)
     const existingSpellsByName = new Map();
     for (const sp of actor.items) {
       if (sp.type !== "spell") continue;
@@ -3560,6 +3581,7 @@ export class FlinnManager {
       if (spellDoc) {
         spellDoc.system = spellDoc.system || {};
         spellDoc.system.method = "spell";
+        spellDoc.system.ability = "int";
         spellDoc.system.prepared = info.isDomain ? 2 : 0;
         spellDoc.system.sourceItem = "class:cleric";
         spellDoc.flags = foundry.utils.mergeObject(spellDoc.flags || {}, {
@@ -3569,7 +3591,7 @@ export class FlinnManager {
             flinnSpellOrigin: "cleric",
             isDomainSpell: info.isDomain,
             featureKey: `flinn:cleric-spell:${lower}:${info.level}`,
-            syncSchemaVersion: 3
+            syncSchemaVersion: 4
           }
         });
         spellsToCreate.push(spellDoc);
@@ -3580,8 +3602,9 @@ export class FlinnManager {
       await actor.createEmbeddedDocuments("Item", spellsToCreate);
     }
 
-    // 6. Ensure all existing spells on Flinn have an explicit `flinnSpellOrigin` ("cleric" or "wizard")
-    //    and matching `system.sourceItem` ("class:cleric" or "class:wizard")
+    // 6. Ensure all existing spells on Flinn have an explicit `flinnSpellOrigin` ("cleric" or "wizard"),
+    //    matching `system.sourceItem`, Cleric spells use Intelligence (`"int"`), and Domain Spell status
+    //    strictly reflects unlocked Cleric level (1 / 3 / 5 / 7 / 9).
     const allClericSpellNamesLower = new Set(
       Object.values(this.PHB_CLERIC_SPELLS_BY_LEVEL)
         .flat()
@@ -3595,6 +3618,8 @@ export class FlinnManager {
       const lower = sp.name.trim().toLowerCase();
       const curOrigin = sp.flags?.[MODULE_ID]?.flinnSpellOrigin;
       const curSourceItem = sp.system?.sourceItem || "";
+      const curAbility = sp.system?.ability || "";
+      const wasDomainFlag = Boolean(sp.flags?.[MODULE_ID]?.isDomainSpell);
 
       // Determine whether this spell belongs to Cleric or Wizard
       let targetOrigin = curOrigin;
@@ -3619,20 +3644,34 @@ export class FlinnManager {
 
       const targetSourceItem = targetOrigin === "cleric" ? "class:cleric" : "class:wizard";
       const isDom = domainSpellNames.has(lower) && targetOrigin === "cleric";
-      const desiredPrepared = isDom ? 2 : sp.system?.prepared;
+      const lostDomainStatus = wasDomainFlag && !isDom;
+      const needsAbilityFix = targetOrigin === "cleric" && curAbility !== "int";
 
       if (
         curOrigin !== targetOrigin ||
         curSourceItem !== targetSourceItem ||
-        (isDom && sp.system?.prepared !== 2)
+        needsAbilityFix ||
+        (isDom && (sp.system?.prepared !== 2 || !wasDomainFlag)) ||
+        lostDomainStatus
       ) {
-        spellUpdates.push({
+        const patch = {
           _id: sp.id,
           "system.sourceItem": targetSourceItem,
-          ...(isDom ? { "system.prepared": 2 } : {}),
-          [`flags.${MODULE_ID}.flinnSpellOrigin`]: targetOrigin,
-          ...(isDom ? { [`flags.${MODULE_ID}.isDomainSpell`]: true } : {})
-        });
+          [`flags.${MODULE_ID}.flinnSpellOrigin`]: targetOrigin
+        };
+        if (needsAbilityFix) {
+          patch["system.ability"] = "int";
+        }
+        if (isDom) {
+          patch["system.prepared"] = 2;
+          patch[`flags.${MODULE_ID}.isDomainSpell`] = true;
+        } else if (lostDomainStatus) {
+          patch[`flags.${MODULE_ID}.isDomainSpell`] = false;
+          if (Number(sp.system?.prepared) === 2) {
+            patch["system.prepared"] = 0;
+          }
+        }
+        spellUpdates.push(patch);
       }
     }
 
@@ -4426,14 +4465,14 @@ export class FlinnManager {
 
         if (clericConv) {
           // Cleric acts as a Half-Caster on Flinn (Wizard + 1/2 Cleric spell slot progression)
-          // while preparing ClericLevel + WISMod Cleric spells (min 1)
+          // using Intelligence as its Spellcasting Ability (ClericLevel + INTMod prepared spells, min 1)
           clericConv.clsData.system.spellcasting = foundry.utils.mergeObject(
             clericConv.clsData.system.spellcasting || {},
             {
               progression: "half",
-              ability: "wis",
+              ability: "int",
               preparation: {
-                formula: "max(1, @classes.cleric.levels + @abilities.wis.mod)"
+                formula: "max(1, @classes.cleric.levels + @abilities.int.mod)"
               }
             }
           );

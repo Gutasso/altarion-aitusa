@@ -25,7 +25,9 @@ function setupCoriaHubFloatingButtonGuard() {
       const hubOpen = Boolean(
         document.getElementById("coria-hub-app") || document.getElementById("coria-hub-wrapper")
       );
-      document.body?.classList?.toggle("coria-hub-menu-open", hubOpen);
+      if (document.body && document.body.classList.contains("coria-hub-menu-open") !== hubOpen) {
+        document.body.classList.toggle("coria-hub-menu-open", hubOpen);
+      }
     } catch (_e) {}
   };
 
@@ -907,8 +909,6 @@ function onRenderActorSheet(sheet, html) {
       header.insertAdjacentElement("afterend", container);
     }
 
-    container.innerHTML = "";
-
     if (isAltarion) {
       const riderClass = actor.items.find(i => i.type === "class" && !SecondaryClassManager.isSecondaryClass(i, actor));
       const wizardClass = actor.items.find(i => i.type === "class" && SecondaryClassManager.isSecondaryClass(i, actor));
@@ -961,7 +961,7 @@ function onRenderActorSheet(sheet, html) {
         Boolean(arcaneArmorEff) && Number(actor.system?.attributes?.hp?.temp ?? 0) > 0;
       const arcaneArmorDmg = Number(arcaneArmorEff?.flags?.["altarion-aitusa"]?.retaliationDamage || 5);
 
-      container.innerHTML = `
+      const headerHtml = `
         <span class="altarion-aitusa-badge primary" data-coria-color-key="class-primary" data-coria-color-label="Dragon Rider (Classe Principal)" title="Dragon Rider (Classe Principal) | Clique direito para personalizar cor">
           <i class="fas fa-dragon"></i> Dragon Rider (Lvl ${riderLvl})
         </span>
@@ -1048,55 +1048,71 @@ function onRenderActorSheet(sheet, html) {
         }
       `;
 
-      if (actor.isOwner) {
-        for (const stepBtn of container.querySelectorAll(".altarion-res-step")) {
-          stepBtn.addEventListener("click", async (ev) => {
-            ev.preventDefault();
-            ev.stopPropagation();
-            const delta = Number(stepBtn.getAttribute("data-delta") || 0);
-            const resType = stepBtn.getAttribute("data-res");
-            if (resType === "ancestral" && ancestralAttacksItem) {
-              const newRemaining = Math.clamp(remainingAttacks + delta, 0, maxAttacks);
-              const newSpent = Math.max(0, maxAttacks - newRemaining);
-              await ancestralAttacksItem.update({ "system.uses.spent": newSpent });
-            } else if (resType === "arcane-step" && arcaneStepItem) {
-              const newRemaining = Math.clamp(remainingArcaneStep + delta, 0, maxArcaneStep);
-              const newSpent = Math.max(0, maxArcaneStep - newRemaining);
-              await arcaneStepItem.update({
-                "system.uses.max": "@prof",
-                "system.uses.spent": newSpent,
-                "system.uses.recovery": [{ period: "lr", type: "recoverAll" }]
-              });
-            } else if (resType === "linked") {
-              const newRemaining = Math.clamp(remainingLinked + delta, 0, maxLinked);
-              await actor.update({
-                "system.resources.secondary.label": "Linked Casting",
-                "system.resources.secondary.value": newRemaining,
-                "system.resources.secondary.max": maxLinked,
-                "system.resources.secondary.lr": true
-              });
-            } else if (resType === "draconic-focus" && draconicFocusItem) {
-              const newRemaining = Math.clamp(remainingDraconicFocus + delta, 0, maxDraconicFocus);
-              const newSpent = Math.max(0, maxDraconicFocus - newRemaining);
-              await draconicFocusItem.update({
-                "system.uses.spent": newSpent,
-                ...(draconicFocusItem.system?.uses?.max ? {} : { "system.uses.max": "max(1, @abilities.int.mod)", "system.uses.recovery": [{ period: "lr", type: "recoverAll" }] })
-              });
-            } else if (resType === "arcane-ward" && arcaneWardState.eligible) {
-              const newWardHp = Math.clamp(arcaneWardState.current + delta, 0, arcaneWardState.max);
-              await actor.update(
-                {
-                  "flags.altarion-aitusa.arcaneWardActive": arcaneWardState.active || newWardHp > 0,
-                  "system.resources.tertiary.label": "Arcane Ward",
-                  "system.resources.tertiary.value": newWardHp,
-                  "system.resources.tertiary.max": arcaneWardState.max,
-                  "system.resources.tertiary.sr": false,
-                  "system.resources.tertiary.lr": false
-                },
-                { altarionBypassWard: true }
-              );
-            }
+      const headerSig = `altarion|${actor.id}|${actor.isOwner ? 1 : 0}|${headerHtml}`;
+      if (container.dataset.coriaHeaderSig !== headerSig) {
+        container.dataset.coriaHeaderSig = headerSig;
+        container.innerHTML = headerHtml;
+
+        if (actor.isOwner) {
+          for (const stepBtn of container.querySelectorAll(".altarion-res-step")) {
+            stepBtn.addEventListener("click", async (ev) => {
+              ev.preventDefault();
+              ev.stopPropagation();
+              const delta = Number(stepBtn.getAttribute("data-delta") || 0);
+              const resType = stepBtn.getAttribute("data-res");
+              if (resType === "ancestral" && ancestralAttacksItem) {
+                const newRemaining = Math.clamp(remainingAttacks + delta, 0, maxAttacks);
+                const newSpent = Math.max(0, maxAttacks - newRemaining);
+                await ancestralAttacksItem.update({ "system.uses.spent": newSpent });
+              } else if (resType === "arcane-step" && arcaneStepItem) {
+                const newRemaining = Math.clamp(remainingArcaneStep + delta, 0, maxArcaneStep);
+                const newSpent = Math.max(0, maxArcaneStep - newRemaining);
+                await arcaneStepItem.update({
+                  "system.uses.max": "@prof",
+                  "system.uses.spent": newSpent,
+                  "system.uses.recovery": [{ period: "lr", type: "recoverAll" }]
+                });
+              } else if (resType === "linked") {
+                const newRemaining = Math.clamp(remainingLinked + delta, 0, maxLinked);
+                await actor.update({
+                  "system.resources.secondary.label": "Linked Casting",
+                  "system.resources.secondary.value": newRemaining,
+                  "system.resources.secondary.max": maxLinked,
+                  "system.resources.secondary.lr": true
+                });
+              } else if (resType === "draconic-focus" && draconicFocusItem) {
+                const newRemaining = Math.clamp(remainingDraconicFocus + delta, 0, maxDraconicFocus);
+                const newSpent = Math.max(0, maxDraconicFocus - newRemaining);
+                await draconicFocusItem.update({
+                  "system.uses.spent": newSpent,
+                  ...(draconicFocusItem.system?.uses?.max ? {} : { "system.uses.max": "max(1, @abilities.int.mod)", "system.uses.recovery": [{ period: "lr", type: "recoverAll" }] })
+                });
+              } else if (resType === "arcane-ward" && arcaneWardState.eligible) {
+                const newWardHp = Math.clamp(arcaneWardState.current + delta, 0, arcaneWardState.max);
+                await actor.update(
+                  {
+                    "flags.altarion-aitusa.arcaneWardActive": arcaneWardState.active || newWardHp > 0,
+                    "system.resources.tertiary.label": "Arcane Ward",
+                    "system.resources.tertiary.value": newWardHp,
+                    "system.resources.tertiary.max": arcaneWardState.max,
+                    "system.resources.tertiary.sr": false,
+                    "system.resources.tertiary.lr": false
+                  },
+                  { altarionBypassWard: true }
+                );
+              }
+            });
+          }
+
+          const syncBtn = document.createElement("button");
+          syncBtn.type = "button";
+          syncBtn.className = "altarion-aitusa-sync-btn";
+          syncBtn.innerHTML = `<i class="fas fa-sync"></i> Sync Features`;
+          syncBtn.addEventListener("click", async (e) => {
+            e.preventDefault();
+            await FeatureSyncManager.syncAltarion(actor, { force: true });
           });
+          container.appendChild(syncBtn);
         }
       }
     } else if (isAitusa) {
@@ -1132,7 +1148,7 @@ function onRenderActorSheet(sheet, html) {
         Boolean(aitusaArmorEff) && Number(actor.system?.attributes?.hp?.temp ?? 0) > 0;
       const aitusaArmorDmg = Number(aitusaArmorEff?.flags?.["altarion-aitusa"]?.retaliationDamage || 5);
 
-      container.innerHTML = `
+      const headerHtml = `
         <span class="altarion-aitusa-badge companion" data-coria-color-key="class-primary" data-coria-color-label="Dragon Companion (Classe Principal)" title="Dragon Companion (Classe Principal) | Clique direito para personalizar cor">
           <i class="fas fa-paw"></i> Dragon Companion: ${sizeData.sizeLabel} (Lvl ${dragonLvl})
         </span>
@@ -1168,50 +1184,53 @@ function onRenderActorSheet(sheet, html) {
         }
       `;
 
-      if (actor.isOwner) {
-        for (const stepBtn of container.querySelectorAll('.altarion-res-step[data-res="dragon-attacks"]')) {
-          stepBtn.addEventListener("click", async (ev) => {
-            ev.preventDefault();
-            ev.stopPropagation();
-            const delta = Number(stepBtn.getAttribute("data-delta") || 0);
-            const newRemaining = Math.clamp(remDragonAtks + delta, 0, maxDragonAtks);
-            await actor.update({
-              "system.resources.primary.label": "Dragon Attacks",
-              "system.resources.primary.value": newRemaining,
-              "system.resources.primary.max": maxDragonAtks,
-              "system.resources.primary.sr": true,
-              "system.resources.primary.lr": true
+      const headerSig = `aitusa|${actor.id}|${actor.isOwner ? 1 : 0}|${headerHtml}`;
+      if (container.dataset.coriaHeaderSig !== headerSig) {
+        container.dataset.coriaHeaderSig = headerSig;
+        container.innerHTML = headerHtml;
+
+        if (actor.isOwner) {
+          for (const stepBtn of container.querySelectorAll('.altarion-res-step[data-res="dragon-attacks"]')) {
+            stepBtn.addEventListener("click", async (ev) => {
+              ev.preventDefault();
+              ev.stopPropagation();
+              const delta = Number(stepBtn.getAttribute("data-delta") || 0);
+              const newRemaining = Math.clamp(remDragonAtks + delta, 0, maxDragonAtks);
+              await actor.update({
+                "system.resources.primary.label": "Dragon Attacks",
+                "system.resources.primary.value": newRemaining,
+                "system.resources.primary.max": maxDragonAtks,
+                "system.resources.primary.sr": true,
+                "system.resources.primary.lr": true
+              });
             });
-          });
-        }
-        for (const stepBtn of container.querySelectorAll('.altarion-res-step[data-res="draconic-focus"]')) {
-          stepBtn.addEventListener("click", async (ev) => {
-            ev.preventDefault();
-            ev.stopPropagation();
-            if (!draconicFocusItem || !altarionActor?.isOwner) return;
-            const delta = Number(stepBtn.getAttribute("data-delta") || 0);
-            const newRemaining = Math.clamp(remainingDraconicFocus + delta, 0, maxDraconicFocus);
-            const newSpent = Math.max(0, maxDraconicFocus - newRemaining);
-            await draconicFocusItem.update({
-              "system.uses.spent": newSpent,
-              ...(draconicFocusItem.system?.uses?.max ? {} : { "system.uses.max": "max(1, @abilities.int.mod)", "system.uses.recovery": [{ period: "lr", type: "recoverAll" }] })
+          }
+          for (const stepBtn of container.querySelectorAll('.altarion-res-step[data-res="draconic-focus"]')) {
+            stepBtn.addEventListener("click", async (ev) => {
+              ev.preventDefault();
+              ev.stopPropagation();
+              if (!draconicFocusItem || !altarionActor?.isOwner) return;
+              const delta = Number(stepBtn.getAttribute("data-delta") || 0);
+              const newRemaining = Math.clamp(remainingDraconicFocus + delta, 0, maxDraconicFocus);
+              const newSpent = Math.max(0, maxDraconicFocus - newRemaining);
+              await draconicFocusItem.update({
+                "system.uses.spent": newSpent,
+                ...(draconicFocusItem.system?.uses?.max ? {} : { "system.uses.max": "max(1, @abilities.int.mod)", "system.uses.recovery": [{ period: "lr", type: "recoverAll" }] })
+              });
             });
+          }
+
+          const syncBtn = document.createElement("button");
+          syncBtn.type = "button";
+          syncBtn.className = "altarion-aitusa-sync-btn";
+          syncBtn.innerHTML = `<i class="fas fa-sync"></i> Sync Features`;
+          syncBtn.addEventListener("click", async (e) => {
+            e.preventDefault();
+            await FeatureSyncManager.syncAitusa(actor, { force: true });
           });
+          container.appendChild(syncBtn);
         }
       }
-    }
-
-    if (actor.isOwner) {
-      const syncBtn = document.createElement("button");
-      syncBtn.type = "button";
-      syncBtn.className = "altarion-aitusa-sync-btn";
-      syncBtn.innerHTML = `<i class="fas fa-sync"></i> Sync Features`;
-      syncBtn.addEventListener("click", async (e) => {
-        e.preventDefault();
-        if (isAltarion) await FeatureSyncManager.syncAltarion(actor, { force: true });
-        if (isAitusa) await FeatureSyncManager.syncAitusa(actor, { force: true });
-      });
-      container.appendChild(syncBtn);
     }
 
     if (isAltarion) {
@@ -1252,27 +1271,80 @@ function onRenderActorSheet(sheet, html) {
       // Highlight Spellbook rows with Dragon Rider vs Wizard (Altarion) or Dragon Companion (Aitusa) colors
       globalThis.CoriaHeaderColorManager?.decorateUniversalSpellbook?.(actor, rootEl);
     } finally {
+      // Drain MutationRecords generated by our own DOM edits BEFORE clearing guard (stops observer ping-pong!)
+      rootEl._altarionSpellbookObserver?.takeRecords?.();
       rootEl._altarionDecorating = false;
     }
   };
 
+  rootEl._coriaRunAltarionItemDecorate = decorateAltarionAitusaItems;
   decorateAltarionAitusaItems();
 
   if (!rootEl._altarionSpellbookObserver) {
+    const RELEVANT_SEL = "[data-item-id], .spellbook, .tidy-tab, .tab, .spellcasting-class-card";
+    const isRelevantMutation = (mutations) => {
+      for (const m of mutations) {
+        for (const node of m.addedNodes) {
+          if (node.nodeType !== 1) continue;
+          if (node.classList?.contains("coria-spell-class-pill")) continue;
+          if (node.matches?.(RELEVANT_SEL) || node.querySelector?.(RELEVANT_SEL)) return true;
+        }
+        for (const node of m.removedNodes) {
+          if (node.nodeType !== 1) continue;
+          if (node.classList?.contains("flinn-spellbook-toolbar")) return true;
+        }
+      }
+      return false;
+    };
+
     let debounceTimer = null;
-    const observer = new MutationObserver(() => {
+    let rafId = null;
+    const observer = new MutationObserver((mutations) => {
       if (rootEl._altarionDecorating) return;
+      if (!isRelevantMutation(mutations)) return;
       if (debounceTimer) clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
-        decorateAltarionAitusaItems();
-      }, 45);
+        debounceTimer = null;
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(() => {
+          rafId = null;
+          if (rootEl.isConnected && typeof rootEl._coriaRunAltarionItemDecorate === "function") {
+            rootEl._coriaRunAltarionItemDecorate();
+          }
+        });
+      }, 110);
     });
     observer.observe(rootEl, {
       childList: true,
       subtree: true
     });
     rootEl._altarionSpellbookObserver = observer;
+    rootEl._altarionObserverCleanup = () => {
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+        debounceTimer = null;
+      }
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+      observer.disconnect();
+      rootEl._altarionSpellbookObserver = null;
+    };
   }
+}
+
+function scheduleAltarionAitusaRender(sheet, html) {
+  const actor = sheet?.actor || sheet?.document;
+  if (!actor) return;
+  if (!matchesAltarionName(actor.name) && !matchesAitusaName(actor.name)) return;
+  const rootEl = html instanceof HTMLElement ? html : html?.[0] || sheet?.element;
+  if (!rootEl) return;
+  if (rootEl._coriaAltarionRenderRaf) cancelAnimationFrame(rootEl._coriaAltarionRenderRaf);
+  rootEl._coriaAltarionRenderRaf = requestAnimationFrame(() => {
+    rootEl._coriaAltarionRenderRaf = null;
+    if (rootEl.isConnected) onRenderActorSheet(sheet, rootEl);
+  });
 }
 
 for (const renderHook of [
@@ -1283,7 +1355,37 @@ for (const renderHook of [
   "renderTidy5eCharacterSheet",
   "renderTidy5eNpcSheet"
 ]) {
-  Hooks.on(renderHook, onRenderActorSheet);
+  Hooks.on(renderHook, scheduleAltarionAitusaRender);
+}
+
+Hooks.on("tidy5e-sheet.selectTab", (sheet, html) => {
+  const actor = sheet?.actor || sheet?.document;
+  if (!actor || (!matchesAltarionName(actor.name) && !matchesAitusaName(actor.name))) return;
+  const rootEl = html instanceof HTMLElement ? html : html?.[0] || sheet?.element;
+  if (!rootEl || typeof rootEl._coriaRunAltarionItemDecorate !== "function") return;
+  if (rootEl._coriaAltarionTabRaf) cancelAnimationFrame(rootEl._coriaAltarionTabRaf);
+  rootEl._coriaAltarionTabRaf = requestAnimationFrame(() => {
+    rootEl._coriaAltarionTabRaf = null;
+    if (rootEl.isConnected) rootEl._coriaRunAltarionItemDecorate();
+  });
+});
+
+for (const closeHook of ["closeActorSheet", "closeActorSheetV2"]) {
+  Hooks.on(closeHook, (sheet) => {
+    const rootEl = sheet?.element instanceof HTMLElement ? sheet.element : sheet?.element?.[0];
+    if (!rootEl) return;
+    if (rootEl._coriaAltarionRenderRaf) {
+      cancelAnimationFrame(rootEl._coriaAltarionRenderRaf);
+      rootEl._coriaAltarionRenderRaf = null;
+    }
+    if (rootEl._coriaAltarionTabRaf) {
+      cancelAnimationFrame(rootEl._coriaAltarionTabRaf);
+      rootEl._coriaAltarionTabRaf = null;
+    }
+    if (typeof rootEl._altarionObserverCleanup === "function") {
+      rootEl._altarionObserverCleanup();
+    }
+  });
 }
 
 // Load isolated Other Players modules (Parva, Kyrion, Flinn) even on browser reload without server restart

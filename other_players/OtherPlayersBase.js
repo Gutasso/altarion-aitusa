@@ -184,10 +184,13 @@ export class OtherPlayersBase {
       );
       const ident = String(this.identifier || item?.name || "").trim().toLowerCase();
 
-      if (isFlinn && this.spellcasting?.preparation) {
-        if (ident === "cleric" && !this.spellcasting.preparation.formula) {
-          this.spellcasting.preparation.formula = "max(1, @classes.cleric.levels + @abilities.wis.mod)";
-        } else if (ident === "wizard" && !this.spellcasting.preparation.formula) {
+      if (isFlinn && this.spellcasting) {
+        if (ident === "cleric") {
+          this.spellcasting.ability = "int";
+          if (this.spellcasting.preparation) {
+            this.spellcasting.preparation.formula = "max(1, @classes.cleric.levels + @abilities.int.mod)";
+          }
+        } else if (ident === "wizard" && this.spellcasting.preparation && !this.spellcasting.preparation.formula) {
           this.spellcasting.preparation.formula = "max(1, @classes.wizard.levels + @abilities.int.mod)";
         }
       }
@@ -200,12 +203,12 @@ export class OtherPlayersBase {
       }
 
       if (isFlinn && this.spellcasting?.preparation) {
+        const intMod = Number(actor.system?.abilities?.int?.mod ?? 0);
         if (ident === "cleric") {
-          const wisMod = Number(actor.system?.abilities?.wis?.mod ?? 0);
+          this.spellcasting.ability = "int";
           const clrLvl = Number(this.levels || 0);
-          this.spellcasting.preparation.max = Math.max(1, clrLvl + wisMod);
+          this.spellcasting.preparation.max = Math.max(1, clrLvl + intMod);
         } else if (ident === "wizard") {
-          const intMod = Number(actor.system?.abilities?.int?.mod ?? 0);
           const wizLvl = Number(this.levels || 0);
           this.spellcasting.preparation.max = Math.max(1, wizLvl + intMod);
         }
@@ -338,10 +341,17 @@ export class OtherPlayersBase {
         }
 
         if (handler.CHARACTER_NAME === "Flinn" && (item.type === "spell" || item.type === "feat")) {
-          setTimeout(() => {
-            const sheetEl = actor.sheet?.element instanceof HTMLElement ? actor.sheet.element : actor.sheet?.element?.[0];
-            if (sheetEl) this.decorateCharacterSheet(actor, sheetEl);
-          }, 50);
+          if (!this._flinnItemRefreshTimers) this._flinnItemRefreshTimers = new Map();
+          const prevT = this._flinnItemRefreshTimers.get(actor.id);
+          if (prevT) clearTimeout(prevT);
+          this._flinnItemRefreshTimers.set(
+            actor.id,
+            setTimeout(() => {
+              this._flinnItemRefreshTimers.delete(actor.id);
+              const sheetEl = actor.sheet?.element instanceof HTMLElement ? actor.sheet.element : actor.sheet?.element?.[0];
+              if (sheetEl?.isConnected) this.decorateCharacterSheet(actor, sheetEl);
+            }, 80)
+          );
         }
 
         if (item.type === "class" || item.type === "subclass") {
@@ -369,6 +379,24 @@ export class OtherPlayersBase {
     }
 
     // 7. Sheet UI Header Badge ([Sec] & Dual-Race display & "Sync Features" button) for Parva, Kyrion, and Flinn
+    //    Coalesced per animation frame so Foundry/Tidy5e's multi-hook render bursts execute ONCE instead of 4-8x!
+    const scheduleSheetDecorate = (actor, root, { itemsOnly = false } = {}) => {
+      if (!actor || !root) return;
+      if (itemsOnly && typeof root._coriaRunItemDecorate === "function") {
+        if (root._coriaTabRaf) cancelAnimationFrame(root._coriaTabRaf);
+        root._coriaTabRaf = requestAnimationFrame(() => {
+          root._coriaTabRaf = null;
+          if (root.isConnected) root._coriaRunItemDecorate();
+        });
+        return;
+      }
+      if (root._coriaSheetDecorateRaf) cancelAnimationFrame(root._coriaSheetDecorateRaf);
+      root._coriaSheetDecorateRaf = requestAnimationFrame(() => {
+        root._coriaSheetDecorateRaf = null;
+        if (root.isConnected) this.decorateCharacterSheet(actor, root);
+      });
+    };
+
     for (const hookName of [
       "renderActorSheet5eCharacter2",
       "renderActorSheet5eCharacter",
@@ -376,15 +404,41 @@ export class OtherPlayersBase {
       "renderActorSheetV2",
       "renderActorSheet",
       "renderTidy5eCharacterSheet",
-      "tidy5e-sheet.renderActorSheet",
-      "tidy5e-sheet.selectTab"
+      "tidy5e-sheet.renderActorSheet"
     ]) {
       Hooks.on(hookName, (app, html) => {
         const actor = app?.actor || app?.document;
         if (!actor || !this.isOtherPlayerActor(actor)) return;
         const root = html instanceof HTMLElement ? html : html?.[0] || app?.element;
         if (!root) return;
-        this.decorateCharacterSheet(actor, root);
+        scheduleSheetDecorate(actor, root, { itemsOnly: false });
+      });
+    }
+
+    Hooks.on("tidy5e-sheet.selectTab", (app, html) => {
+      const actor = app?.actor || app?.document;
+      if (!actor || !this.isOtherPlayerActor(actor)) return;
+      const root = html instanceof HTMLElement ? html : html?.[0] || app?.element;
+      if (!root) return;
+      scheduleSheetDecorate(actor, root, { itemsOnly: true });
+    });
+
+    // Disconnect sheet MutationObservers cleanly on close to prevent memory/CPU leaks
+    for (const closeHook of ["closeActorSheet", "closeActorSheetV2"]) {
+      Hooks.on(closeHook, (app) => {
+        const root = app?.element instanceof HTMLElement ? app.element : app?.element?.[0];
+        if (!root) return;
+        if (root._coriaSheetDecorateRaf) {
+          cancelAnimationFrame(root._coriaSheetDecorateRaf);
+          root._coriaSheetDecorateRaf = null;
+        }
+        if (root._coriaTabRaf) {
+          cancelAnimationFrame(root._coriaTabRaf);
+          root._coriaTabRaf = null;
+        }
+        if (typeof root._flinnObserverCleanup === "function") {
+          root._flinnObserverCleanup();
+        }
       });
     }
 
@@ -2859,8 +2913,11 @@ export class OtherPlayersBase {
     }
 
     // Remove any legacy button that may have been appended directly inside .window-header
-    for (const oldBtn of root.querySelectorAll(".other-player-sync-btn")) {
-      oldBtn.remove();
+    const winHeader = root.querySelector(".window-header");
+    if (winHeader) {
+      for (const oldBtn of winHeader.querySelectorAll(".other-player-sync-btn")) {
+        oldBtn.remove();
+      }
     }
 
     // 1. Inject the full-width Header Badge Bar (.altarion-aitusa-class-container) + Sync Features button,
@@ -2873,8 +2930,6 @@ export class OtherPlayersBase {
         container.className = "altarion-aitusa-class-container";
         header.insertAdjacentElement("afterend", container);
       }
-
-      container.innerHTML = "";
 
       const primDef = handler.PRIMARY_CLASS;
       const secDef = handler.SECONDARY_CLASS;
@@ -2921,9 +2976,8 @@ export class OtherPlayersBase {
           )
         : 10;
       const flinnIntMod = Number(actor.system?.abilities?.int?.mod ?? 0);
-      const flinnWisMod = Number(actor.system?.abilities?.wis?.mod ?? 0);
       const flinnWizPrepMax = Math.max(1, primLvl + flinnIntMod);
-      const flinnClrPrepMax = Math.max(1, secLvl + flinnWisMod);
+      const flinnClrPrepMax = Math.max(1, secLvl + flinnIntMod);
       const flinnLuckyFeat = isFlinn
         ? actor.items.find(
             i =>
@@ -3014,7 +3068,7 @@ export class OtherPlayersBase {
       const parvaTentacleSpent = Number(parvaTentacleItem?.system?.uses?.spent ?? 0);
       const parvaTentacleVal = Math.clamp(parvaTentacleMax - parvaTentacleSpent, 0, parvaTentacleMax);
 
-      container.innerHTML = `
+      const headerHtml = `
         <span class="altarion-aitusa-badge primary" data-coria-color-key="class-primary" data-coria-color-label="${primDef.name} (Classe Principal)" title="Primary Class (defines Character Level, Max HP, Hit Dice & Proficiency Bonus) | Clique direito para personalizar cor">
           <i class="fas ${primIcon}"></i> ${primDef.name} (Lvl ${primLvl})
         </span>
@@ -3038,7 +3092,7 @@ export class OtherPlayersBase {
               <span class="altarion-aitusa-badge flinn-prep-wizard" data-coria-color-key="flinn-prep-wizard" data-coria-color-label="Wizard Prep" title="Prepared Wizard Spells (Blue in Spellbook): ${flinnWizPrepCount} / ${flinnWizPrepMax} (Wizard Lvl ${primLvl} + INT Mod ${flinnIntMod >= 0 ? `+${flinnIntMod}` : flinnIntMod}) | Clique direito para personalizar cor">
                 <i class="fas fa-hat-wizard"></i> Wizard Prep: <strong>${flinnWizPrepCount} / ${flinnWizPrepMax}</strong>
               </span>
-              <span class="altarion-aitusa-badge flinn-prep-cleric" data-coria-color-key="flinn-prep-cleric" data-coria-color-label="Cleric Prep" title="Prepared Cleric Spells (Yellow/Gold in Spellbook): ${flinnClrPrepCount} / ${flinnClrPrepMax} (Cleric Lvl ${secLvl} + WIS Mod ${flinnWisMod >= 0 ? `+${flinnWisMod}` : flinnWisMod}) | Clique direito para personalizar cor">
+              <span class="altarion-aitusa-badge flinn-prep-cleric" data-coria-color-key="flinn-prep-cleric" data-coria-color-label="Cleric Prep" title="Prepared Cleric Spells (Yellow/Gold in Spellbook): ${flinnClrPrepCount} / ${flinnClrPrepMax} (Cleric Lvl ${secLvl} + INT Mod ${flinnIntMod >= 0 ? `+${flinnIntMod}` : flinnIntMod}) | Clique direito para personalizar cor">
                 <i class="fas fa-pray"></i> Cleric Prep: <strong>${flinnClrPrepCount} / ${flinnClrPrepMax}</strong>
               </span>`
             : ""
@@ -3085,78 +3139,84 @@ export class OtherPlayersBase {
         }
       `;
 
-      if (actor.isOwner && (isKyrion || isFlinn || isParva)) {
-        for (const stepBtn of container.querySelectorAll(".altarion-res-step")) {
-          stepBtn.addEventListener("click", async (ev) => {
-            ev.preventDefault();
-            ev.stopPropagation();
-            const delta = Number(stepBtn.getAttribute("data-delta") || 0);
-            const resType = stepBtn.getAttribute("data-res");
-            if (resType === "kyrion-essence") {
-              const nextVal = Math.clamp(kyrionEssenceVal + delta, 0, kyrionPoolMax);
-              await actor.update({
-                "system.resources.primary.label": "Essence Points",
-                "system.resources.primary.value": nextVal,
-                "system.resources.primary.max": kyrionPoolMax,
-                "system.resources.primary.sr": false,
-                "system.resources.primary.lr": true
-              });
-            } else if (resType === "kyrion-storage") {
-              const nextVal = Math.clamp(kyrionStorageVal + delta, 0, kyrionPoolMax);
-              await actor.update({
-                "system.resources.secondary.label": "Shadow Storage",
-                "system.resources.secondary.value": nextVal,
-                "system.resources.secondary.max": kyrionPoolMax,
-                "system.resources.secondary.sr": false,
-                "system.resources.secondary.lr": false
-              });
-            } else if (resType === "flinn-dc") {
-              const nextDc = Math.max(10, flinnIntuitiveDc + delta);
-              await actor.setFlag(MODULE_ID, "intuitiveArcanumDC", nextDc);
-              await actor.update({
-                "system.resources.primary.label": "Intuitive Arcanum DC",
-                "system.resources.primary.value": nextDc,
-                "system.resources.primary.max": 30
-              });
-            } else if (resType === "flinn-luck" && flinnLuckyFeat) {
-              const nextVal = Math.clamp(flinnLuckVal + delta, 0, flinnLuckMax);
-              const nextSpent = Math.clamp(flinnLuckMax - nextVal, 0, flinnLuckMax);
-              await flinnLuckyFeat.update({
-                "system.uses.max": String(flinnLuckMax),
-                "system.uses.spent": nextSpent
-              });
-            } else if (resType === "parva-tentacle" && parvaTentacleItem) {
-              const nextVal = Math.clamp(parvaTentacleVal + delta, 0, parvaTentacleMax);
-              const nextSpent = Math.clamp(parvaTentacleMax - nextVal, 0, parvaTentacleMax);
-              await parvaTentacleItem.update({
-                "system.uses.max": "@prof",
-                "system.uses.spent": nextSpent,
-                "system.uses.recovery": [{ period: "lr", type: "recoverAll" }]
-              });
-            }
-          });
-        }
-        const openIntuitiveBtn = container.querySelector(".flinn-open-intuitive-btn");
-        if (openIntuitiveBtn && typeof handler.openIntuitiveArcanumDialog === "function") {
-          openIntuitiveBtn.addEventListener("click", async (ev) => {
-            ev.preventDefault();
-            ev.stopPropagation();
-            await handler.openIntuitiveArcanumDialog(actor);
-          });
-        }
-      }
+      const headerSig = `${actor.id}|${actor.isOwner ? 1 : 0}|${headerHtml}`;
+      if (container.dataset.coriaHeaderSig !== headerSig) {
+        container.dataset.coriaHeaderSig = headerSig;
+        container.innerHTML = headerHtml;
 
-      if (actor.isOwner) {
-        const syncBtn = document.createElement("button");
-        syncBtn.type = "button";
-        syncBtn.className = "altarion-aitusa-sync-btn";
-        syncBtn.innerHTML = `<i class="fas fa-sync"></i> Sync Features`;
-        syncBtn.addEventListener("click", async (ev) => {
-          ev.preventDefault();
-          ev.stopPropagation();
-          await handler.sync(actor, { force: true });
-        });
-        container.appendChild(syncBtn);
+        if (actor.isOwner && (isKyrion || isFlinn || isParva)) {
+          for (const stepBtn of container.querySelectorAll(".altarion-res-step")) {
+            stepBtn.addEventListener("click", async (ev) => {
+              ev.preventDefault();
+              ev.stopPropagation();
+              const delta = Number(stepBtn.getAttribute("data-delta") || 0);
+              const resType = stepBtn.getAttribute("data-res");
+              if (resType === "kyrion-essence") {
+                const nextVal = Math.clamp(kyrionEssenceVal + delta, 0, kyrionPoolMax);
+                await actor.update({
+                  "system.resources.primary.label": "Essence Points",
+                  "system.resources.primary.value": nextVal,
+                  "system.resources.primary.max": kyrionPoolMax,
+                  "system.resources.primary.sr": false,
+                  "system.resources.primary.lr": true
+                });
+              } else if (resType === "kyrion-storage") {
+                const nextVal = Math.clamp(kyrionStorageVal + delta, 0, kyrionPoolMax);
+                await actor.update({
+                  "system.resources.secondary.label": "Shadow Storage",
+                  "system.resources.secondary.value": nextVal,
+                  "system.resources.secondary.max": kyrionPoolMax,
+                  "system.resources.secondary.sr": false,
+                  "system.resources.secondary.lr": false
+                });
+              } else if (resType === "flinn-dc") {
+                const nextDc = Math.max(10, flinnIntuitiveDc + delta);
+                await actor.setFlag(MODULE_ID, "intuitiveArcanumDC", nextDc);
+                await actor.update({
+                  "system.resources.primary.label": "Intuitive Arcanum DC",
+                  "system.resources.primary.value": nextDc,
+                  "system.resources.primary.max": 30
+                });
+              } else if (resType === "flinn-luck" && flinnLuckyFeat) {
+                const nextVal = Math.clamp(flinnLuckVal + delta, 0, flinnLuckMax);
+                const nextSpent = Math.clamp(flinnLuckMax - nextVal, 0, flinnLuckMax);
+                await flinnLuckyFeat.update({
+                  "system.uses.max": String(flinnLuckMax),
+                  "system.uses.spent": nextSpent
+                });
+              } else if (resType === "parva-tentacle" && parvaTentacleItem) {
+                const nextVal = Math.clamp(parvaTentacleVal + delta, 0, parvaTentacleMax);
+                const nextSpent = Math.clamp(parvaTentacleMax - nextVal, 0, parvaTentacleMax);
+                await parvaTentacleItem.update({
+                  "system.uses.max": "@prof",
+                  "system.uses.spent": nextSpent,
+                  "system.uses.recovery": [{ period: "lr", type: "recoverAll" }]
+                });
+              }
+            });
+          }
+          const openIntuitiveBtn = container.querySelector(".flinn-open-intuitive-btn");
+          if (openIntuitiveBtn && typeof handler.openIntuitiveArcanumDialog === "function") {
+            openIntuitiveBtn.addEventListener("click", async (ev) => {
+              ev.preventDefault();
+              ev.stopPropagation();
+              await handler.openIntuitiveArcanumDialog(actor);
+            });
+          }
+        }
+
+        if (actor.isOwner) {
+          const syncBtn = document.createElement("button");
+          syncBtn.type = "button";
+          syncBtn.className = "altarion-aitusa-sync-btn";
+          syncBtn.innerHTML = `<i class="fas fa-sync"></i> Sync Features`;
+          syncBtn.addEventListener("click", async (ev) => {
+            ev.preventDefault();
+            ev.stopPropagation();
+            await handler.sync(actor, { force: true });
+          });
+          container.appendChild(syncBtn);
+        }
       }
 
       ArcanePlagueManager.renderPlagueHeaderRow(actor, root);
@@ -3229,9 +3289,8 @@ export class OtherPlayersBase {
           const wizLvl = Number(primClsItem?.system?.levels || handler.PRIMARY_CLASS.defaultLevel || 6);
           const clrLvl = Number(secClsItem?.system?.levels || handler.SECONDARY_CLASS.defaultLevel || 4);
           const intMod = Number(actor.system?.abilities?.int?.mod ?? 0);
-          const wisMod = Number(actor.system?.abilities?.wis?.mod ?? 0);
           const wizMax = Math.max(1, wizLvl + intMod);
-          const clrMax = Math.max(1, clrLvl + wisMod);
+          const clrMax = Math.max(1, clrLvl + intMod);
 
           // Update top header badges if present
           const wizHeaderStrong = root.querySelector(".altarion-aitusa-badge.flinn-prep-wizard strong");
@@ -3246,11 +3305,12 @@ export class OtherPlayersBase {
           }
 
           // Update bottom Spellbook Footer cards (.spellcasting-class-card)
+          // Note: Both Wizard & Cleric use INT on Flinn, so match class name FIRST before ability fallback!
           for (const card of root.querySelectorAll(".spellcasting-class-card")) {
             const abil = (card.getAttribute("data-ability") || "").toLowerCase();
             const cardTxt = (card.textContent || "").toLowerCase();
-            const isClericCard = abil === "wis" || cardTxt.includes("cleric");
-            const isWizardCard = abil === "int" || cardTxt.includes("wizard");
+            const isClericCard = cardTxt.includes("cleric") || (abil === "wis" && !cardTxt.includes("wizard"));
+            const isWizardCard = !isClericCard && (cardTxt.includes("wizard") || abil === "int");
             if (isClericCard) {
               setAttrIfDiff(card, "data-flinn-footer-card", "cleric");
               const countEl = card.querySelector(".preparations .count");
@@ -3354,15 +3414,18 @@ export class OtherPlayersBase {
               }
               if (toggleBtn.innerHTML.trim() !== toggleBtnLabel) {
                 toggleBtn.innerHTML = toggleBtnLabel;
+                delete toggleBtn.dataset.coriaAppliedColorSig;
               }
               if (browserBtn.innerHTML.trim() !== openBrowserLabel) {
                 browserBtn.innerHTML = openBrowserLabel;
+                delete browserBtn.dataset.coriaAppliedColorSig;
               }
             }
             globalThis.CoriaHeaderColorManager?.applyAndBind?.(actor, toolbar);
           }
         }
 
+        const isOwner = Boolean(actor.isOwner);
         for (const el of root.querySelectorAll("[data-item-id]")) {
           const itemId = el.getAttribute("data-item-id");
           const item = actor.items.get(itemId);
@@ -3405,6 +3468,13 @@ export class OtherPlayersBase {
                 : isPrep
                   ? "prepared"
                   : "unprepared";
+
+            // Fast-path cache: skip 6+ querySelector calls when row is already decorated identically
+            const flinnRowSig = `${origin}|${prepState}|${isOwner ? 1 : 0}`;
+            if (el.dataset.flinnRowSig === flinnRowSig && el.querySelector(".flinn-spell-class-pill")) {
+              continue;
+            }
+            el.dataset.flinnRowSig = flinnRowSig;
 
             setAttrIfDiff(el, "data-flinn-spell-class", origin);
             setAttrIfDiff(el, "data-flinn-spell-prepared", isPrep ? "true" : "false");
@@ -3503,7 +3573,7 @@ export class OtherPlayersBase {
                   const nextOrigin = curOrigin === "cleric" ? "wizard" : "cleric";
                   await item.update({
                     "system.sourceItem": nextOrigin === "cleric" ? "class:cleric" : "class:wizard",
-                    "system.ability": nextOrigin === "cleric" ? "wis" : "int",
+                    "system.ability": "int",
                     [`flags.${MODULE_ID}.flinnSpellOrigin`]: nextOrigin,
                     [`flags.${MODULE_ID}.isSecondaryClassItem`]: nextOrigin === "cleric",
                     [`flags.${MODULE_ID}.isPrimaryClassItem`]: nextOrigin === "wizard"
@@ -3520,26 +3590,80 @@ export class OtherPlayersBase {
         // Apply custom class colors & universal Spellbook highlighting across Flinn, Parva, and Kyrion
         globalThis.CoriaHeaderColorManager?.decorateUniversalSpellbook?.(actor, root);
       } finally {
+        // Drain any MutationRecords triggered by our own DOM edits BEFORE clearing the guard (stops ping-pong!)
+        root._flinnSpellbookObserver?.takeRecords?.();
         root._flinnDecorating = false;
       }
     };
 
+    root._coriaRunItemDecorate = decorateItemsAndFlinnSpellbook;
     decorateItemsAndFlinnSpellbook();
 
     if (!root._flinnSpellbookObserver) {
+      const RELEVANT_SEL =
+        '[data-item-id], .spellbook, .tidy-tab, .tab, .spellcasting-class-card, .list-entry, [data-config="creatureType"]';
+      const REMOVED_SEL =
+        ".flinn-spellbook-toolbar, .coria-dual-race-entry, .coria-dual-ctype-display";
+
+      const isRelevantMutation = (mutations) => {
+        for (const m of mutations) {
+          for (const node of m.addedNodes) {
+            if (node.nodeType !== 1) continue;
+            if (
+              node.classList?.contains("flinn-spell-class-pill") ||
+              node.classList?.contains("coria-spell-class-pill") ||
+              node.classList?.contains("altarion-sec-tag")
+            ) {
+              continue;
+            }
+            if (node.matches?.(RELEVANT_SEL) || node.querySelector?.(RELEVANT_SEL)) {
+              return true;
+            }
+          }
+          for (const node of m.removedNodes) {
+            if (node.nodeType !== 1) continue;
+            if (node.matches?.(REMOVED_SEL) || node.querySelector?.(REMOVED_SEL)) {
+              return true;
+            }
+          }
+        }
+        return false;
+      };
+
       let debounceTimer = null;
-      const observer = new MutationObserver(() => {
+      let rafId = null;
+      const observer = new MutationObserver((mutations) => {
         if (root._flinnDecorating) return;
+        if (!isRelevantMutation(mutations)) return;
         if (debounceTimer) clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
-          decorateItemsAndFlinnSpellbook();
-        }, 40);
+          debounceTimer = null;
+          if (rafId) cancelAnimationFrame(rafId);
+          rafId = requestAnimationFrame(() => {
+            rafId = null;
+            if (root.isConnected && typeof root._coriaRunItemDecorate === "function") {
+              root._coriaRunItemDecorate();
+            }
+          });
+        }, 110);
       });
       observer.observe(root, {
         childList: true,
         subtree: true
       });
       root._flinnSpellbookObserver = observer;
+      root._flinnObserverCleanup = () => {
+        if (debounceTimer) {
+          clearTimeout(debounceTimer);
+          debounceTimer = null;
+        }
+        if (rafId) {
+          cancelAnimationFrame(rafId);
+          rafId = null;
+        }
+        observer.disconnect();
+        root._flinnSpellbookObserver = null;
+      };
     }
   }
 

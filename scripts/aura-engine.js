@@ -596,12 +596,22 @@ export class CoriaAuraEngine {
     this._drawRotatingPattern(spinCounter, cfg, tokenHalfWidthPx, totalRadiusPx, baseOpacity, false);
     container.addChild(spinCounter);
 
-    // 4. Harmonic Expanding Wave Layer (animated every frame in ticker)
-    const pulseRingGraphics = new PIXI.Graphics();
+    // 4. Harmonic Expanding Wave Layer (2 pre-built unit rings scaled on GPU — zero per-frame geometry rebuilds!)
+    const PULSE_BASE_RADIUS = 100;
+    const pulseRingGraphics = new PIXI.Container();
+    const pulseRings = [0, 0.5].map((offset) => {
+      const ring = new PIXI.Graphics();
+      ring.lineStyle(2.2, cfg.borderColor, 1);
+      ring.drawCircle(0, 0, PULSE_BASE_RADIUS);
+      ring._coriaPhaseOffset = offset;
+      pulseRingGraphics.addChild(ring);
+      return ring;
+    });
     container.addChild(pulseRingGraphics);
 
-    // 5. Register 60 FPS Ticker callback for smooth rotation, breathing glow, and harmonic wave rings
+    // 5. Register 60 FPS Ticker callback for smooth rotation, breathing glow, and GPU-scaled harmonic wave rings
     const startTime = performance.now();
+    const span = Math.max(10, totalRadiusPx - tokenHalfWidthPx);
     const tickerFn = () => {
       try {
         if (container.destroyed || !canvas?.ready) return;
@@ -614,7 +624,9 @@ export class CoriaAuraEngine {
         // Keep locked to token's exact visual frame coordinates at 60 FPS
         const cx = Number(token.x || 0) + Number(token.w || gridSizePx) / 2;
         const cy = Number(token.y || 0) + Number(token.h || gridSizePx) / 2;
-        container.position.set(cx, cy);
+        if (container.x !== cx || container.y !== cy) {
+          container.position.set(cx, cy);
+        }
 
         const elapsedSec = (performance.now() - startTime) / 1000;
 
@@ -624,15 +636,12 @@ export class CoriaAuraEngine {
         spinClockwise.alpha = 0.78 + 0.22 * Math.sin(elapsedSec * 2.1);
         spinCounter.alpha = 0.72 + 0.25 * Math.cos(elapsedSec * 1.7);
 
-        // Dual staggered expanding harmonic waves
-        pulseRingGraphics.clear();
-        const span = Math.max(10, totalRadiusPx - tokenHalfWidthPx);
-        for (const offset of [0, 0.5]) {
-          const phase = (elapsedSec * 0.38 + offset) % 1;
+        // Dual staggered expanding harmonic waves via pure GPU transform & alpha (0 clear/drawCircle calls!)
+        for (const ring of pulseRings) {
+          const phase = (elapsedSec * 0.38 + ring._coriaPhaseOffset) % 1;
           const waveRadius = tokenHalfWidthPx + phase * span;
-          const waveAlpha = Math.sin(phase * Math.PI) * 0.45 * baseOpacity;
-          pulseRingGraphics.lineStyle(2.2, cfg.borderColor, waveAlpha);
-          pulseRingGraphics.drawCircle(0, 0, waveRadius);
+          ring.scale.set(waveRadius / PULSE_BASE_RADIUS);
+          ring.alpha = Math.sin(phase * Math.PI) * 0.45 * baseOpacity;
         }
       } catch (_e) {
         // ignore frame error
@@ -896,12 +905,30 @@ export class CoriaAuraEngine {
     });
 
     Hooks.on("createToken", () => this.syncAllSceneAuras());
-    Hooks.on("updateToken", (_tokenDoc, changed) => {
-      if ("hidden" in changed || "width" in changed || "height" in changed || "x" in changed || "y" in changed) {
+    Hooks.on("updateToken", (tokenDoc, changed) => {
+      if ("hidden" in changed || "width" in changed || "height" in changed) {
         this.syncAllSceneAuras();
+      } else if (("x" in changed || "y" in changed) && this._visualsByToken.has(tokenDoc?.id)) {
+        const token = tokenDoc?.object;
+        const auraMap = this._visualsByToken.get(tokenDoc.id);
+        if (token && auraMap) {
+          for (const vis of auraMap.values()) {
+            this._updateAuraVisualPosition(token, vis);
+          }
+        }
       }
     });
-    Hooks.on("moveToken", () => this.syncAllSceneAuras());
+    Hooks.on("moveToken", (tokenDoc) => {
+      if (this._visualsByToken.has(tokenDoc?.id)) {
+        const token = tokenDoc?.object;
+        const auraMap = this._visualsByToken.get(tokenDoc.id);
+        if (token && auraMap) {
+          for (const vis of auraMap.values()) {
+            this._updateAuraVisualPosition(token, vis);
+          }
+        }
+      }
+    });
     Hooks.on("deleteToken", tokenDoc => {
       const auraMap = this._visualsByToken.get(tokenDoc?.id);
       if (auraMap) {

@@ -211,6 +211,23 @@ export class CoriaAttunementSlots {
     return att === "required" || att === "optional" || Number(att) === 1 || Number(att) === 2 || Boolean(item.system?.attuned);
   }
 
+  /**
+   * Check whether a slotted item is currently active in its slot:
+   * - Attunement items must remain attuned (`system.attuned === true`)
+   * - Non-attunement / mundane items remain active while equipped (`system.equipped === true`),
+   *   or always if the item type has no `equipped` boolean field (e.g. loot/consumable).
+   */
+  static isItemSlottedActive(item) {
+    if (!item) return false;
+    if (this.doesItemRequireAttunement(item)) {
+      return this.isItemAttuned(item);
+    }
+    if (item.system && "equipped" in item.system) {
+      return Boolean(item.system.equipped);
+    }
+    return true;
+  }
+
   static getSlotMap(actor) {
     const raw = actor?.flags?.[MODULE_ID]?.attunementSlots || {};
     const validMap = {};
@@ -220,7 +237,7 @@ export class CoriaAttunementSlots {
       const itemId = raw[slot.id];
       if (!itemId || usedItemIds.has(itemId)) continue;
       const item = actor.items?.get(itemId);
-      if (item && this.isItemAttuned(item)) {
+      if (item && this.isItemSlottedActive(item)) {
         validMap[slot.id] = itemId;
         usedItemIds.add(itemId);
       }
@@ -342,25 +359,45 @@ export class CoriaAttunementSlots {
 
     for (const oldId of itemsToUnattune) {
       const oldItem = actor.items.get(oldId);
-      if (oldItem && this.isItemAttuned(oldItem)) {
+      if (!oldItem) continue;
+      const oldReqAtt = this.doesItemRequireAttunement(oldItem);
+      if (oldReqAtt && this.isItemAttuned(oldItem)) {
         this._internalAttuneBypass.add(oldItem.id);
         try {
           await oldItem.update({ "system.attuned": false });
         } finally {
           this._internalAttuneBypass.delete(oldItem.id);
         }
+      } else if (!oldReqAtt && oldItem.system && "equipped" in oldItem.system && oldItem.system.equipped) {
+        this._internalAttuneBypass.add(oldItem.id);
+        try {
+          await oldItem.update({ "system.equipped": false });
+        } finally {
+          this._internalAttuneBypass.delete(oldItem.id);
+        }
       }
     }
 
-    // Attune the target item
-    if (!this.isItemAttuned(item)) {
+    const reqAtt = this.doesItemRequireAttunement(item);
+    if (reqAtt) {
+      // Attune the target magical item
+      if (!this.isItemAttuned(item)) {
+        this._internalAttuneBypass.add(item.id);
+        try {
+          const itemUpdate = { "system.attuned": true };
+          if (!item.system?.attunement || item.system.attunement === "") {
+            itemUpdate["system.attunement"] = "required";
+          }
+          await item.update(itemUpdate);
+        } finally {
+          this._internalAttuneBypass.delete(item.id);
+        }
+      }
+    } else if (item.system && "equipped" in item.system && !item.system.equipped) {
+      // Non-magical / non-attunement item: simply equip it without forcing attunement!
       this._internalAttuneBypass.add(item.id);
       try {
-        const itemUpdate = { "system.attuned": true };
-        if (!item.system?.attunement || item.system.attunement === "") {
-          itemUpdate["system.attunement"] = "required";
-        }
-        await item.update(itemUpdate);
+        await item.update({ "system.equipped": true });
       } finally {
         this._internalAttuneBypass.delete(item.id);
       }
@@ -383,8 +420,11 @@ export class CoriaAttunementSlots {
     );
 
     const effectiveDef = this.getSlotDef(effectiveSlotId) || slotDef;
+    const slotTitle = is2H ? "Two-Handed (Main/Off-Hand)" : effectiveDef.label;
     ui.notifications?.info?.(
-      `[Slots de Sintonização] ${item.name} sintonizado em "${is2H ? "Two-Handed (Main/Off-Hand)" : effectiveDef.label}" (${actor.name}).`
+      reqAtt
+        ? `[Slots de Sintonização] ${item.name} sintonizado em "${slotTitle}" (${actor.name}).`
+        : `[Slots de Sintonização] ${item.name} equipado em "${slotTitle}" (${actor.name}).`
     );
     return true;
   }
@@ -396,12 +436,21 @@ export class CoriaAttunementSlots {
 
     const map = this.getSlotMap(actor);
     const itemId = map[slotId];
-    if (itemId) {
-      const item = actor.items?.get(itemId);
-      if (item && this.isItemAttuned(item)) {
+    const item = itemId ? actor.items?.get(itemId) : null;
+    const reqAtt = item ? this.doesItemRequireAttunement(item) : true;
+
+    if (item) {
+      if (reqAtt && this.isItemAttuned(item)) {
         this._internalAttuneBypass.add(item.id);
         try {
           await item.update({ "system.attuned": false });
+        } finally {
+          this._internalAttuneBypass.delete(item.id);
+        }
+      } else if (!reqAtt && item.system && "equipped" in item.system && item.system.equipped) {
+        this._internalAttuneBypass.add(item.id);
+        try {
+          await item.update({ "system.equipped": false });
         } finally {
           this._internalAttuneBypass.delete(item.id);
         }
@@ -414,9 +463,11 @@ export class CoriaAttunementSlots {
     );
 
     if (itemId) {
-      const itemName = actor.items?.get(itemId)?.name || "Item";
+      const itemName = item?.name || "Item";
       ui.notifications?.info?.(
-        `[Slots de Sintonização] Sintonização quebrada: ${itemName} removido de "${slotDef.label}" (${actor.name}).`
+        reqAtt
+          ? `[Slots de Sintonização] Sintonização quebrada: ${itemName} removido de "${slotDef.label}" (${actor.name}).`
+          : `[Slots de Sintonização] Item desequipado: ${itemName} removido de "${slotDef.label}" (${actor.name}).`
       );
     }
     return true;
@@ -737,7 +788,12 @@ export class CoriaAttunementSlots {
       if (this._internalAttuneBypass.has(item.id)) return;
       const actor = item?.parent;
       if (!actor || actor.documentName !== "Actor" || actor.type !== "character" || !actor.isOwner) return;
-      if (!foundry.utils.hasProperty(changed, "system.attuned")) return;
+      const attChanged = foundry.utils.hasProperty(changed, "system.attuned");
+      const unequippedNonAttune =
+        foundry.utils.hasProperty(changed, "system.equipped") &&
+        !this.doesItemRequireAttunement(item) &&
+        !foundry.utils.getProperty(changed, "system.equipped");
+      if (!attChanged && !unequippedNonAttune) return;
 
       await this.syncActorAttunementSlots(actor);
     });
@@ -755,25 +811,40 @@ export class CoriaAttunementSlots {
       }
     });
 
+    const scheduleInject = (actor, rootEl, { withFallback = true } = {}) => {
+      if (!actor || !rootEl) return;
+      if (rootEl._coriaAttuneRaf) cancelAnimationFrame(rootEl._coriaAttuneRaf);
+      if (rootEl._coriaAttuneTimer) {
+        clearTimeout(rootEl._coriaAttuneTimer);
+        rootEl._coriaAttuneTimer = null;
+      }
+      rootEl._coriaAttuneRaf = requestAnimationFrame(() => {
+        rootEl._coriaAttuneRaf = null;
+        if (!rootEl.isConnected) return;
+        this.injectInventorySlotControls(actor, rootEl);
+        if (withFallback && !rootEl.querySelector(".coria-attunement-slots-toolbar")) {
+          rootEl._coriaAttuneTimer = setTimeout(() => {
+            rootEl._coriaAttuneTimer = null;
+            if (rootEl.isConnected) this.injectInventorySlotControls(actor, rootEl);
+          }, 180);
+        }
+      });
+    };
+
     const onRenderSheet = (app, htmlOrEl) => {
       const actor = app?.actor || app?.document;
       if (!actor || actor.type !== "character" || isIgnoredBackupActor(actor)) return;
       const rootEl = htmlOrEl instanceof HTMLElement ? htmlOrEl : htmlOrEl?.[0] || app?.element;
       if (!rootEl) return;
 
-      const inject = () => this.injectInventorySlotControls(actor, rootEl);
-      inject();
-      requestAnimationFrame(inject);
-      setTimeout(inject, 140);
-      setTimeout(inject, 450);
+      scheduleInject(actor, rootEl, { withFallback: true });
 
       if (!rootEl.dataset.coriaAttuneTabBound) {
         rootEl.dataset.coriaAttuneTabBound = "true";
         rootEl.addEventListener("click", (ev) => {
           const tabClick = ev.target?.closest?.('[data-tab="inventory"], .tab-option[data-tab-id="inventory"], nav.tabs a, nav.tabs button');
           if (tabClick) {
-            setTimeout(inject, 40);
-            setTimeout(inject, 200);
+            scheduleInject(actor, rootEl, { withFallback: true });
           }
         });
       }
@@ -837,6 +908,7 @@ export class CoriaAttunementSlots {
     const desiredLabel = `<i class="fas fa-gem"></i> Slots de Sintonização (${usedCount}/${totalCount})`;
     if (btn.innerHTML !== desiredLabel) {
       btn.innerHTML = desiredLabel;
+      delete btn.dataset.coriaAppliedColorSig;
     }
 
     let pillsWrap = toolbar.querySelector(".coria-attune-summary-pills");
@@ -1067,12 +1139,15 @@ export class CoriaAttunementSlots {
                 </button>
               `;
 
+            const occReqAtt = attunedItem ? this.doesItemRequireAttunement(attunedItem) : true;
+            const pendingNonAttune = Boolean(pendingItem && !this.doesItemRequireAttunement(pendingItem));
+
             const actionBtnHtml = isAttuned
               ? `
                 <button type="button"
                         class="coria-pd-unattune-btn"
                         data-clear-slot="${slot.id}"
-                        title="Quebrar sintonização de ${foundry.utils.escapeHTML(attunedItem.name)}"
+                        title="${occReqAtt ? `Quebrar sintonização de ${foundry.utils.escapeHTML(attunedItem.name)}` : `Desequipar ${foundry.utils.escapeHTML(attunedItem.name)}`}"
                         ${!canEdit ? "disabled" : ""}>
                   <i class="fas fa-unlink"></i>
                 </button>
@@ -1081,9 +1156,15 @@ export class CoriaAttunementSlots {
                 <button type="button"
                         class="coria-pd-attune-btn ${pendingItem ? "is-ready" : "is-idle"}"
                         data-attune-slot="${slot.id}"
-                        title="${pendingItem ? `Sintonizar ${foundry.utils.escapeHTML(pendingItem.name)} em ${foundry.utils.escapeHTML(slot.label)}` : `Escolher e sintonizar item em ${foundry.utils.escapeHTML(slot.label)}`}"
+                        title="${
+                          pendingNonAttune
+                            ? `Equipar ${foundry.utils.escapeHTML(pendingItem.name)} em ${foundry.utils.escapeHTML(slot.label)}`
+                            : pendingItem
+                              ? `Sintonizar ${foundry.utils.escapeHTML(pendingItem.name)} em ${foundry.utils.escapeHTML(slot.label)}`
+                              : `Escolher e sintonizar item em ${foundry.utils.escapeHTML(slot.label)}`
+                        }"
                         ${!canEdit ? "disabled" : ""}>
-                  <i class="fas fa-link"></i> Sintonizar
+                  <i class="fas fa-link"></i> ${pendingNonAttune ? "Equipar" : "Sintonizar"}
                 </button>
               `;
 

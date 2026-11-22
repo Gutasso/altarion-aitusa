@@ -669,6 +669,21 @@ export class AltarionAutomationManager {
         id: "dark-vitality",
         name: "Dark Vitality",
         img: "modules/altarion-aitusa/kyrion_icons/dark-vitality.jpg"
+      },
+      {
+        id: "blur",
+        name: "Blur (Desvantagem em Ataques)",
+        img: "icons/magic/air/air-smoke-casting.webp"
+      },
+      {
+        id: "mirror-image",
+        name: "Mirror Image (3 Cópias)",
+        img: "icons/magic/control/silhouette-hold-change-blue.webp"
+      },
+      {
+        id: "heroism",
+        name: "Heroism (PV Temp. p/ Turno)",
+        img: "icons/magic/holy/barrier-shield-winged-cross.webp"
       }
     ];
 
@@ -759,6 +774,20 @@ export class AltarionAutomationManager {
         return Boolean(flags.isTentacleOfTheDeepsSlow) || effNameLower.includes("tentacle of the deeps");
       case "dark-vitality":
         return Boolean(flags.isDarkVitalityEffect) || effNameLower === "dark vitality";
+      case "blur":
+        return Boolean(flags.isBlurEffect) || effNameLower === "blur" || effNameLower.startsWith("blur (");
+      case "mirror-image":
+        return (
+          Boolean(flags.isMirrorImageEffect) ||
+          effNameLower === "mirror image" ||
+          effNameLower.startsWith("mirror image (")
+        );
+      case "heroism":
+        return (
+          Boolean(flags.isHeroismEffect) ||
+          effNameLower === "heroism" ||
+          effNameLower.startsWith("heroism (")
+        );
       default:
         return false;
     }
@@ -1393,6 +1422,9 @@ export class AltarionAutomationManager {
             itemNameLower === "spiritual weapon" ||
             itemNameLower === "aid" ||
             itemNameLower === "warding bond" ||
+            itemNameLower === "blur" ||
+            itemNameLower === "mirror image" ||
+            itemNameLower === "heroism" ||
             itemNameLower === "arcane armor" ||
             itemNameLower === "shadow armor" ||
             itemNameLower === "armor of agathys" ||
@@ -1523,6 +1555,9 @@ export class AltarionAutomationManager {
             "spiritual weapon",
             "aid",
             "warding bond",
+            "blur",
+            "mirror image",
+            "heroism",
             "arcane armor",
             "shadow armor",
             "armor of agathys",
@@ -2077,6 +2112,21 @@ export class AltarionAutomationManager {
         });
       }
 
+      // 0l. Blur: Status effect forcing Disadvantage on attack rolls against the protected character
+      if (item.type === "spell" && itemNameLower === "blur") {
+        await this.handleBlurSpellCast(actor, item, usageConfig);
+      }
+
+      // 0m. Mirror Image: Status effect with 3 illusory duplicates + automatic d20 redirect & Duplicate AC resolution
+      if (item.type === "spell" && itemNameLower === "mirror image") {
+        await this.handleMirrorImageSpellCast(actor, item, usageConfig);
+      }
+
+      // 0n. Heroism: Status effect granting Immunity to Frightened & Temp HP = caster's INT mod at the start of each turn
+      if (item.type === "spell" && itemNameLower === "heroism") {
+        await this.handleHeroismSpellCast(actor, item, usageConfig);
+      }
+
       // 1. Ancestral Shielding: Apply +ceil(INT/2) AC status effect to target (or Altarion) until end of Altarion's next turn
       if (this.isAltarion(actor) && itemNameLower === "ancestral shielding") {
         const intMod = Number(actor.system?.abilities?.int?.mod ?? 3);
@@ -2280,6 +2330,39 @@ export class AltarionAutomationManager {
       if (this.isAltarion(actor) && this.hasStatus(actor, "invisible")) {
         const eff = actor.effects.find(e => e.flags?.["altarion-aitusa"]?.isVeiledStepInvisibility);
         if (eff) setTimeout(() => eff.delete(), 250);
+      }
+
+      // Blur: Force Disadvantage on attack rolls targeting a creature with active Blur status
+      // (unless attacker relies on Blindsight or can see through illusions with Truesight)
+      const blurTargets = Array.from(game.user?.targets || [])
+        .map(t => t?.actor)
+        .filter(tActor => tActor && tActor.uuid !== actor.uuid && this.hasStatus(tActor, "blur"));
+      if (blurTargets.length > 0) {
+        const blurImmuneReason = this.getActorBlurImmunityReason(actor);
+        if (blurImmuneReason) {
+          ui.notifications?.info?.(
+            `[Blur] ${actor.name} ignora o efeito de Blur em ${blurTargets.map(t => t.name).join(", ")} (${blurImmuneReason}).`
+          );
+        } else {
+          config.disadvantage = true;
+          const advModeEnum = CONFIG.Dice?.D20Roll?.ADV_MODE || { ADVANTAGE: 1, NORMAL: 0, DISADVANTAGE: -1 };
+          if (Array.isArray(config.rolls)) {
+            for (const r of config.rolls) {
+              if (r && typeof r === "object") {
+                r.options ??= {};
+                r.options.disadvantage = true;
+                if (r.options.advantageMode === advModeEnum.ADVANTAGE || r.options.advantage) {
+                  r.options.advantageMode = advModeEnum.NORMAL;
+                } else {
+                  r.options.advantageMode = advModeEnum.DISADVANTAGE;
+                }
+              }
+            }
+          }
+          ui.notifications?.info?.(
+            `[Blur] ${blurTargets.map(t => t.name).join(", ")} está borrado (Blur) — Desvantagem aplicada ao ataque de ${actor.name}!`
+          );
+        }
       }
 
       // Shadow Blast (Kyrion): Surface active Eldritch Invocation riders (Repelling Blast, Grasp of Hadar, Lance of Lethargy)
@@ -3295,6 +3378,18 @@ export class AltarionAutomationManager {
           await this.removeStatusEffect(parentActor, "spirit-shroud");
         }
 
+        // 4b. Concentration on Blur removed: Clean up Blur status effects cast by this caster
+        const isConcBlur = delNameLower.startsWith("concentrating") && /\bblur\b/.test(delNameLower);
+        if (isConcBlur) {
+          await this.cleanupSpellStatusByCaster("blur", parentActor.id);
+        }
+
+        // 4c. Concentration on Heroism removed: Clean up Heroism status effects cast by this caster
+        const isConcHeroism = delNameLower.startsWith("concentrating") && /\bheroism\b/.test(delNameLower);
+        if (isConcHeroism) {
+          await this.cleanupSpellStatusByCaster("heroism", parentActor.id);
+        }
+
         // 5. Absorb Elements removed: Guarantee temporary elemental resistance is completely removed
         //    (clean any leaked element in `_source.system.traits.dr.value` if the actor didn't permanently have it before,
         //    and remove any duplicate Absorb Elements effects on the actor!)
@@ -3430,6 +3525,16 @@ export class AltarionAutomationManager {
       if (this.hasStatus(currentActor, "spirit-guardians-affected") && this.isAuthoritativeClientFor(currentActor)) {
         const tokObj = currentCombatant?.token?.object || this.getActorCanvasToken(currentActor);
         await this.triggerSpiritGuardiansSaveAndDamage(tokObj, currentActor, "Start of Turn");
+      }
+
+      // 0b. Heroism: At the start of the affected creature's turn, grant Temp HP equal to the caster's Intelligence modifier!
+      const heroismEff = this.getHeroismEffect(currentActor);
+      if (heroismEff && this.isAuthoritativeClientFor(currentActor)) {
+        const turnKey = `${combat.id}:${combat.round}:${combat.turn}:${currentActor.id}`;
+        if (this._lastHeroismTurnKey !== turnKey) {
+          this._lastHeroismTurnKey = turnKey;
+          await this.triggerHeroismStartOfTurn(currentActor, heroismEff);
+        }
       }
 
       // Collect both world actors and unlinked token actors on the active scene
@@ -6684,7 +6789,10 @@ export class AltarionAutomationManager {
           modFlags?.isArcaneArmorRetaliationCard ||
           modFlags?.isArcaneWardCard ||
           modFlags?.isAncestralShieldingCard ||
-          modFlags?.isSpiritGuardiansDamageCard
+          modFlags?.isSpiritGuardiansDamageCard ||
+          modFlags?.isMirrorImageCard ||
+          modFlags?.isBlurCard ||
+          modFlags?.isHeroismCard
         ) {
           return;
         }
@@ -6885,7 +6993,26 @@ export class AltarionAutomationManager {
 
           anyAuthoritativeProcessed = true;
           const defenderAc = Number(defender.system?.attributes?.ac?.value ?? acHint ?? 10);
-          const isHit = isCrit || (!isFumble && total >= defenderAc);
+          let isHit = isCrit || (!isFumble && total >= defenderAc);
+
+          // 0. Mirror Image: Before resolving hit/miss on the defender, roll 1d20 to see if an illusory duplicate intercepts!
+          let mirrorImageOutcome = null;
+          const miEff = this.getMirrorImageEffect(defender);
+          if (miEff) {
+            mirrorImageOutcome = await this.resolveMirrorImageOnIncomingAttack({
+              defender,
+              miEff,
+              attackerActor,
+              attackerName,
+              total,
+              isCrit,
+              isFumble
+            });
+            if (mirrorImageOutcome?.redirected) {
+              // Attack targeted an illusory duplicate instead of the real character
+              isHit = false;
+            }
+          }
 
           const defEntry = {
             defenderUuid: defender.uuid,
@@ -6894,6 +7021,7 @@ export class AltarionAutomationManager {
             baseAc: defenderAc,
             currentAc: defenderAc,
             wasHit: isHit,
+            mirrorImage: mirrorImageOutcome,
             ancestralShielding: null,
             retaliation: null
           };
@@ -8160,13 +8288,25 @@ export class AltarionAutomationManager {
     const prof = Number(caster.system?.attributes?.prof ?? 2);
     let abilKey = isSpiritualWeapon ? "wis" : "cha";
     if (isSpiritualWeapon) {
-      const swItem = caster.items?.find(
-        i => i.type === "spell" && i.name?.trim().toLowerCase() === "spiritual weapon"
-      );
-      const origin =
-        swItem?.flags?.["altarion-aitusa"]?.flinnSpellOrigin ||
-        (swItem?.system?.sourceItem === "class:wizard" ? "wizard" : "cleric");
-      abilKey = origin === "wizard" ? "int" : "wis";
+      const casterNameLow = String(caster.name || "").trim().toLowerCase();
+      const isFlinnCaster = casterNameLow === "flinn" || casterNameLow.startsWith("flinn ");
+      if (isFlinnCaster) {
+        // Flinn's Cleric & Wizard Spellcasting both use Intelligence
+        abilKey = "int";
+      } else {
+        const swItem = caster.items?.find(
+          i => i.type === "spell" && i.name?.trim().toLowerCase() === "spiritual weapon"
+        );
+        const itemAbil = String(swItem?.system?.ability || "").toLowerCase();
+        if (["int", "wis", "cha"].includes(itemAbil)) {
+          abilKey = itemAbil;
+        } else {
+          const origin =
+            swItem?.flags?.["altarion-aitusa"]?.flinnSpellOrigin ||
+            (swItem?.system?.sourceItem === "class:wizard" ? "wizard" : "cleric");
+          abilKey = origin === "wizard" ? "int" : "wis";
+        }
+      }
     }
     const abilLabel = abilKey === "int" ? "INT" : abilKey === "wis" ? "WIS" : "CHA";
     const abilMod = Number(caster.system?.abilities?.[abilKey]?.mod ?? 3);
@@ -8463,10 +8603,23 @@ export class AltarionAutomationManager {
       }
     }
 
+    // Apply Blur Disadvantage automatically on summon spell attacks unless caster ignores Blur
+    let effectiveRollMode = rollMode;
+    if (
+      effectiveRollMode === "normal" &&
+      this.hasStatus(targetCand.actor, "blur") &&
+      !this.getActorBlurImmunityReason(caster)
+    ) {
+      effectiveRollMode = "disadvantage";
+      ui.notifications?.info?.(
+        `[Blur] ${targetCand.actor.name} está borrado (Blur) — Desvantagem aplicada ao ataque de ${tokenName}!`
+      );
+    }
+
     const d20Expr =
-      rollMode === "advantage"
+      effectiveRollMode === "advantage"
         ? "2d20kh"
-        : rollMode === "disadvantage"
+        : effectiveRollMode === "disadvantage"
           ? "2d20kl"
           : "1d20";
     const modSign = spellAttackMod >= 0 ? `+ ${spellAttackMod}` : `- ${Math.abs(spellAttackMod)}`;
@@ -9804,6 +9957,426 @@ export class AltarionAutomationManager {
         }
       } catch (err) {
         console.warn("[Dark Vitality] applyDamage post-hook error:", err);
+      }
+    });
+  }
+
+  /* ============================================================================
+   * BLUR, MIRROR IMAGE & HEROISM SPELL AUTOMATIONS
+   * ============================================================================ */
+
+  /**
+   * Check whether an attacker ignores `Blur` (Blindsight or Truesight).
+   * Reads `system.attributes.senses.ranges` safely without triggering dnd5e 5.3 deprecation shims.
+   */
+  static getActorBlurImmunityReason(attackerActor) {
+    if (!attackerActor) return null;
+    const senses = attackerActor.system?.attributes?.senses;
+    const ranges = senses?.ranges || {};
+    const truesight = Number(ranges.truesight ?? senses?._source?.ranges?.truesight ?? 0);
+    if (truesight > 0) return `possui Visão Verdadeira (Truesight ${truesight} ft)`;
+    const blindsight = Number(ranges.blindsight ?? senses?._source?.ranges?.blindsight ?? 0);
+    if (blindsight > 0) return `possui Percepção às Cegas (Blindsight ${blindsight} ft)`;
+    return null;
+  }
+
+  /**
+   * Check whether an attacker is unaffected by `Mirror Image` (cannot see / Blinded, Blindsight, or Truesight).
+   */
+  static getActorMirrorImageImmunityReason(attackerActor) {
+    if (!attackerActor) return null;
+    const isBlinded =
+      Boolean(attackerActor.statuses?.has?.("blinded")) ||
+      Boolean(
+        attackerActor.effects?.some(
+          e =>
+            !e.disabled &&
+            (e.statuses?.has?.("blinded") ||
+              ["blinded", "cego"].includes(String(e.name || "").trim().toLowerCase()))
+        )
+      );
+    if (isBlinded) return "não pode ver (Blinded)";
+    return this.getActorBlurImmunityReason(attackerActor);
+  }
+
+  static async cleanupSpellStatusByCaster(statusId, casterActorId) {
+    if (!statusId || !casterActorId) return;
+    const allActors = new Set(Array.from(game.actors || []));
+    for (const tok of canvas?.tokens?.placeables || []) {
+      if (tok?.actor) allActors.add(tok.actor);
+    }
+    for (const act of allActors) {
+      if (!act?.isOwner) continue;
+      const toDel = act.effects
+        .filter(e => {
+          const fl = e.flags?.["altarion-aitusa"] || {};
+          const matchesStatus = e.statuses?.has?.(statusId) || fl.statusId === statusId;
+          return matchesStatus && fl.casterActorId === casterActorId;
+        })
+        .map(e => e.id);
+      if (toDel.length > 0) {
+        await this.safeDeleteActorEffects(act, toDel);
+      }
+    }
+  }
+
+  static async handleBlurSpellCast(actor, item, usageConfig) {
+    if (!actor || !item) return;
+    const isLinked = Boolean(this.isAltarion(actor) && usageConfig?.useLinkedCasting);
+    const aitusa = isLinked ? this.getAitusaActor() : null;
+    const recipients = isLinked ? [actor, aitusa].filter(Boolean) : [actor];
+
+    for (const targetActor of recipients) {
+      await this.applyOrUpdateStatusEffect(targetActor, {
+        statusId: "blur",
+        name: "Blur (Desvantagem em Ataques)",
+        img: item.img || "icons/magic/air/air-smoke-casting.webp",
+        description: `<p><strong>Blur (1 Minuto, Concentração):</strong> Seu corpo fica borrado, oscilando para todos que podem vê-lo. Qualquer criatura tem <strong>Desvantagem</strong> nas rolagens de ataque contra você (exceto atacantes imunes com <em>Blindsight</em> ou <em>Truesight</em>).</p>`,
+        durationSeconds: 60,
+        durationRounds: 10,
+        extraFlags: {
+          isBlurEffect: true,
+          casterActorId: actor.id
+        }
+      });
+    }
+
+    await this.sendMinimalistFeatureCard(actor, {
+      icon: "fa-eye-slash",
+      title: `Blur Ativada${isLinked ? " (Linked Casting)" : ""}`,
+      bodyHtml: `
+        Status <strong>Blur</strong> aplicado em <strong>${foundry.utils.escapeHTML(recipients.map(r => r.name).join(" & "))}</strong> (1 minuto, Concentração).<br>
+        &bull; Rolagens de ataque contra ${recipients.length > 1 ? "eles" : "o personagem"} serão feitas automaticamente com <strong class="coria-hl-info">Desvantagem</strong> (exceto atacantes com <em>Blindsight</em> ou <em>Truesight</em>).
+      `,
+      flags: {
+        isBlurCard: true,
+        chatChannel: "combat"
+      }
+    });
+  }
+
+  static getMirrorImageEffect(actor) {
+    if (!actor?.effects) return null;
+    return (
+      actor.effects.find(e => {
+        if (e.disabled) return false;
+        const fl = e.flags?.["altarion-aitusa"] || {};
+        if (fl.isMirrorImageEffect || e.statuses?.has?.("mirror-image") || fl.statusId === "mirror-image") {
+          return true;
+        }
+        const n = String(e.name || "").trim().toLowerCase();
+        return n === "mirror image" || n.startsWith("mirror image (");
+      }) || null
+    );
+  }
+
+  static _getMirrorImageCopiesCount(miEff) {
+    if (!miEff) return 0;
+    const flagVal = Number(miEff.flags?.["altarion-aitusa"]?.copies);
+    if (Number.isFinite(flagVal) && flagVal >= 0) return Math.clamp(Math.floor(flagVal), 0, 3);
+    const m = String(miEff.name || "").match(/(\d+)/);
+    if (m) return Math.clamp(Number(m[1]), 0, 3);
+    return 3;
+  }
+
+  static async handleMirrorImageSpellCast(actor, item, usageConfig) {
+    if (!actor || !item) return;
+    const isLinked = Boolean(this.isAltarion(actor) && usageConfig?.useLinkedCasting);
+    const aitusa = isLinked ? this.getAitusaActor() : null;
+    const recipients = isLinked ? [actor, aitusa].filter(Boolean) : [actor];
+
+    const summaryLines = [];
+    for (const targetActor of recipients) {
+      const dexMod = Number(targetActor.system?.abilities?.dex?.mod ?? 0);
+      const dupAc = 10 + dexMod;
+      await this.applyOrUpdateStatusEffect(targetActor, {
+        statusId: "mirror-image",
+        name: "Mirror Image (3 Cópias)",
+        img: item.img || "icons/magic/control/silhouette-hold-change-blue.webp",
+        description: `<p><strong>Mirror Image (3 Cópias ativas):</strong> Quando uma criatura atacar você, rola-se automaticamente <strong>1d20</strong> para verificar se o ataque mira uma das cópias:</p><ul><li><strong>3 cópias:</strong> 6 ou mais redireciona para uma cópia</li><li><strong>2 cópias:</strong> 8 ou mais redireciona para uma cópia</li><li><strong>1 cópia:</strong> 11 ou mais redireciona para uma cópia</li></ul><p><strong>CA da Cópia:</strong> <strong>${dupAc}</strong> (10 + Mod. DES). Se o ataque acertar a cópia, ela é destruída e você não sofre dano nem efeitos. A magia termina quando todas as 3 cópias forem destruídas.</p>`,
+        durationSeconds: 60,
+        durationRounds: 10,
+        extraFlags: {
+          isMirrorImageEffect: true,
+          copies: 3,
+          casterActorId: actor.id
+        }
+      });
+      summaryLines.push(`<strong>${foundry.utils.escapeHTML(targetActor.name)}</strong> (3 Cópias &bull; CA da Cópia: <strong>${dupAc}</strong>)`);
+    }
+
+    await this.sendMinimalistFeatureCard(actor, {
+      icon: "fa-clone",
+      title: `Mirror Image Ativada — 3 Cópias${isLinked ? " (Linked Casting)" : ""}`,
+      bodyHtml: `
+        ${summaryLines.join("<br>")}<br>
+        &bull; <strong>Redirecionamento (1d20 automático ao sofrer ataque):</strong> 3 cópias = <strong>6+</strong> &bull; 2 cópias = <strong>8+</strong> &bull; 1 cópia = <strong>11+</strong>.
+      `,
+      flags: {
+        isMirrorImageCard: true,
+        chatChannel: "combat"
+      }
+    });
+  }
+
+  /**
+   * Automatically resolve Mirror Image when an attack roll targets a defender with active illusory duplicates.
+   */
+  static async resolveMirrorImageOnIncomingAttack({
+    defender,
+    miEff,
+    attackerActor = null,
+    attackerName = "Atacante",
+    total = 0,
+    isCrit = false,
+    isFumble = false
+  }) {
+    const copies = this._getMirrorImageCopiesCount(miEff);
+    if (!defender || !miEff || copies <= 0) {
+      return { redirected: false, destroyed: false, remainingCopies: 0 };
+    }
+
+    // Check attacker senses (Blinded / Blindsight / Truesight are unaffected by Mirror Image)
+    const immuneReason = this.getActorMirrorImageImmunityReason(attackerActor);
+    if (immuneReason) {
+      await this.sendMinimalistFeatureCard(defender, {
+        icon: "fa-eye",
+        title: `Mirror Image — Ignorada por ${foundry.utils.escapeHTML(attackerName)}`,
+        bodyHtml: `
+          <strong>${foundry.utils.escapeHTML(attackerName)}</strong> ${foundry.utils.escapeHTML(immuneReason)}, portanto não é afetado por <strong>Mirror Image</strong>.<br>
+          &bull; O ataque mira diretamente <strong>${foundry.utils.escapeHTML(defender.name)}</strong> (cópias mantidas em <strong>${copies}</strong>).
+        `,
+        flags: {
+          isMirrorImageCard: true,
+          chatChannel: "combat"
+        }
+      });
+      return { redirected: false, destroyed: false, remainingCopies: copies, ignoredBySenses: true };
+    }
+
+    const threshold = copies >= 3 ? 6 : copies === 2 ? 8 : 11;
+    const dexMod = Number(defender.system?.abilities?.dex?.mod ?? 0);
+    const dupAc = 10 + dexMod;
+    const dexModStr = dexMod >= 0 ? `+${dexMod}` : `${dexMod}`;
+
+    const miRoll = await new Roll("1d20").evaluate();
+    if (game.dice3d?.showForRoll) {
+      try {
+        await game.dice3d.showForRoll(miRoll, game.user, true);
+      } catch (_e) {
+        // ignore Dice So Nice errors
+      }
+    }
+
+    const d20Val = Number(miRoll.total || 1);
+    const redirected = d20Val >= threshold;
+
+    // Case 1: Roll failed threshold -> Attack targets the REAL character
+    if (!redirected) {
+      await this.sendMinimalistFeatureCard(defender, {
+        icon: "fa-clone",
+        title: `Mirror Image — Alvo Real (${d20Val} vs ${threshold}+)`,
+        bodyHtml: `
+          <strong>${foundry.utils.escapeHTML(attackerName)}</strong> atacou <strong>${foundry.utils.escapeHTML(defender.name)}</strong> (${copies} cópia${copies === 1 ? "" : "s"} ativa${copies === 1 ? "" : "s"}).<br>
+          &bull; <strong>Rolagem Mirror Image (1d20):</strong> <strong class="coria-hl-failure">${d20Val}</strong> (precisava de <strong>${threshold}+</strong>)<br>
+          &bull; O ataque ignora as ilusões e mira diretamente <strong>${foundry.utils.escapeHTML(defender.name)}</strong>! (Cópias restantes: <strong>${copies}</strong>)
+        `,
+        flags: {
+          isMirrorImageCard: true,
+          chatChannel: "combat"
+        }
+      });
+      return { redirected: false, destroyed: false, remainingCopies: copies, rollTotal: d20Val, threshold, dupAc };
+    }
+
+    // Case 2: Redirected to a Duplicate -> Compare attack roll against Duplicate AC (10 + DEX mod)
+    const hitsDuplicate = isCrit || (!isFumble && total >= dupAc);
+
+    if (hitsDuplicate) {
+      const remainingCopies = Math.max(0, copies - 1);
+      if (remainingCopies > 0) {
+        const nextThreshold = remainingCopies >= 3 ? 6 : remainingCopies === 2 ? 8 : 11;
+        const copyLabel = remainingCopies === 1 ? "1 Cópia" : `${remainingCopies} Cópias`;
+        try {
+          await miEff.update({
+            name: `Mirror Image (${copyLabel})`,
+            description: `<p><strong>Mirror Image (${copyLabel} ativa${remainingCopies === 1 ? "" : "s"}):</strong> Quando uma criatura atacar você, rola-se automaticamente <strong>1d20</strong>. Com <strong>${copyLabel}</strong>, um resultado <strong>${nextThreshold}+</strong> redireciona o ataque para uma cópia (<strong>CA ${dupAc}</strong> = 10 ${dexModStr} DES). Se o ataque acertar a cópia, ela é destruída.</p>`,
+            "flags.altarion-aitusa.copies": remainingCopies
+          });
+        } catch (_e) {
+          // ignore
+        }
+
+        await this.sendMinimalistFeatureCard(defender, {
+          icon: "fa-clone",
+          title: `Mirror Image — Cópia Destruída! (${remainingCopies} restante${remainingCopies === 1 ? "" : "s"})`,
+          bodyHtml: `
+            <strong>${foundry.utils.escapeHTML(attackerName)}</strong> atacou <strong>${foundry.utils.escapeHTML(defender.name)}</strong> (${copies} cópias ativas).<br>
+            &bull; <strong>Rolagem Mirror Image (1d20):</strong> <strong class="coria-hl-success">${d20Val}</strong> (&ge; ${threshold} &rarr; redirecionado para uma cópia!)<br>
+            &bull; <strong>Ataque vs CA da Cópia:</strong> <strong>${total}</strong>${isCrit ? " <em>(Crítico)</em>" : ""} vs <strong>CA ${dupAc}</strong> (10 ${dexModStr} DES) &rarr; <strong class="coria-hl-gold">Cópia Atingida e Destruída!</strong><br>
+            &bull; <strong>${foundry.utils.escapeHTML(defender.name)}</strong> não sofre dano nem efeitos deste ataque! Status atualizado: <strong>${copyLabel}</strong> (próximo limiar: <strong>${nextThreshold}+</strong>).
+          `,
+          flags: {
+            isMirrorImageCard: true,
+            chatChannel: "combat"
+          }
+        });
+      } else {
+        await this.safeDeleteActorEffects(defender, [miEff.id]);
+
+        await this.sendMinimalistFeatureCard(defender, {
+          icon: "fa-clone",
+          title: `Mirror Image — Última Cópia Destruída! (Magia Encerrada)`,
+          bodyHtml: `
+            <strong>${foundry.utils.escapeHTML(attackerName)}</strong> atacou <strong>${foundry.utils.escapeHTML(defender.name)}</strong> (1 cópia ativa).<br>
+            &bull; <strong>Rolagem Mirror Image (1d20):</strong> <strong class="coria-hl-success">${d20Val}</strong> (&ge; ${threshold} &rarr; redirecionado para a última cópia!)<br>
+            &bull; <strong>Ataque vs CA da Cópia:</strong> <strong>${total}</strong>${isCrit ? " <em>(Crítico)</em>" : ""} vs <strong>CA ${dupAc}</strong> (10 ${dexModStr} DES) &rarr; <strong class="coria-hl-gold">Última Cópia Destruída!</strong><br>
+            &bull; <strong>${foundry.utils.escapeHTML(defender.name)}</strong> não sofre dano nem efeitos deste ataque! Todas as 3 cópias foram destruídas e o status <strong>Mirror Image</strong> foi removido.
+          `,
+          flags: {
+            isMirrorImageCard: true,
+            chatChannel: "combat"
+          }
+        });
+      }
+
+      return { redirected: true, destroyed: true, remainingCopies, rollTotal: d20Val, threshold, dupAc };
+    }
+
+    // Case 3: Redirected to a Duplicate, but attack MISSED the Duplicate's AC -> Duplicate survives!
+    await this.sendMinimalistFeatureCard(defender, {
+      icon: "fa-clone",
+      title: `Mirror Image — Ataque Errou a Cópia! (${copies} intacta${copies === 1 ? "" : "s"})`,
+      bodyHtml: `
+        <strong>${foundry.utils.escapeHTML(attackerName)}</strong> atacou <strong>${foundry.utils.escapeHTML(defender.name)}</strong> (${copies} cópia${copies === 1 ? "" : "s"} ativa${copies === 1 ? "" : "s"}).<br>
+        &bull; <strong>Rolagem Mirror Image (1d20):</strong> <strong class="coria-hl-success">${d20Val}</strong> (&ge; ${threshold} &rarr; redirecionado para uma cópia!)<br>
+        &bull; <strong>Ataque vs CA da Cópia:</strong> <strong>${total}</strong>${isFumble ? " <em>(Falha Crítica)</em>" : ""} vs <strong>CA ${dupAc}</strong> (10 ${dexModStr} DES) &rarr; <strong class="coria-hl-info">Errou a Cópia!</strong><br>
+        &bull; A cópia <strong>não</strong> é destruída (mantidas <strong>${copies}</strong> cópia${copies === 1 ? "" : "s"}) e <strong>${foundry.utils.escapeHTML(defender.name)}</strong> não é atingido!
+      `,
+      flags: {
+        isMirrorImageCard: true,
+        chatChannel: "combat"
+      }
+    });
+
+    return { redirected: true, destroyed: false, remainingCopies: copies, rollTotal: d20Val, threshold, dupAc };
+  }
+
+  static getHeroismEffect(actor) {
+    if (!actor?.effects) return null;
+    return (
+      actor.effects.find(e => {
+        if (e.disabled) return false;
+        const fl = e.flags?.["altarion-aitusa"] || {};
+        if (fl.isHeroismEffect || e.statuses?.has?.("heroism") || fl.statusId === "heroism") {
+          return true;
+        }
+        const n = String(e.name || "").trim().toLowerCase();
+        return n === "heroism" || n.startsWith("heroism (");
+      }) || null
+    );
+  }
+
+  static async handleHeroismSpellCast(actor, item, usageConfig) {
+    if (!actor || !item) return;
+    const isLinked = Boolean(this.isAltarion(actor) && usageConfig?.useLinkedCasting);
+    const aitusa = isLinked ? this.getAitusaActor() : null;
+    const targetedActors = Array.from(game.user?.targets || [])
+      .map(t => t?.actor)
+      .filter(Boolean);
+
+    let recipients = [];
+    if (isLinked) {
+      recipients = [actor, aitusa].filter(Boolean);
+    } else if (targetedActors.length > 0) {
+      recipients = targetedActors;
+    } else {
+      recipients = [actor];
+    }
+
+    // Deduplicate recipients by UUID
+    const seenUuids = new Set();
+    recipients = recipients.filter(r => {
+      if (!r || seenUuids.has(r.uuid)) return false;
+      seenUuids.add(r.uuid);
+      return true;
+    });
+
+    const casterIntMod = Math.max(0, Number(actor.system?.abilities?.int?.mod ?? 0));
+
+    for (const targetActor of recipients) {
+      await this.applyOrUpdateStatusEffect(targetActor, {
+        statusId: "heroism",
+        name: `Heroism (+${casterIntMod} PV Temp./Turno)`,
+        img: item.img || "icons/magic/holy/barrier-shield-winged-cross.webp",
+        description: `<p><strong>Heroism (1 Minuto, Concentração):</strong> Conjurado por <strong>${foundry.utils.escapeHTML(actor.name)}</strong>. A criatura é imune à condição <strong>Amedrontado (Frightened)</strong> e recebe automaticamente <strong>${casterIntMod} PV Temporários</strong> (Modificador de Inteligência do conjurador) no <strong>início de cada um dos seus turnos</strong> enquanto este status estiver ativo.</p>`,
+        changes: [
+          {
+            key: "system.traits.ci.value",
+            mode: CONST.ACTIVE_EFFECT_MODES.ADD,
+            value: "frightened",
+            priority: 20
+          }
+        ],
+        durationSeconds: 60,
+        durationRounds: 10,
+        extraFlags: {
+          isHeroismEffect: true,
+          casterActorId: actor.id,
+          casterActorName: actor.name,
+          casterIntMod
+        }
+      });
+    }
+
+    await this.sendMinimalistFeatureCard(actor, {
+      icon: "fa-shield-heart",
+      title: `Heroism Ativada (+${casterIntMod} PV Temp./Turno)`,
+      bodyHtml: `
+        Status <strong>Heroism</strong> aplicado em <strong>${foundry.utils.escapeHTML(recipients.map(r => r.name).join(", "))}</strong> (1 minuto, Concentração).<br>
+        &bull; Imune a <strong>Frightened</strong> e ganha automaticamente <strong class="coria-hl-success">+${casterIntMod} PV Temporários</strong> (Mod. Inteligência de ${foundry.utils.escapeHTML(actor.name)}) no início de cada turno.
+      `,
+      flags: {
+        isHeroismCard: true,
+        chatChannel: "combat"
+      }
+    });
+  }
+
+  static async triggerHeroismStartOfTurn(actor, heroismEff) {
+    if (!actor || !heroismEff) return;
+    const fl = heroismEff.flags?.["altarion-aitusa"] || {};
+    const casterActor = fl.casterActorId ? game.actors?.get(fl.casterActorId) : null;
+    const casterName = casterActor?.name || fl.casterActorName || actor.name;
+    const intMod = Math.max(
+      0,
+      Number(
+        casterActor?.system?.abilities?.int?.mod ??
+          fl.casterIntMod ??
+          actor.system?.abilities?.int?.mod ??
+          0
+      )
+    );
+    if (intMod <= 0) return;
+
+    const preTemp = Math.max(0, Number(actor.system?.attributes?.hp?.temp ?? 0));
+    if (typeof actor.applyTempHP === "function") {
+      await actor.applyTempHP(intMod);
+    } else if (intMod > preTemp) {
+      await actor.update({ "system.attributes.hp.temp": intMod }, { altarionBypassWard: true });
+    }
+    const postTemp = Math.max(0, Number(actor.system?.attributes?.hp?.temp ?? Math.max(preTemp, intMod)));
+
+    const stackedOrRaised = postTemp > preTemp;
+    await this.sendMinimalistFeatureCard(actor, {
+      icon: "fa-shield-heart",
+      title: `Heroism — Início de Turno (${foundry.utils.escapeHTML(actor.name)})`,
+      bodyHtml: stackedOrRaised
+        ? `<strong>${foundry.utils.escapeHTML(actor.name)}</strong> recebeu <strong class="coria-hl-success">+${intMod} PV Temporários</strong> (Mod. Inteligência de ${foundry.utils.escapeHTML(casterName)}): <strong>${preTemp} &rarr; ${postTemp} PV Temp.</strong>`
+        : `<strong>Heroism</strong> concederia <strong>+${intMod} PV Temporários</strong> (Mod. Inteligência de ${foundry.utils.escapeHTML(casterName)}), mas <strong>${foundry.utils.escapeHTML(actor.name)}</strong> já possui <strong>${postTemp} PV Temp.</strong> (mantido o maior valor).`,
+      flags: {
+        isHeroismCard: true,
+        chatChannel: "combat"
       }
     });
   }

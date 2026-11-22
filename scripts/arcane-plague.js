@@ -2451,8 +2451,9 @@ export class ArcanePlagueManager {
       ? `<span class="altarion-plague-badge is-dormant" data-coria-color-key="plague-dormant" data-coria-color-label="Dormência da Praga" title="Dormência em Ambiente Seguro ativa (testes diários suspensos) | Clique direito para personalizar cor"><i class="fas fa-bed"></i> Dormente</span>`
       : "";
 
+    let plagueHtml = "";
     if (state.role === "altarion") {
-      plagueRow.innerHTML = `
+      plagueHtml = `
         <span class="altarion-plague-badge stored" data-coria-color-key="plague-stored" data-coria-color-label="ECs Armazenados" title="Estágios de Contaminação Armazenados no corpo de Altarion (Limite Seguro = ceil(BP/2) = ${state.safeLimit}) | Clique direito para personalizar cor">
           <i class="fas fa-vial"></i> Estágios de Contaminação Armazenados: <strong>${state.storedEC}</strong>
         </span>
@@ -2482,7 +2483,7 @@ export class ArcanePlagueManager {
             </button>`
           : "";
 
-      plagueRow.innerHTML = `
+      plagueHtml = `
         <button type="button" class="altarion-plague-badge stage clickable ${state.ec > 0 ? "is-infected" : ""}" data-action="plague-info" data-coria-color-key="plague-stage" data-coria-color-label="Estágio de Contaminação Atual" title="Clique para abrir as informações gerais da Praga Arcana e as regras específicas de ${actor.name} | Clique direito para personalizar cor">
           <i class="fas fa-biohazard"></i> Estágio de Contaminação Atual: <strong>EC ${state.ec}</strong>
         </button>
@@ -2495,25 +2496,31 @@ export class ArcanePlagueManager {
       `;
     }
 
+    const plagueSig = `${actor.id}|${actor.isOwner ? 1 : 0}|${plagueHtml}`;
+    if (plagueRow.dataset.coriaPlagueSig !== plagueSig) {
+      plagueRow.dataset.coriaPlagueSig = plagueSig;
+      plagueRow.innerHTML = plagueHtml;
+
+      plagueRow.querySelector('[data-action="plague-info"]')?.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        this.openPlagueInfoDialog(actor);
+      });
+
+      plagueRow.querySelector('[data-action="absorb-plague"]')?.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        this.openAltarionAbsorbPlagueDialog(actor);
+      });
+
+      plagueRow.querySelector('[data-action="feed-hunger"]')?.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        this.openKyrionFeedHungerDialog(actor);
+      });
+    }
+
     globalThis.CoriaHeaderColorManager?.applyAndBind?.(actor, plagueRow);
-
-    plagueRow.querySelector('[data-action="plague-info"]')?.addEventListener("click", (ev) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-      this.openPlagueInfoDialog(actor);
-    });
-
-    plagueRow.querySelector('[data-action="absorb-plague"]')?.addEventListener("click", (ev) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-      this.openAltarionAbsorbPlagueDialog(actor);
-    });
-
-    plagueRow.querySelector('[data-action="feed-hunger"]')?.addEventListener("click", (ev) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-      this.openKyrionFeedHungerDialog(actor);
-    });
   }
 
   /**

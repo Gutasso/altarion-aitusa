@@ -211,6 +211,9 @@ export class CoriaChatTabs {
       modFlags.isDarkVitalityCard ||
       modFlags.isSummonAttackCard ||
       modFlags.isPlagueDamageCard ||
+      modFlags.isMirrorImageCard ||
+      modFlags.isBlurCard ||
+      modFlags.isHeroismCard ||
       modFlags.isPortentBlindRoll ||
       modFlags.isD20ReactionCard ||
       modFlags.isPathsOfDestinyCard ||
