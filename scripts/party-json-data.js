@@ -1158,7 +1158,8 @@ export const PARTY_JSON_DATA = {
             "properties": [
               "vocal",
               "somatic",
-              "material"
+              "material",
+              "ritual"
             ],
             "materials": {
               "value": "a pinch of dirt",
@@ -3796,7 +3797,8 @@ export const PARTY_JSON_DATA = {
             "properties": [
               "vocal",
               "somatic",
-              "material"
+              "material",
+              "ritual"
             ],
             "materials": {
               "value": "a pinch of dirt",

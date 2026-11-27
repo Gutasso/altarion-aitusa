@@ -785,10 +785,25 @@ export class CoriaRollLedger {
       : "";
 
     let cardPayload = null;
+    const isParva = role === "parva";
+    const wasSuccessBefore = ledger._prevSuccess;
+    ledger._prevSuccess = isSuccess;
+
     if (isSuccess) {
       const targetEc = baseEc;
       const targetDc = baseDc + 1;
       await PM.updatePlagueState(actor, { ec: targetEc, dc: targetDc });
+
+      // If a Parva Arcane Tithe dialog was open from a prior failure before a reroll turned it into Success, close it
+      if (isParva) {
+        const openTitheDlg = PM._activeParvaTitheDialogs?.get?.(actor.id);
+        if (openTitheDlg) {
+          try {
+            openTitheDlg.close();
+          } catch (_e) {}
+          PM._activeParvaTitheDialogs.delete(actor.id);
+        }
+      }
 
       cardPayload = {
         theme: "success",
@@ -801,7 +816,7 @@ export class CoriaRollLedger {
           <p>Estágio mantido em <strong>EC ${targetEc}</strong>. A Dificuldade subiu para <strong>CD ${targetDc}</strong>.</p>
         `,
         footerHtml: "",
-        flags: { isKyrionPlagueFailureCard: false }
+        flags: { isKyrionPlagueFailureCard: false, isParvaPlagueFailureCard: false }
       };
     } else {
       const targetEc = Math.min(6, baseEc + 1);
@@ -821,6 +836,25 @@ export class CoriaRollLedger {
         `
         : "";
 
+      const parvaPactVal = Number(actor.system?.spells?.pact?.value ?? actor.system?.spells?.pact?.max ?? 0);
+      const parvaTitheBtnHtml = isParva
+        ? `
+          <hr style="border-color: rgba(168,85,247,0.35); margin: 12px 0;">
+          <p style="color: #f5d0fe; font-size: 0.88rem; margin-bottom: 8px;">
+            <strong>O Dízimo Arcano:</strong> Parva pode tentar barganhar com seu Patrono (<strong>Persuasão CD ${baseDc}</strong>) para sacrificar <strong>1 Espaço de Magia de Warlock</strong> e remover este aumento de EC${parvaPactVal <= 0 ? " (sem slots de Warlock disponíveis)" : ""}.
+          </p>
+          <button type="button" class="coria-parva-tithe-btn btn-pact"
+                  data-actor-id="${actor.id}"
+                  data-prev-ec="${baseEc}"
+                  data-prev-dc="${baseDc}"
+                  data-failed-ec="${targetEc}"
+                  data-failed-dc="${targetDc}"
+                  ${parvaPactVal <= 0 ? "disabled" : ""}>
+            <i class="fas fa-hand-holding-magic"></i> Invocar O Dízimo Arcano (Persuasão CD ${baseDc})
+          </button>
+        `
+        : "";
+
       cardPayload = {
         theme: "failure",
         icon: "fa-skull",
@@ -833,6 +867,7 @@ export class CoriaRollLedger {
           </div>
           <p style="font-size: 0.82rem; color: #aaa;">(Nova Dificuldade Base: CD ${targetDc})</p>
           ${kyrionWisBtnHtml}
+          ${parvaTitheBtnHtml}
         `,
         footerHtml: PM.STAGE_DATA?.[targetEc]?.summary || "",
         flags: isKyrion
@@ -841,8 +876,30 @@ export class CoriaRollLedger {
               kyrionActorId: actor.id,
               kyrionWisDc: baseDc
             }
-          : {}
+          : isParva
+            ? {
+                isParvaPlagueFailureCard: true,
+                parvaActorId: actor.id,
+                parvaPrevEc: baseEc,
+                parvaPrevDc: baseDc,
+                parvaFailedEc: targetEc,
+                parvaFailedDc: targetDc
+              }
+            : {}
       };
+
+      // Parva: Open "O Dízimo Arcano" choice dialog automatically upon failing the CON save!
+      if (isParva && wasSuccessBefore !== false && (actor.isOwner || game.user?.isGM)) {
+        setTimeout(() => {
+          PM.openParvaArcaneTitheDialog(actor, {
+            prevEc: baseEc,
+            prevDc: baseDc,
+            failedEc: targetEc,
+            failedDc: targetDc,
+            conRollMsgId: rollMessage?.id || ""
+          });
+        }, 120);
+      }
     }
 
     const existingCard = ledger.outcomeCardMsgId ? game.messages?.get(ledger.outcomeCardMsgId) : null;
@@ -864,16 +921,25 @@ export class CoriaRollLedger {
 
   static async registerAndEvaluateParvaTithe({ rollMessage, roll, actor, beforeState }) {
     const stats = this.extractD20Stats(roll || rollMessage);
+    const prevEc = Number(beforeState.prevEc ?? beforeState.ec ?? 0);
+    const prevDc = Number(beforeState.prevDc ?? beforeState.dc ?? 10);
+    const failedEc = Number(beforeState.failedEc ?? Math.min(6, prevEc + 1));
+    const failedDc = Number(beforeState.failedDc ?? 10 + failedEc);
     const ledger = {
       kind: "plague-parva-tithe",
       actorId: actor.id,
       actorUuid: actor.uuid,
-      dc: Number(beforeState.dc || 10),
+      dc: prevDc,
       beforeState: {
-        ec: Number(beforeState.ec || 0),
-        dc: Number(beforeState.dc || 10),
+        ec: prevEc,
+        prevEc,
+        prevDc,
+        failedEc,
+        failedDc,
+        dc: prevDc,
         prevBlocked: Number(beforeState.prevBlocked || 0),
-        prevPactVal: Number(beforeState.prevPactVal || 0)
+        prevPactVal: Number(beforeState.prevPactVal || 0),
+        fromFailedConSave: Boolean(beforeState.fromFailedConSave ?? true)
       },
       origNat: stats.nat,
       origTotal: stats.total,
@@ -897,8 +963,14 @@ export class CoriaRollLedger {
 
     const total = Number.isFinite(Number(newTotal)) ? Number(newTotal) : Number(ledger.currentTotal ?? 10);
     const nat = Number.isFinite(Number(newNat)) ? Number(newNat) : Number(ledger.currentNat ?? 10);
-    const dc = Number(ledger.dc || ledger.beforeState?.dc || 10);
-    const { ec, prevBlocked = 0, prevPactVal = 1 } = ledger.beforeState || {};
+    const bs = ledger.beforeState || {};
+    const dc = Number(ledger.dc || bs.prevDc || bs.dc || 10);
+    const prevEc = Number(bs.prevEc ?? bs.ec ?? 0);
+    const prevDc = Number(bs.prevDc ?? dc);
+    const failedEc = Number(bs.failedEc ?? Math.min(6, prevEc + 1));
+    const failedDc = Number(bs.failedDc ?? 10 + failedEc);
+    const prevBlocked = Number(bs.prevBlocked || 0);
+    const prevPactVal = Number(bs.prevPactVal ?? 1);
 
     const isSuccess = total >= dc;
     ledger.currentTotal = total;
@@ -913,23 +985,17 @@ export class CoriaRollLedger {
     if (isSuccess) {
       const newBlocked = prevBlocked + 1;
       const newPactVal = Math.max(0, prevPactVal - 1);
+      // Sacrifice 1 Warlock Pact slot AND remove the +1 EC gained from the failed CON save!
       await actor.update(
         {
+          [`flags.${MODULE_ID}.plague.ec`]: prevEc,
+          [`flags.${MODULE_ID}.plague.dc`]: prevDc,
           [`flags.${MODULE_ID}.plague.parvaBlockedPactSlots`]: newBlocked,
           "system.spells.pact.value": newPactVal
         },
         { altarionPlagueInternal: true }
       );
       if (actor.sheet?.rendered) actor.sheet.render(false);
-
-      // If a fallback Constitution Plague dialog was opened for Parva, close it automatically
-      const openConDlg = PM._activeConPlagueDialogs?.get?.(actor.id);
-      if (openConDlg) {
-        try {
-          openConDlg.close();
-        } catch (_e) {}
-        PM._activeConPlagueDialogs.delete(actor.id);
-      }
 
       cardPayload = {
         theme: "success",
@@ -939,13 +1005,15 @@ export class CoriaRollLedger {
           ${modTag}
           <p>Com persuasão total de <strong>${total}</strong> (CD ${dc}), o Patrono de <strong>${actor.name}</strong> absorveu a energia corrompida!</p>
           <hr style="border-color: rgba(100,255,100,0.2); margin: 10px 0;">
-          <p><strong>1 Espaço de Magia de Warlock</strong> foi sacrificado (bloqueado por todo o dia seguinte) e o Estágio permanece em <strong>EC ${ec}</strong>.</p>
+          <p><strong>1 Espaço de Magia de Warlock</strong> foi sacrificado (bloqueado por todo o dia seguinte) e o aumento de corrupção foi <strong>removido</strong> — o Estágio permanece em <strong>EC ${prevEc}</strong> (CD ${prevDc}).</p>
         `
       };
     } else {
-      // Restore Pact slot if it had been consumed by a previous Success state
+      // Patron refuses the corrupted energy: restore Pact slot & keep the corruption advance (EC = failedEc)
       await actor.update(
         {
+          [`flags.${MODULE_ID}.plague.ec`]: failedEc,
+          [`flags.${MODULE_ID}.plague.dc`]: failedDc,
           [`flags.${MODULE_ID}.plague.parvaBlockedPactSlots`]: prevBlocked,
           "system.spells.pact.value": prevPactVal
         },
@@ -960,8 +1028,9 @@ export class CoriaRollLedger {
         bodyHtml: `
           ${modTag}
           <p>O Patrono recusou a energia corrompida (Persuasão <strong>${total}</strong> vs CD <strong>${dc}</strong>).</p>
-          <p>O espaço de magia de Warlock <strong>não foi consumido</strong>, mas <strong>${actor.name}</strong> deve agora rolar seu Teste de Resistência de Constituição!</p>
-        `
+          <p>O espaço de magia de Warlock <strong>não foi consumido</strong> e a corrupção aumenta normalmente para <strong>EC ${failedEc}</strong> (Nova CD Base: <strong>CD ${failedDc}</strong>).</p>
+        `,
+        footerHtml: PM.STAGE_DATA?.[failedEc]?.summary || ""
       };
     }
 
@@ -975,10 +1044,6 @@ export class CoriaRollLedger {
 
     if (rollMessage?.update) {
       await rollMessage.update({ [`flags.${MODULE_ID}.rollLedger`]: ledger });
-    }
-
-    if (!isSuccess) {
-      await PM.openConstitutionPlagueDialog(actor);
     }
   }
 

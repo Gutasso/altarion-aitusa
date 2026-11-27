@@ -344,6 +344,11 @@ Hooks.once("ready", async () => {
     await reconcilePartyUserAssignments({ silent: true });
   }
 
+  // Ensure ALL Longstrider spell instances across ALL non-backup character sheets carry the `ritual` tag
+  if (shouldThisClientRunAutoSync(null)) {
+    await AltarionAutomationManager.ensureAllLongstriderSpellsAreRitual();
+  }
+
   // Seed 2014 School of Abjuration subclass and features into Compendium pack
   await FeatureSyncManager.ensureCompendiumContent();
 
@@ -546,18 +551,10 @@ async function placeAncestralMarkingDualTemplates(actor) {
 }
 
 /**
- * Hook into dnd5e activity usage for Ancestral Ward
+ * Note: `Ancestral Ward` Temp HP auto-roll & deduplicated status application is handled exclusively
+ * by `AltarionAutomationManager.handleAncestralWardActivation` (under serialized actor-effect lock)
+ * so it NEVER opens a roll dialog and NEVER creates duplicate status effects!
  */
-Hooks.on("dnd5e.postUseActivity", async (activity) => {
-  const item = activity?.item;
-  const actor = item?.actor;
-  if (!item || !actor) return;
-
-  const itemName = item.name?.trim().toLowerCase();
-  if (itemName === "ancestral ward") {
-    await applyAncestralWardStatus(actor, item);
-  }
-});
 
 /**
  * Automatically detect when Altarion or Aitusa actor is created or renamed
@@ -747,9 +744,8 @@ Hooks.on("createChatMessage", async (message) => {
 
     const itemNameLower = item.name?.trim().toLowerCase();
 
-    // Ensure Ancestral Ward status is applied if triggered from chat
+    // Ancestral Ward status & Temp HP are handled exclusively in AltarionAutomationManager.postUseActivity (prevents duplicates!)
     if (itemNameLower === "ancestral ward") {
-      await applyAncestralWardStatus(speakerActor, item);
       return;
     }
 

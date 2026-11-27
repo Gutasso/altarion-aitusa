@@ -490,35 +490,71 @@ export class FlinnManager {
       [`flags.${MODULE_ID}.portentDice`]: coloredDice
     });
 
-    // Send Blind GM Roll message so ONLY the GM sees the numeric results in chat
+    // Send GM-only Portent Rolls message so ONLY the Gamemaster can EVER see the numeric results in chat.
+    // When triggered by a non-GM player (e.g. Flinn completing a Long Rest), relay via socket to the active GM
+    // so the ChatMessage is authored BY the GM and whispered strictly TO GMs (never visible to Flinn or other players!).
+    if (game.user?.isGM) {
+      await this.createPortentGmOnlyChatMessage({
+        actor,
+        actorName: actor.name,
+        maxPortents,
+        coloredDice
+      });
+    } else if (game.socket && game.users?.activeGM) {
+      game.socket.emit(`module.${MODULE_ID}`, {
+        type: "coriaCreatePortentGmMessage",
+        params: {
+          actorId: actor.id,
+          actorName: actor.name,
+          maxPortents,
+          coloredDice
+        }
+      });
+    }
+
+    this.refreshPortentFloatingButton();
+    if (actor.sheet?.rendered) actor.sheet.render(false);
+    return coloredDice;
+  }
+
+  /**
+   * Create the strictly GM-only whisper ChatMessage for Flinn's Portent Rolls.
+   * Must run on a GM client so `author` is GM and `whisper` contains ONLY GM user IDs.
+   */
+  static async createPortentGmOnlyChatMessage({ actor = null, actorId = "", actorName = "Flinn", maxPortents = 2, coloredDice = [] } = {}) {
+    if (!game.user?.isGM) return null;
+    const resolvedActor = actor || (actorId ? game.actors?.get(actorId) : null) || this.getFlinnActor();
+    const displayName = resolvedActor?.name || actorName || "Flinn";
     const gmIds = game.users?.filter(u => u.isGM)?.map(u => u.id) || [];
+    if (gmIds.length === 0 && game.user?.id) gmIds.push(game.user.id);
+
     const colorNameMap = {
       green: "Verde (Maior valor)",
       red: "Vermelho (Menor valor)",
       yellow: "Amarelo (Intermediário / Igual)"
     };
-    const gmBreakdownHtml = coloredDice
+    const gmBreakdownHtml = (Array.isArray(coloredDice) ? coloredDice : [])
       .map(
         (d, idx) =>
           `<div style="display:flex; align-items:center; justify-content:space-between; padding:4px 8px; margin:3px 0; border-radius:5px; background:rgba(0,0,0,0.45); border-left:4px solid ${
             d.color === "green" ? "#22c55e" : d.color === "red" ? "#ef4444" : "#eab308"
           };">
-            <span>Dado #${idx + 1} (${colorNameMap[d.color]}):</span>
+            <span>Dado #${idx + 1} (${colorNameMap[d.color] || "Amarelo"}):</span>
             <strong style="font-size:1.05rem; color:#fff;">d20 = ${d.value}</strong>
           </div>`
       )
       .join("");
 
-    await ChatMessage.create({
-      speaker: ChatMessage.getSpeaker({ actor }),
+    return ChatMessage.create({
+      speaker: resolvedActor ? ChatMessage.getSpeaker({ actor: resolvedActor }) : ChatMessage.getSpeaker({ alias: displayName }),
       whisper: gmIds,
-      blind: true,
+      blind: false,
       content: `
         <div class="coria-chat-card chat-arcane">
-          <div class="coria-chat-header"><i class="fas fa-eye"></i> Portent Rolls — ${actor.name} (Blind GM Roll)</div>
+          <div class="coria-chat-header"><i class="fas fa-eye"></i> Portent Rolls — ${foundry.utils.escapeHTML(displayName)} (Somente Mestre)</div>
           <div class="coria-chat-body" style="text-align:left;">
             <p style="text-align:center; margin-bottom:8px;">
-              <strong>${actor.name}</strong> rolou seus <strong>${maxPortents} dados de Portent</strong> após o Descanso Longo (visíveis apenas para o Mestre):
+              <strong>${foundry.utils.escapeHTML(displayName)}</strong> rolou seus <strong>${maxPortents} dados de Portent</strong> após o Descanso Longo (visíveis apenas para o Mestre):
             </p>
             ${gmBreakdownHtml}
           </div>
@@ -526,14 +562,12 @@ export class FlinnManager {
       `,
       flags: {
         [MODULE_ID]: {
-          isPortentBlindRoll: true
+          isPortentBlindRoll: true,
+          gmOnlySecret: true,
+          chatChannel: "combat"
         }
       }
     });
-
-    this.refreshPortentFloatingButton();
-    if (actor.sheet?.rendered) actor.sheet.render(false);
-    return coloredDice;
   }
 
   /**

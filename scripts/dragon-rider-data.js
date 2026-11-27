@@ -1204,16 +1204,28 @@ export class PlutoniumDataBridge {
         const dNum = wardDiceMap[sizeLabel] || 3;
         featData.system.uses = { spent: 0, max: "", recovery: [] };
         featData.system.activities = {
-          altarionHeal0001: this._makeTempHpHealActivity({
-            id: "altarionHeal0001",
-            name: "Ancestral Ward (Temp HP)",
-            diceNum: dNum,
-            diceFaces: 6,
-            bonus: "max(1, ceil(@abilities.int.mod / 2))",
-            rangeValue: null,
-            rangeUnits: "self",
-            affectsType: "self"
-          })
+          altarionWard0001: {
+            _id: "altarionWard0001",
+            type: "utility",
+            name: `Activate Ancestral Ward (${dNum}d6 + ceil(INT/2) Temp HP)`,
+            activation: { type: "action", value: 1, condition: "", override: false },
+            consumption: { targets: [], scaling: { allowed: false, max: "" }, spellSlot: false },
+            description: {
+              chatFlavor: `Automatically rolls and applies ${dNum}d6 + ceil(INT/2) Temporary Hit Points and activates the Ancestral Ward status effect (10 minutes).`
+            },
+            duration: { value: "10", units: "minute", concentration: false, special: "", override: false },
+            effects: [],
+            range: { value: null, units: "self", special: "", override: false },
+            target: {
+              template: { count: "", contiguous: false, type: "", size: "", width: "", height: "", units: "ft" },
+              affects: { count: "", type: "self", choice: false, special: "" },
+              prompt: false,
+              override: false
+            },
+            uses: { spent: 0, max: "", recovery: [] },
+            roll: { prompt: false, visible: false, name: "", formula: "" },
+            sort: 0
+          }
         };
       } else if (name === "Ancestral Shielding") {
         const shieldDiceMap = { Tiny: 2, Small: 3, Medium: 4, Large: 5, Huge: 6 };

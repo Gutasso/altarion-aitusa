@@ -694,6 +694,21 @@ export class AltarionAutomationManager {
         id: "heroism",
         name: "Heroism (PV Temp. p/ Turno)",
         img: "icons/magic/holy/barrier-shield-winged-cross.webp"
+      },
+      {
+        id: "bless",
+        name: "Bless (+1d4 Atk & Saves)",
+        img: "icons/magic/holy/chalice-glowing-gold-water.webp"
+      },
+      {
+        id: "hexblades-curse",
+        name: "Hexblade's Curse",
+        img: "icons/magic/unholy/strike-body-life-soul-purple.webp"
+      },
+      {
+        id: "longstrider",
+        name: "Longstrider (+10 ft Speed)",
+        img: "icons/equipment/feet/boots-leather-laced-brown.webp"
       }
     ];
 
@@ -797,6 +812,27 @@ export class AltarionAutomationManager {
           Boolean(flags.isHeroismEffect) ||
           effNameLower === "heroism" ||
           effNameLower.startsWith("heroism (")
+        );
+      case "ancestral-ward":
+        return (
+          (Boolean(flags.isAncestralWardEffect) || effNameLower === "ancestral ward") &&
+          !effNameLower.includes("disadvantage") &&
+          !eff.statuses?.has?.("ancestral-ward-marked")
+        );
+      case "bless":
+        return Boolean(flags.isBlessEffect) || effNameLower === "bless" || effNameLower.startsWith("bless (");
+      case "hexblades-curse":
+        return (
+          Boolean(flags.isHexbladesCurseEffect) ||
+          effNameLower === "hexblade's curse" ||
+          effNameLower === "hexblades curse" ||
+          effNameLower.startsWith("hexblade's curse (")
+        );
+      case "longstrider":
+        return (
+          Boolean(flags.isLongstriderEffect) ||
+          effNameLower === "longstrider" ||
+          effNameLower.startsWith("longstrider (")
         );
       default:
         return false;
@@ -1093,6 +1129,11 @@ export class AltarionAutomationManager {
       itemNameLower === "shadow armor" ||
       itemNameLower === "abjuration bulwark" ||
       itemNameLower === "aid" ||
+      itemNameLower === "bless" ||
+      itemNameLower === "blur" ||
+      itemNameLower === "mirror image" ||
+      itemNameLower === "heroism" ||
+      itemNameLower === "longstrider" ||
       itemNameLower === "spirit shroud" ||
       itemNameLower === "spirit guardians" ||
       itemNameLower === "warding bond" ||
@@ -1437,6 +1478,8 @@ export class AltarionAutomationManager {
             itemNameLower === "blur" ||
             itemNameLower === "mirror image" ||
             itemNameLower === "heroism" ||
+            itemNameLower === "bless" ||
+            itemNameLower === "longstrider" ||
             itemNameLower === "arcane armor" ||
             itemNameLower === "shadow armor" ||
             itemNameLower === "armor of agathys" ||
@@ -1448,6 +1491,9 @@ export class AltarionAutomationManager {
             Boolean(item.flags?.["altarion-aitusa"]?.isSpiritualWeaponSpell))) ||
         (item.type === "feat" &&
           (itemNameLower === "tentacle of the deeps" ||
+            itemNameLower === "ancestral ward" ||
+            itemNameLower === "hexblade's curse" ||
+            itemNameLower === "hexblades curse" ||
             itemNameLower.includes("abjurer's echo") ||
             Boolean(item.flags?.["altarion-aitusa"]?.isTentacleOfTheDeepsFeat)));
 
@@ -1461,6 +1507,9 @@ export class AltarionAutomationManager {
         // 1b. Prevent HealActivity / DamageActivity / SaveActivity / AttackActivity from opening a second Roll Dialog after the Cast Spell dialog
         if (activity && typeof activity === "object") {
           activity._triggerSubsequentActions = async () => {};
+        }
+        if (itemNameLower === "ancestral ward" && dialogConfig) {
+          dialogConfig.configure = false;
         }
 
         try {
@@ -1478,6 +1527,8 @@ export class AltarionAutomationManager {
               await globalThis.ParvaManager?.ensureTentacleOfTheDeepsConfigured?.(actor);
             } else if (itemNameLower.includes("abjurer's echo")) {
               await this.sanitizeAbjurersEchoItem(item);
+            } else if (itemNameLower === "longstrider") {
+              await this.ensureLongstriderSpellIsRitual(item);
             }
 
             // 1c. Delete any raw compendium embedded ActiveEffects on the spell item so dnd5e never applies duplicates
@@ -1577,6 +1628,8 @@ export class AltarionAutomationManager {
             "blur",
             "mirror image",
             "heroism",
+            "bless",
+            "longstrider",
             "arcane armor",
             "shadow armor",
             "armor of agathys",
@@ -2151,6 +2204,26 @@ export class AltarionAutomationManager {
         await this.handleHeroismSpellCast(actor, item, usageConfig);
       }
 
+      // 0o. Bless: Target Picker dialog (up to 3 + upcast creatures within 30 ft) -> +1d4 on Attacks & Saves
+      if (item.type === "spell" && itemNameLower === "bless") {
+        await this.handleBlessSpellCast(actor, item, usageConfig, results, activity);
+      }
+
+      // 0p. Longstrider: Ritual-tagged spell applying +10 ft Speed status effect (1 hour)
+      if (item.type === "spell" && itemNameLower === "longstrider") {
+        await this.handleLongstriderSpellCast(actor, item, usageConfig, results, activity);
+      }
+
+      // 0q. Hexblade's Curse (Kyrion / Warlock): Apply status effect on target -> Crit on 19-20 & auto-check +PB damage
+      if (item.type === "feat" && (itemNameLower === "hexblade's curse" || itemNameLower === "hexblades curse")) {
+        await this.handleHexbladesCurseActivation(actor, item);
+      }
+
+      // 0r. Ancestral Ward (Altarion): Auto-roll & apply Temp HP WITHOUT roll dialog + strictly deduplicated status effect!
+      if (this.isAltarion(actor) && itemNameLower === "ancestral ward") {
+        await this.handleAncestralWardActivation(actor, item);
+      }
+
       // 1. Ancestral Shielding: Apply +ceil(INT/2) AC status effect to target (or Altarion) until end of Altarion's next turn
       if (this.isAltarion(actor) && itemNameLower === "ancestral shielding") {
         const intMod = Number(actor.system?.abilities?.int?.mod ?? 3);
@@ -2387,6 +2460,25 @@ export class AltarionAutomationManager {
             `[Blur] ${blurTargets.map(t => t.name).join(", ")} está borrado (Blur) — Desvantagem aplicada ao ataque de ${actor.name}!`
           );
         }
+      }
+
+      // Hexblade's Curse: Expand Critical Hit threshold to 19-20 when attacking a cursed target!
+      const hexCursedTargets = Array.from(game.user?.targets || [])
+        .map(t => t?.actor)
+        .filter(tActor => tActor && this.hasHexbladesCurseOnTarget(tActor, actor));
+      if (hexCursedTargets.length > 0) {
+        config.criticalSuccess = Math.min(Number(config.criticalSuccess || 20), 19);
+        if (Array.isArray(config.rolls)) {
+          for (const r of config.rolls) {
+            if (r && typeof r === "object") {
+              r.options ??= {};
+              r.options.criticalSuccess = Math.min(Number(r.options.criticalSuccess || 20), 19);
+            }
+          }
+        }
+        ui.notifications?.info?.(
+          `[Hexblade's Curse] Crítico expandido para 19–20 contra ${hexCursedTargets.map(t => t.name).join(", ")}!`
+        );
       }
 
       // Shadow Blast (Kyrion): Surface active Eldritch Invocation riders (Repelling Blast, Grasp of Hadar, Lance of Lethargy)
@@ -2669,6 +2761,29 @@ export class AltarionAutomationManager {
         if (eff) setTimeout(() => eff.delete(), 250);
       }
 
+      // E2. Kyrion Hexblade's Curse: Auto-enable +PB bonus damage on fast-forward & dialog damage rolls against cursed target
+      if (this.isKyrion(actor) && config.rolls?.[0]) {
+        const primaryRoll = config.rolls[0];
+        const hasCursedTarget = Array.from(game.user?.targets || []).some(
+          t => t?.actor && this.hasHexbladesCurseOnTarget(t.actor, actor)
+        );
+        if (
+          hasCursedTarget &&
+          !primaryRoll.options?.kyrionHexbladesCurse &&
+          !primaryRoll.options?.kyrionHexbladesCurseManuallyUnchecked
+        ) {
+          const prof = Math.max(2, Number(actor.system?.attributes?.prof ?? 2));
+          primaryRoll.parts = Array.isArray(primaryRoll.parts)
+            ? primaryRoll.parts.filter(p => p !== "@kyrionHexCurse")
+            : [];
+          primaryRoll.parts.push("@kyrionHexCurse");
+          primaryRoll.data = primaryRoll.data || {};
+          primaryRoll.data.kyrionHexCurse = prof;
+          primaryRoll.options = primaryRoll.options || {};
+          primaryRoll.options.kyrionHexbladesCurse = true;
+        }
+      }
+
       // F. Spirit Shroud: +Xd8 (Radiant / Necrotic / Cold) on any attack damage roll against a creature within 10 ft
       const spiritShroudEff = actor.effects?.find(
         e =>
@@ -2887,6 +3002,21 @@ export class AltarionAutomationManager {
   /* -------------------------------------------- */
 
   static registerActorAndCombatHooks() {
+    // Automatically tag any newly created/imported "Longstrider" spell on any non-backup sheet as a Ritual
+    Hooks.on("createItem", async (item, _options, userId) => {
+      try {
+        if (game.user?.id !== userId) return;
+        if (!item || item.type !== "spell") return;
+        const parentActor = item.parent;
+        if (parentActor?.documentName === "Actor" && isIgnoredBackupActor(parentActor)) return;
+        if (item.name?.trim().toLowerCase() === "longstrider") {
+          await this.ensureLongstriderSpellIsRitual(item);
+        }
+      } catch (_e) {
+        // ignore
+      }
+    });
+
     // Mirror any ActiveEffect applied from a Linked Casting spell onto both Altarion and Aitusa
     Hooks.on("createActiveEffect", async (effect, options, userId) => {
       try {
@@ -3412,6 +3542,12 @@ export class AltarionAutomationManager {
         const isConcHeroism = delNameLower.startsWith("concentrating") && /\bheroism\b/.test(delNameLower);
         if (isConcHeroism) {
           await this.cleanupSpellStatusByCaster("heroism", parentActor.id);
+        }
+
+        // 4d. Concentration on Bless removed: Clean up Bless status effects cast by this caster
+        const isConcBless = delNameLower.startsWith("concentrating") && /\bbless\b/.test(delNameLower);
+        if (isConcBless) {
+          await this.cleanupSpellStatusByCaster("bless", parentActor.id);
         }
 
         // 5. Absorb Elements removed: Guarantee temporary elemental resistance is completely removed
@@ -6844,10 +6980,14 @@ export class AltarionAutomationManager {
           modFlags?.isArcaneArmorRetaliationCard ||
           modFlags?.isArcaneWardCard ||
           modFlags?.isAncestralShieldingCard ||
+          modFlags?.isAncestralWardCard ||
           modFlags?.isSpiritGuardiansDamageCard ||
           modFlags?.isMirrorImageCard ||
           modFlags?.isBlurCard ||
-          modFlags?.isHeroismCard
+          modFlags?.isHeroismCard ||
+          modFlags?.isBlessCard ||
+          modFlags?.isLongstriderCard ||
+          modFlags?.isHexbladesCurseCard
         ) {
           return;
         }
@@ -7151,6 +7291,11 @@ export class AltarionAutomationManager {
         [
           "spirit shroud",
           "aid",
+          "bless",
+          "longstrider",
+          "ancestral ward",
+          "hexblade's curse",
+          "hexblades curse",
           "arcane armor",
           "shadow armor",
           "armor of agathys",
@@ -7160,6 +7305,11 @@ export class AltarionAutomationManager {
         [
           "spirit shroud",
           "aid",
+          "bless",
+          "longstrider",
+          "ancestral ward",
+          "hexblade's curse",
+          "hexblades curse",
           "arcane armor",
           "shadow armor",
           "armor of agathys",
@@ -7849,6 +7999,34 @@ export class AltarionAutomationManager {
             const targetActor = await this.resolveActorFromUuidOrId?.(p.targetUuid, p.targetActorId);
             if (targetActor) {
               await this._applyHeroismBuffToTargetActor(targetActor, p);
+            }
+          } else if (payload?.type === "coriaApplyBlessBuff") {
+            const p = payload.params || {};
+            const targetActor = await this.resolveActorFromUuidOrId?.(p.targetUuid, p.targetActorId);
+            if (targetActor) {
+              await this._applyBlessBuffToTargetActor(targetActor, p);
+            }
+          } else if (payload?.type === "coriaApplyLongstriderBuff") {
+            const p = payload.params || {};
+            const targetActor = await this.resolveActorFromUuidOrId?.(p.targetUuid, p.targetActorId);
+            if (targetActor) {
+              await this._applyLongstriderBuffToTargetActor(targetActor, p);
+            }
+          } else if (payload?.type === "coriaApplyHexbladeCurse") {
+            const p = payload.params || {};
+            const targetActor = await this.resolveActorFromUuidOrId?.(p.targetUuid, p.targetActorId);
+            if (targetActor) {
+              await this._applyHexbladesCurseToTargetActor(targetActor, p);
+            }
+          } else if (payload?.type === "coriaCleanupSpellStatusByCaster") {
+            const p = payload.params || {};
+            if (p.statusId && p.casterActorId) {
+              await this.cleanupSpellStatusByCaster(p.statusId, p.casterActorId, p.excludeActorIds || []);
+            }
+          } else if (payload?.type === "coriaCreatePortentGmMessage") {
+            const p = payload.params || {};
+            if (globalThis.FlinnManager?.createPortentGmOnlyChatMessage) {
+              await globalThis.FlinnManager.createPortentGmOnlyChatMessage(p);
             }
           } else if (payload?.type === "coriaApplyTempHp") {
             const p = payload.params || {};
@@ -8710,9 +8888,10 @@ export class AltarionAutomationManager {
     if (cleanSit) {
       sitExpr = /^[+-]/.test(cleanSit) ? cleanSit : `+ ${cleanSit}`;
     }
+    const blessExpr = this.hasStatus(caster, "bless") ? "+ 1d4" : "";
 
     const baseFormula = `${d20Expr} ${modSign}`;
-    const fullFormula = sitExpr ? `${baseFormula} ${sitExpr}` : baseFormula;
+    const fullFormula = [baseFormula, blessExpr, sitExpr].filter(Boolean).join(" ");
     const FormulaClass = CONFIG.Dice?.D20Roll || Roll;
     let atkRoll = null;
     try {
@@ -10080,24 +10259,39 @@ export class AltarionAutomationManager {
     return this.getActorBlurImmunityReason(attackerActor);
   }
 
-  static async cleanupSpellStatusByCaster(statusId, casterActorId) {
+  static async cleanupSpellStatusByCaster(statusId, casterActorId, excludeActorIds = []) {
     if (!statusId || !casterActorId) return;
+    const excludeSet = new Set(Array.isArray(excludeActorIds) ? excludeActorIds : []);
     const allActors = new Set(Array.from(game.actors || []));
     for (const tok of canvas?.tokens?.placeables || []) {
       if (tok?.actor) allActors.add(tok.actor);
     }
+    let hasNonOwnedMatches = false;
     for (const act of allActors) {
-      if (!act?.isOwner) continue;
-      const toDel = act.effects
+      if (!act || excludeSet.has(act.id)) continue;
+      const matchingIds = act.effects
         .filter(e => {
           const fl = e.flags?.["altarion-aitusa"] || {};
           const matchesStatus = e.statuses?.has?.(statusId) || fl.statusId === statusId;
           return matchesStatus && fl.casterActorId === casterActorId;
         })
         .map(e => e.id);
-      if (toDel.length > 0) {
-        await this.safeDeleteActorEffects(act, toDel);
+      if (matchingIds.length === 0) continue;
+      if (act.isOwner) {
+        await this.safeDeleteActorEffects(act, matchingIds);
+      } else {
+        hasNonOwnedMatches = true;
       }
+    }
+    if (hasNonOwnedMatches && !game.user?.isGM && game.socket && game.users?.activeGM) {
+      game.socket.emit("module.altarion-aitusa", {
+        type: "coriaCleanupSpellStatusByCaster",
+        params: {
+          statusId,
+          casterActorId,
+          excludeActorIds: Array.from(excludeSet)
+        }
+      });
     }
   }
 
@@ -10480,6 +10674,771 @@ export class AltarionAutomationManager {
         : `<strong>Heroism</strong> concederia <strong>+${intMod} PV Temporários</strong> (Mod. Inteligência de ${foundry.utils.escapeHTML(casterName)}), mas <strong>${foundry.utils.escapeHTML(actor.name)}</strong> já possui <strong>${postTemp} PV Temp.</strong> (mantido o maior valor).`,
       flags: {
         isHeroismCard: true,
+        chatChannel: "combat"
+      }
+    });
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /*  LONGSTRIDER (Ritual Tag Across All Sheets + +10 ft Speed Status Effect)   */
+  /* -------------------------------------------------------------------------- */
+
+  static async ensureLongstriderSpellIsRitual(item) {
+    if (!item || item.type !== "spell") return false;
+    if (item.name?.trim().toLowerCase() !== "longstrider") return false;
+    const parentActor = item.parent;
+    if (parentActor?.documentName === "Actor") {
+      if (isIgnoredBackupActor(parentActor)) return false;
+      if (!parentActor.isOwner) return false;
+    } else if (!item.isOwner) {
+      return false;
+    }
+    const rawProps = item.system?.properties;
+    const propsArr = Array.isArray(rawProps)
+      ? rawProps.slice()
+      : rawProps instanceof Set
+        ? Array.from(rawProps)
+        : rawProps && typeof rawProps[Symbol.iterator] === "function"
+          ? Array.from(rawProps)
+          : [];
+    if (propsArr.includes("ritual")) return false;
+    propsArr.push("ritual");
+    try {
+      await item.update({ "system.properties": Array.from(new Set(propsArr)) });
+      return true;
+    } catch (err) {
+      console.warn(`[Altarion & Aitusa] Could not tag Longstrider as Ritual on ${parentActor?.name || item.name}:`, err);
+      return false;
+    }
+  }
+
+  static async ensureAllLongstriderSpellsAreRitual() {
+    if (!shouldThisClientRunAutoSync()) return 0;
+    let updatedCount = 0;
+    for (const actor of game.actors || []) {
+      if (!actor || !actor.isOwner || isIgnoredBackupActor(actor)) continue;
+      for (const item of actor.items || []) {
+        if (item.type === "spell" && item.name?.trim().toLowerCase() === "longstrider") {
+          const changed = await this.ensureLongstriderSpellIsRitual(item);
+          if (changed) updatedCount++;
+        }
+      }
+    }
+    for (const worldItem of game.items || []) {
+      if (worldItem.type === "spell" && worldItem.name?.trim().toLowerCase() === "longstrider") {
+        const changed = await this.ensureLongstriderSpellIsRitual(worldItem);
+        if (changed) updatedCount++;
+      }
+    }
+    if (updatedCount > 0) {
+      console.log(`[Altarion & Aitusa] Tagged ${updatedCount} Longstrider spell instance(s) with Ritual.`);
+    }
+    return updatedCount;
+  }
+
+  static async handleLongstriderSpellCast(actor, item, usageConfig, results, activity) {
+    if (!actor || !item) return;
+    await this.ensureLongstriderSpellIsRitual(item);
+
+    const msgFlagLvl = Number(results?.message?.flags?.["altarion-aitusa"]?.castSlotLevel ?? NaN);
+    const slotLevel = Math.max(
+      1,
+      Number.isFinite(msgFlagLvl)
+        ? msgFlagLvl
+        : this.getEffectiveSpellSlotLevel(actor, item, usageConfig, results?.message, activity)
+    );
+    const maxTargets = Math.max(1, slotLevel);
+    const isLinked = Boolean(this.isAltarion(actor) && usageConfig?.useLinkedCasting);
+    const aitusa = isLinked ? this.getAitusaActor() : null;
+
+    const targetedActors = [];
+    for (const tok of game.user?.targets || []) {
+      if (tok?.actor && !targetedActors.some(a => a.uuid === tok.actor.uuid)) {
+        targetedActors.push(tok.actor);
+      }
+    }
+
+    let recipients = [];
+    if (isLinked) {
+      recipients = [actor, aitusa].filter(Boolean);
+    } else if (targetedActors.length > 0) {
+      recipients = targetedActors.slice(0, maxTargets);
+    } else {
+      recipients = [actor];
+    }
+
+    // Deduplicate by UUID
+    const seenUuids = new Set();
+    recipients = recipients.filter(r => {
+      if (!r || seenUuids.has(r.uuid)) return false;
+      seenUuids.add(r.uuid);
+      return true;
+    });
+
+    for (const targetActor of recipients) {
+      const lsPayload = {
+        targetActorId: targetActor.id,
+        targetUuid: targetActor.uuid,
+        casterActorId: actor.id,
+        casterActorName: actor.name,
+        slotLevel,
+        img: item.img || "icons/skills/movement/feet-winged-boots-glowing-yellow.webp"
+      };
+      if (targetActor.isOwner) {
+        await this._applyLongstriderBuffToTargetActor(targetActor, lsPayload);
+      } else if (game.socket && game.users?.activeGM) {
+        game.socket.emit("module.altarion-aitusa", {
+          type: "coriaApplyLongstriderBuff",
+          params: lsPayload
+        });
+      }
+    }
+
+    await this.sendMinimalistFeatureCard(actor, {
+      icon: "fa-person-running",
+      title: `Longstrider Ativada (+10 ft Deslocamento)`,
+      bodyHtml: `
+        Status <strong>Longstrider</strong> aplicado em <strong>${foundry.utils.escapeHTML(recipients.map(r => r.name).join(", "))}</strong> (1 hora, sem Concentração).<br>
+        &bull; Deslocamento de caminhada aumentado automaticamente em <strong class="coria-hl-success">+10 ft</strong>.
+      `,
+      flags: {
+        isLongstriderCard: true,
+        chatChannel: "combat"
+      }
+    });
+  }
+
+  static async _applyLongstriderBuffToTargetActor(
+    targetActor,
+    {
+      casterActorId = "",
+      casterActorName = "Conjurador",
+      slotLevel = 1,
+      img = "icons/skills/movement/feet-winged-boots-glowing-yellow.webp"
+    } = {}
+  ) {
+    if (!targetActor || !targetActor.isOwner) return;
+    await this.applyOrUpdateStatusEffect(targetActor, {
+      statusId: "longstrider",
+      name: "Longstrider (+10 ft Speed)",
+      img: img || "icons/skills/movement/feet-winged-boots-glowing-yellow.webp",
+      description: `<p><strong>Longstrider (1 Hora):</strong> Conjurado por <strong>${foundry.utils.escapeHTML(casterActorName)}</strong>. O deslocamento (velocidade de caminhada) da criatura é aumentado automaticamente em <strong>+10 pés</strong>.</p>`,
+      changes: [
+        {
+          key: "system.attributes.movement.walk",
+          mode: CONST.ACTIVE_EFFECT_MODES.ADD,
+          value: "10",
+          priority: 20
+        }
+      ],
+      durationSeconds: 3600,
+      durationRounds: 600,
+      extraFlags: {
+        isLongstriderEffect: true,
+        casterActorId,
+        casterActorName,
+        slotLevel
+      }
+    });
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /*  BLESS (Target Picker within 30 ft + Automatic +1d4 on Attacks & Saves)    */
+  /* -------------------------------------------------------------------------- */
+
+  static async handleBlessSpellCast(actor, item, usageConfig, results, activity) {
+    if (!actor || !item) return;
+
+    const msgFlagLvl = Number(results?.message?.flags?.["altarion-aitusa"]?.castSlotLevel ?? NaN);
+    const slotLevel = Math.max(
+      1,
+      Number.isFinite(msgFlagLvl)
+        ? msgFlagLvl
+        : this.getEffectiveSpellSlotLevel(actor, item, usageConfig, results?.message, activity)
+    );
+    const maxTargets = 2 + slotLevel; // 1st = 3, 2nd = 4, 3rd = 5, etc.
+
+    const casterTok = this.getActorCanvasToken(actor);
+    const preTargetedTokenIds = new Set(Array.from(game.user?.targets || []).map(t => t.id));
+    const candidates = [];
+
+    if (canvas?.ready && canvas?.tokens?.placeables?.length) {
+      for (const tok of canvas.tokens.placeables) {
+        if (!tok?.actor || tok.document?.hidden) continue;
+        const dist = casterTok && tok.id !== casterTok.id ? this.getTokenDistanceFt(casterTok, tok) : 0;
+        if (dist !== null && dist <= 30) {
+          candidates.push({
+            tokenId: tok.id,
+            actor: tok.actor,
+            name: tok.name || tok.actor.name,
+            img: tok.document?.texture?.src || tok.actor.img || "icons/svg/mystery-man.svg",
+            dist: dist ?? 0,
+            isFriendly: Number(tok.document?.disposition ?? 0) === 1 || tok.actor.hasPlayerOwner || tok.actor.id === actor.id
+          });
+        }
+      }
+    }
+
+    let recipients = [];
+    if (candidates.length > 0) {
+      candidates.sort((a, b) => {
+        if (a.isFriendly !== b.isFriendly) return a.isFriendly ? -1 : 1;
+        return a.dist - b.dist;
+      });
+
+      const defaultSelectedIds = [];
+      for (const c of candidates) {
+        if (preTargetedTokenIds.has(c.tokenId) && defaultSelectedIds.length < maxTargets) {
+          defaultSelectedIds.push(c.tokenId);
+        }
+      }
+      if (defaultSelectedIds.length === 0) {
+        for (const c of candidates) {
+          if (c.isFriendly && defaultSelectedIds.length < maxTargets) {
+            defaultSelectedIds.push(c.tokenId);
+          }
+        }
+      }
+      if (defaultSelectedIds.length === 0 && casterTok) {
+        defaultSelectedIds.push(casterTok.id);
+      }
+
+      const rowsHtml = candidates
+        .map(c => {
+          const checked = defaultSelectedIds.includes(c.tokenId) ? "checked" : "";
+          const badge = c.isFriendly
+            ? `<span style="font-size:10px;padding:1px 6px;border-radius:4px;background:rgba(34,197,94,0.2);color:#86efac;">Aliado</span>`
+            : `<span style="font-size:10px;padding:1px 6px;border-radius:4px;background:rgba(239,68,68,0.2);color:#fca5a5;">Criatura</span>`;
+          return `
+            <label class="coria-creature-pick-row" data-token-id="${c.tokenId}" style="display:flex;align-items:center;gap:10px;padding:6px 10px;border-radius:6px;border:1px solid rgba(250,204,21,0.38);background:rgba(15,23,42,0.8);cursor:pointer;margin-bottom:5px;">
+              <input type="checkbox" name="blessTargetToken" value="${c.tokenId}" ${checked} />
+              <img src="${c.img}" style="width:28px;height:28px;border-radius:4px;object-fit:cover;border:1px solid rgba(250,204,21,0.4);" />
+              <span style="flex:1;font-weight:700;color:#f8fafc;">${foundry.utils.escapeHTML(c.name)}</span>
+              ${badge}
+              <span style="font-size:11px;color:#cbd5e1;">${c.dist === 0 && c.actor.id === actor.id ? "Você" : `${c.dist} ft`}</span>
+            </label>
+          `;
+        })
+        .join("");
+
+      const selectedTokenIds = await new Promise(resolve => {
+        let settled = false;
+        const finish = ids => {
+          if (settled) return;
+          settled = true;
+          this.clearAllTokenHoverRings();
+          resolve(ids);
+        };
+        createV2Dialog(
+          {
+            title: `Bless (Nível ${slotLevel}) — Selecione até ${maxTargets} Alvos (30 ft)`,
+            content: `
+              <div style="padding: 6px 2px;">
+                <p style="margin: 0 0 6px; font-size: 12px;">
+                  Escolha <strong>até ${maxTargets} criaturas em até 30 pés</strong> para receberem o status <strong>Bless (+1d4 em Ataques e Testes de Resistência)</strong> por 1 minuto (Concentração). Passe o mouse para destacar no mapa:
+                </p>
+                <div style="margin-bottom: 6px; font-size: 11.5px; color: #fde047; font-weight: 700;">
+                  Selecionados: <span class="coria-bless-count">${defaultSelectedIds.length}</span> / ${maxTargets}
+                </div>
+                <div style="max-height: 280px; overflow-y: auto; padding-right: 4px;">
+                  ${rowsHtml}
+                </div>
+              </div>
+            `,
+            render: html => {
+              const root = html instanceof HTMLElement ? html : html?.[0];
+              if (!root) return;
+              this.bindTokenHoverHighlightListeners(root, ".coria-creature-pick-row");
+              const countEl = root.querySelector(".coria-bless-count");
+              const checkboxes = Array.from(root.querySelectorAll('input[name="blessTargetToken"]'));
+              for (const cb of checkboxes) {
+                cb.addEventListener("change", () => {
+                  const checkedBoxes = checkboxes.filter(el => el.checked);
+                  if (checkedBoxes.length > maxTargets) {
+                    cb.checked = false;
+                    ui.notifications.warn(`[Bless] Você pode selecionar no máximo ${maxTargets} criaturas com este círculo.`);
+                    return;
+                  }
+                  if (countEl) countEl.textContent = String(checkedBoxes.length);
+                });
+              }
+            },
+            buttons: {
+              confirm: {
+                icon: '<i class="fas fa-sun"></i>',
+                label: "Aplicar Bless (+1d4)",
+                callback: html => {
+                  const root = html instanceof HTMLElement ? html : html?.[0];
+                  const checked = Array.from(root?.querySelectorAll('input[name="blessTargetToken"]:checked') || [])
+                    .map(el => el.value)
+                    .slice(0, maxTargets);
+                  finish(checked);
+                }
+              }
+            },
+            default: "confirm",
+            close: () => finish(defaultSelectedIds)
+          },
+          { width: 450 }
+        ).render(true);
+      });
+
+      for (const tokId of selectedTokenIds) {
+        const cand = candidates.find(c => c.tokenId === tokId);
+        if (cand?.actor && !recipients.some(r => r.uuid === cand.actor.uuid)) {
+          recipients.push(cand.actor);
+        }
+      }
+    }
+
+    if (recipients.length === 0) {
+      const targetedActors = [];
+      for (const tok of game.user?.targets || []) {
+        if (tok?.actor && !targetedActors.some(a => a.uuid === tok.actor.uuid)) {
+          targetedActors.push(tok.actor);
+        }
+      }
+      recipients = targetedActors.slice(0, maxTargets);
+      if (recipients.length === 0) {
+        recipients = [actor];
+      }
+    }
+
+    // Remove previous Bless cast by this same caster from targets no longer selected
+    await this.cleanupSpellStatusByCaster(
+      "bless",
+      actor.id,
+      recipients.map(r => r.id)
+    );
+
+    for (const targetActor of recipients) {
+      const blessPayload = {
+        targetActorId: targetActor.id,
+        targetUuid: targetActor.uuid,
+        casterActorId: actor.id,
+        casterActorName: actor.name,
+        slotLevel,
+        img: item.img || "icons/magic/holy/angel-winged-humanoid-blue.webp"
+      };
+      if (targetActor.isOwner) {
+        await this._applyBlessBuffToTargetActor(targetActor, blessPayload);
+      } else if (game.socket && game.users?.activeGM) {
+        game.socket.emit("module.altarion-aitusa", {
+          type: "coriaApplyBlessBuff",
+          params: blessPayload
+        });
+      }
+    }
+
+    await this.sendMinimalistFeatureCard(actor, {
+      icon: "fa-sun",
+      title: `Bless Ativada (+1d4 Ataques & Saves — Nível ${slotLevel})`,
+      bodyHtml: `
+        Status <strong>Bless</strong> aplicado em <strong>${foundry.utils.escapeHTML(recipients.map(r => r.name).join(", "))}</strong> (1 minuto, Concentração).<br>
+        &bull; <strong class="coria-hl-gold">+1d4</strong> adicionado automaticamente a todas as <strong>Rolagens de Ataque</strong> (armas, magias e invocações) e <strong>Testes de Resistência</strong>.
+      `,
+      flags: {
+        isBlessCard: true,
+        chatChannel: "combat"
+      }
+    });
+  }
+
+  static async _applyBlessBuffToTargetActor(
+    targetActor,
+    {
+      casterActorId = "",
+      casterActorName = "Conjurador",
+      slotLevel = 1,
+      img = "icons/magic/holy/angel-winged-humanoid-blue.webp"
+    } = {}
+  ) {
+    if (!targetActor || !targetActor.isOwner) return;
+    await this.applyOrUpdateStatusEffect(targetActor, {
+      statusId: "bless",
+      name: "Bless (+1d4 Atk & Saves)",
+      img: img || "icons/magic/holy/angel-winged-humanoid-blue.webp",
+      description: `<p><strong>Bless (1 Minuto, Concentração):</strong> Conjurado por <strong>${foundry.utils.escapeHTML(casterActorName)}</strong>. Sempre que você fizer uma <strong>rolagem de ataque</strong> ou um <strong>teste de resistência</strong>, adiciona automaticamente <strong>+1d4</strong> ao resultado.</p>`,
+      changes: [
+        {
+          key: "system.bonuses.mwak.attack",
+          mode: CONST.ACTIVE_EFFECT_MODES.ADD,
+          value: "+1d4",
+          priority: 20
+        },
+        {
+          key: "system.bonuses.rwak.attack",
+          mode: CONST.ACTIVE_EFFECT_MODES.ADD,
+          value: "+1d4",
+          priority: 20
+        },
+        {
+          key: "system.bonuses.msak.attack",
+          mode: CONST.ACTIVE_EFFECT_MODES.ADD,
+          value: "+1d4",
+          priority: 20
+        },
+        {
+          key: "system.bonuses.rsak.attack",
+          mode: CONST.ACTIVE_EFFECT_MODES.ADD,
+          value: "+1d4",
+          priority: 20
+        },
+        {
+          key: "system.bonuses.abilities.save",
+          mode: CONST.ACTIVE_EFFECT_MODES.ADD,
+          value: "+1d4",
+          priority: 20
+        }
+      ],
+      durationSeconds: 60,
+      durationRounds: 10,
+      extraFlags: {
+        isBlessEffect: true,
+        casterActorId,
+        casterActorName,
+        slotLevel
+      }
+    });
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /*  HEXBLADE'S CURSE (Kyrion — Target Status, Crit 19–20 & Auto +PB Damage)   */
+  /* -------------------------------------------------------------------------- */
+
+  static hasHexbladesCurseOnTarget(targetActor, attackerActor = null) {
+    if (!targetActor?.effects) return false;
+    return Boolean(
+      targetActor.effects.some(e => {
+        if (e.disabled) return false;
+        const fl = e.flags?.["altarion-aitusa"] || {};
+        const n = String(e.name || "").trim().toLowerCase().replace(/’/g, "'");
+        const isCurse =
+          Boolean(fl.isHexbladesCurseEffect) ||
+          Boolean(e.statuses?.has?.("hexblades-curse")) ||
+          fl.statusId === "hexblades-curse" ||
+          n === "hexblade's curse" ||
+          n === "hexblades curse" ||
+          n.startsWith("hexblade's curse (");
+        if (!isCurse) return false;
+        if (attackerActor && fl.casterActorId) {
+          return fl.casterActorId === attackerActor.id;
+        }
+        return true;
+      })
+    );
+  }
+
+  static async handleHexbladesCurseActivation(actor, item) {
+    if (!actor || !item) return;
+
+    const profBonus = Math.max(2, Number(actor.system?.attributes?.prof ?? 2));
+    const casterTok = this.getActorCanvasToken(actor);
+
+    // 1. Check currently targeted non-self token first (instant apply, zero extra clicks!)
+    const preTargets = Array.from(game.user?.targets || []).filter(t => t?.actor && t.actor.id !== actor.id);
+    let targetActor = preTargets[0]?.actor || null;
+
+    // 2. If no enemy/other creature is currently targeted, open a 30 ft Target Picker dialog
+    if (!targetActor && canvas?.ready && canvas?.tokens?.placeables?.length) {
+      const candidates = [];
+      for (const tok of canvas.tokens.placeables) {
+        if (!tok?.actor || tok.document?.hidden || tok.actor.id === actor.id) continue;
+        const dist = casterTok ? this.getTokenDistanceFt(casterTok, tok) : 0;
+        if (dist !== null && dist <= 30) {
+          candidates.push({
+            tokenId: tok.id,
+            actor: tok.actor,
+            name: tok.name || tok.actor.name,
+            img: tok.document?.texture?.src || tok.actor.img || "icons/svg/mystery-man.svg",
+            dist: dist ?? 0,
+            isHostile: Number(tok.document?.disposition ?? 0) === -1 || !tok.actor.hasPlayerOwner
+          });
+        }
+      }
+
+      if (candidates.length > 0) {
+        candidates.sort((a, b) => {
+          if (a.isHostile !== b.isHostile) return a.isHostile ? -1 : 1;
+          return a.dist - b.dist;
+        });
+
+        const defaultId = candidates[0].tokenId;
+        const rowsHtml = candidates
+          .map(c => {
+            const checked = c.tokenId === defaultId ? "checked" : "";
+            const badge = c.isHostile
+              ? `<span style="font-size:10px;padding:1px 6px;border-radius:4px;background:rgba(239,68,68,0.22);color:#fca5a5;">Alvo</span>`
+              : `<span style="font-size:10px;padding:1px 6px;border-radius:4px;background:rgba(148,163,184,0.22);color:#cbd5e1;">Aliado</span>`;
+            return `
+              <label class="coria-creature-pick-row" data-token-id="${c.tokenId}" style="display:flex;align-items:center;gap:10px;padding:6px 10px;border-radius:6px;border:1px solid rgba(192,132,252,0.4);background:rgba(15,23,42,0.82);cursor:pointer;margin-bottom:5px;">
+                <input type="radio" name="hexCurseTargetToken" value="${c.tokenId}" ${checked} />
+                <img src="${c.img}" style="width:28px;height:28px;border-radius:4px;object-fit:cover;border:1px solid rgba(192,132,252,0.45);" />
+                <span style="flex:1;font-weight:700;color:#f8fafc;">${foundry.utils.escapeHTML(c.name)}</span>
+                ${badge}
+                <span style="font-size:11px;color:#cbd5e1;">${c.dist} ft</span>
+              </label>
+            `;
+          })
+          .join("");
+
+        const chosenTokenId = await new Promise(resolve => {
+          let settled = false;
+          const finish = id => {
+            if (settled) return;
+            settled = true;
+            this.clearAllTokenHoverRings();
+            resolve(id);
+          };
+          createV2Dialog(
+            {
+              title: `Hexblade's Curse — Escolha o Alvo (até 30 ft)`,
+              content: `
+                <div style="padding: 6px 2px;">
+                  <p style="margin: 0 0 8px; font-size: 12px;">
+                    Escolha <strong>1 criatura em até 30 pés</strong> para amaldiçoar com <strong>Hexblade's Curse</strong> (1 minuto):<br>
+                    &bull; Crítico expandido para <strong>19–20</strong> nas rolagens de ataque de ${foundry.utils.escapeHTML(actor.name)}.<br>
+                    &bull; Caixa de dano bônus <strong>+${profBonus} (PB)</strong> habilitada automaticamente nas rolagens de dano.
+                  </p>
+                  <div style="max-height: 280px; overflow-y: auto; padding-right: 4px;">
+                    ${rowsHtml}
+                  </div>
+                </div>
+              `,
+              render: html => {
+                const root = html instanceof HTMLElement ? html : html?.[0];
+                if (!root) return;
+                this.bindTokenHoverHighlightListeners(root, ".coria-creature-pick-row");
+              },
+              buttons: {
+                confirm: {
+                  icon: '<i class="fas fa-skull"></i>',
+                  label: "Aplicar Hexblade's Curse",
+                  callback: html => {
+                    const root = html instanceof HTMLElement ? html : html?.[0];
+                    const chosen = root?.querySelector('input[name="hexCurseTargetToken"]:checked')?.value || "";
+                    finish(chosen);
+                  }
+                },
+                cancel: {
+                  icon: '<i class="fas fa-times"></i>',
+                  label: "Cancelar",
+                  callback: () => finish("")
+                }
+              },
+              default: "confirm",
+              close: () => finish("")
+            },
+            { width: 440 }
+          ).render(true);
+        });
+
+        const pickedCand = candidates.find(c => c.tokenId === chosenTokenId);
+        targetActor = pickedCand?.actor || null;
+      }
+    }
+
+    if (!targetActor) {
+      ui.notifications?.warn?.("[Hexblade's Curse] Nenhum alvo selecionado em até 30 pés.");
+      return;
+    }
+
+    // Clear any previous Hexblade's Curse from this caster on other actors
+    await this.cleanupSpellStatusByCaster("hexblades-curse", actor.id, [targetActor.id]);
+
+    const cursePayload = {
+      targetActorId: targetActor.id,
+      targetUuid: targetActor.uuid,
+      casterActorId: actor.id,
+      casterActorName: actor.name,
+      profBonus,
+      img: item.img || "icons/magic/unholy/strike-body-explode-disintegrate.webp"
+    };
+
+    if (targetActor.isOwner) {
+      await this._applyHexbladesCurseToTargetActor(targetActor, cursePayload);
+    } else if (game.socket && game.users?.activeGM) {
+      game.socket.emit("module.altarion-aitusa", {
+        type: "coriaApplyHexbladeCurse",
+        params: cursePayload
+      });
+    } else {
+      ui.notifications?.warn?.(
+        `[Hexblade's Curse] Nenhum GM ativo conectado para aplicar o status em ${targetActor.name}.`
+      );
+    }
+
+    await this.sendMinimalistFeatureCard(actor, {
+      icon: "fa-skull",
+      title: `Hexblade's Curse Aplicada — ${foundry.utils.escapeHTML(targetActor.name)}`,
+      bodyHtml: `
+        Status <strong>Hexblade's Curse</strong> aplicado em <strong>${foundry.utils.escapeHTML(targetActor.name)}</strong> (1 minuto).<br>
+        &bull; Ataques de <strong>${foundry.utils.escapeHTML(actor.name)}</strong> contra este alvo causam <strong class="coria-hl-gold">Acerto Crítico em 19–20</strong>.<br>
+        &bull; Rolagens de dano contra este alvo habilitam automaticamente o bônus de <strong class="coria-hl-success">+${profBonus} (PB)</strong>.
+      `,
+      flags: {
+        isHexbladesCurseCard: true,
+        chatChannel: "combat"
+      }
+    });
+  }
+
+  static async _applyHexbladesCurseToTargetActor(
+    targetActor,
+    {
+      casterActorId = "",
+      casterActorName = "Kyrion",
+      profBonus = 2,
+      img = "icons/magic/unholy/strike-body-explode-disintegrate.webp"
+    } = {}
+  ) {
+    if (!targetActor || !targetActor.isOwner) return;
+    await this.applyOrUpdateStatusEffect(targetActor, {
+      statusId: "hexblades-curse",
+      name: `Hexblade's Curse (${casterActorName})`,
+      img: img || "icons/magic/unholy/strike-body-explode-disintegrate.webp",
+      description: `<p><strong>Hexblade's Curse (1 Minuto):</strong> Amaldiçoado por <strong>${foundry.utils.escapeHTML(casterActorName)}</strong>. Ataques feitos por ${foundry.utils.escapeHTML(casterActorName)} contra esta criatura obtêm <strong>Acerto Crítico em 19 ou 20</strong> no d20, e todas as rolagens de dano contra ela recebem automaticamente <strong>+${profBonus}</strong> (Bônus de Proficiência).</p>`,
+      changes: [],
+      durationSeconds: 60,
+      durationRounds: 10,
+      extraFlags: {
+        isHexbladesCurseEffect: true,
+        casterActorId,
+        casterActorName,
+        profBonus
+      }
+    });
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /*  ANCESTRAL WARD (Altarion — Auto Temp HP Without Roll Dialog, Zero Dupes)  */
+  /* -------------------------------------------------------------------------- */
+
+  static _lastAncestralWardTs = new Map();
+
+  static async handleAncestralWardActivation(actor, item) {
+    if (!actor || !actor.isOwner) return;
+
+    // Debounce to guarantee a single execution even if multiple Foundry hooks touch this activation
+    const now = Date.now();
+    const prevTs = this._lastAncestralWardTs.get(actor.id) || 0;
+    if (now - prevTs < 650) return;
+    this._lastAncestralWardTs.set(actor.id, now);
+
+    const aitusa = this.getAitusaActor();
+    const dragonLvl =
+      aitusa?.items?.find(i => i.type === "class")?.system?.levels ||
+      this.getRiderLevel(actor) ||
+      4;
+    const sizeData = DragonScalingManager.getSizeData(dragonLvl);
+    const wardDice = sizeData?.wardDice || "3d6";
+    const intMod = Number(actor.system?.abilities?.int?.mod ?? 3);
+    const intBonus = Math.max(1, Math.ceil(intMod / 2));
+    const formula = `${wardDice} + ${intBonus}`;
+
+    const tempRoll = await new Roll(formula).evaluate();
+    if (game.dice3d?.showForRoll) {
+      try {
+        await game.dice3d.showForRoll(tempRoll, game.user, true);
+      } catch (_e) {
+        // ignore
+      }
+    }
+    const rolledTempHp = Math.max(1, Number(tempRoll.total || 0));
+    const diceResults = (tempRoll.dice || [])
+      .flatMap(d => (d.results || []).filter(r => r.active).map(r => r.result))
+      .join(" + ");
+
+    // 1. Apply Temp HP FIRST (automatically respects Abjuration Bulwark stacking via applyTempHP wrapper)
+    const preTemp = Math.max(0, Number(actor.system?.attributes?.hp?.temp ?? 0));
+    if (typeof actor.applyTempHP === "function") {
+      await actor.applyTempHP(rolledTempHp);
+    } else if (rolledTempHp > preTemp) {
+      await actor.update(
+        { "system.attributes.hp.temp": rolledTempHp },
+        { altarionBypassWard: true, coriaDamageReactionInternal: true }
+      );
+    }
+    const postTemp = Math.max(0, Number(actor.system?.attributes?.hp?.temp ?? Math.max(preTemp, rolledTempHp)));
+
+    // 2. Apply strictly ONE deduplicated Ancestral Ward status effect under serialized actor lock
+    await this.applyOrUpdateStatusEffect(actor, {
+      statusId: "ancestral-ward",
+      name: "Ancestral Ward",
+      img: item?.img || "modules/altarion-aitusa/dr_icons/ancestral-ward.jpg",
+      description:
+        "<p>While you have temporary hit points from <strong>Ancestral Ward</strong>, hitting a creature with your <strong>Ancestral Weapon</strong> forces them to make a Wisdom saving throw against your spell save DC or have disadvantage on all attack rolls made against any creature other than you or your dragon until the end of your next turn. Ends early if you drop to 0 temporary hit points.</p>",
+      changes: [],
+      durationSeconds: 600,
+      durationRounds: 100,
+      extraFlags: {
+        isAncestralWardEffect: true,
+        rolledTempHp,
+        wardFormula: formula
+      }
+    });
+
+    // 3. Silently upgrade legacy heal activity on existing sheets to utility so no future roll prompt ever appears
+    try {
+      if (item && item.isOwner && item.system?.activities) {
+        const acts =
+          typeof item.system.activities.entries === "function"
+            ? Array.from(item.system.activities.entries())
+            : Object.entries(item.system.activities);
+        const legacyHealIds = acts
+          .filter(([, act]) => act?.type === "heal")
+          .map(([actId]) => actId);
+        if (legacyHealIds.length > 0) {
+          const upgradePayload = {
+            "system.activities.altarionWard0001": {
+              _id: "altarionWard0001",
+              type: "utility",
+              name: `Activate Ancestral Ward (${wardDice} + ceil(INT/2) Temp HP)`,
+              activation: { type: "action", value: 1, condition: "", override: false },
+              consumption: { targets: [], scaling: { allowed: false, max: "" }, spellSlot: false },
+              description: {
+                chatFlavor: `Automatically rolls and applies ${wardDice} + ceil(INT/2) Temporary Hit Points and activates the Ancestral Ward status effect (10 minutes).`
+              },
+              duration: { value: "10", units: "minute", concentration: false, special: "", override: false },
+              effects: [],
+              range: { value: null, units: "self", special: "", override: false },
+              target: {
+                template: { contiguous: false, units: "ft", type: "" },
+                affects: { choice: false, count: "", type: "self" },
+                prompt: false,
+                override: false
+              },
+              uses: { spent: 0, recovery: [], max: "" },
+              roll: { prompt: false, visible: false, name: "", formula: "" }
+            }
+          };
+          for (const oldId of legacyHealIds) {
+            if (oldId !== "altarionWard0001") {
+              upgradePayload[`system.activities.-=${oldId}`] = null;
+            }
+          }
+          await item.update(upgradePayload);
+        }
+      }
+    } catch (_e) {
+      // ignore non-critical legacy activity upgrade error
+    }
+
+    const tempLine =
+      postTemp > preTemp
+        ? `<strong class="coria-hl-success">+${rolledTempHp} PV Temporários</strong> aplicados automaticamente (<strong>${preTemp} &rarr; ${postTemp} PV Temp.</strong>).`
+        : `Rolado <strong>${rolledTempHp} PV Temporários</strong> — mantido o valor atual maior de <strong>${postTemp} PV Temp.</strong>`;
+
+    await this.sendMinimalistFeatureCard(actor, {
+      icon: "fa-shield-alt",
+      title: `Ancestral Ward Ativada (${rolledTempHp} PV Temp.)`,
+      bodyHtml: `
+        <strong>Rolagem (${formula}):</strong> [${diceResults}] + ${intBonus} = <strong class="coria-hl-gold">${rolledTempHp}</strong><br>
+        &bull; ${tempLine}<br>
+        &bull; Status <strong>Ancestral Ward</strong> ativo por 10 minutos (encerra ao chegar a 0 PV Temp.).
+      `,
+      flags: {
+        isAncestralWardCard: true,
         chatChannel: "combat"
       }
     });

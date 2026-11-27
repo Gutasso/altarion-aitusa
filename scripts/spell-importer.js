@@ -804,6 +804,17 @@ export class CoriaSpellImporter {
     spellDoc.system = spellDoc.system || {};
     const isCantrip = Number(entry.level || 0) === 0;
 
+    // Homebrew: Longstrider always carries the `ritual` tag!
+    if (entry.normName === "longstrider") {
+      const curProps = Array.isArray(spellDoc.system.properties)
+        ? [...spellDoc.system.properties]
+        : spellDoc.system.properties instanceof Set
+          ? Array.from(spellDoc.system.properties)
+          : [];
+      if (!curProps.includes("ritual")) curProps.push("ritual");
+      spellDoc.system.properties = curProps;
+    }
+
     if (charKey === "flinn") {
       spellDoc.system.method = "spell";
       spellDoc.system.sourceItem = "class:wizard";

@@ -92,6 +92,13 @@ export class CoriaChatTabs {
       try {
         const rootEl = html instanceof HTMLElement ? html : html?.[0];
         if (!rootEl || !message) return;
+        // Strictly hide GM-only Portent blind roll messages from ALL non-GM players (including existing chat history!)
+        if (message.flags?.[MODULE_ID]?.isPortentBlindRoll && !game.user?.isGM) {
+          rootEl.style.display = "none";
+          rootEl.setAttribute("aria-hidden", "true");
+          rootEl.innerHTML = "";
+          return;
+        }
         const channel = this.classifyMessageChannel(message);
         rootEl.dataset.coriaChatChannel = channel;
       } catch (_e) {}
@@ -140,6 +147,9 @@ export class CoriaChatTabs {
   static _isMessageVisibleToCurrentUser(message) {
     if (!message || !game.user) return false;
     if (game.user.isGM) return true;
+    if (message.flags?.[MODULE_ID]?.isPortentBlindRoll || message.flags?.[MODULE_ID]?.gmOnlySecret) {
+      return false;
+    }
     if (message.blind) return false;
     const whispers = Array.isArray(message.whisper) ? message.whisper : [];
     if (whispers.length > 0) {
@@ -215,6 +225,10 @@ export class CoriaChatTabs {
       modFlags.isBlurCard ||
       modFlags.isHeroismCard ||
       modFlags.isAidCard ||
+      modFlags.isBlessCard ||
+      modFlags.isHexbladesCurseCard ||
+      modFlags.isLongstriderCard ||
+      modFlags.isAncestralWardCard ||
       modFlags.isPortentBlindRoll ||
       modFlags.isD20ReactionCard ||
       modFlags.isPathsOfDestinyCard ||

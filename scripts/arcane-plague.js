@@ -992,9 +992,9 @@ export class ArcanePlagueManager {
       const state = this.getPlagueState(actor);
       if (state.role === "flinn") {
         await this.openFlinnRewriteDestinyDialog(actor);
-      } else if (state.role === "parva") {
-        await this.openParvaArcaneTitheDialog(actor);
       } else {
+        // Parva, Kyrion e demais portadores fazem primeiro o Teste de Constituição.
+        // Para Parva, a escolha do Dízimo Arcano aparece APENAS se falhar no teste de Constituição!
         await this.openConstitutionPlagueDialog(actor);
       }
     } finally {
@@ -1183,28 +1183,48 @@ export class ArcanePlagueManager {
     d.render(true);
   }
 
+  static _activeParvaTitheDialogs = new Map();
+
   /**
-   * Parva: Janela "O Dízimo Arcano" / "Canalização Instável" antes do teste de Constituição no descanso longo.
+   * Parva: Janela "O Dízimo Arcano" / "Canalização Instável" exibida SOMENTE após falhar no teste de Constituição.
+   * Se passar na Persuasão (CD atual da Praga), sacrifica 1 Espaço de Warlock e remove o +1 EC recém-adquirido.
+   * Se falhar na Persuasão (ou recusar), o espaço não é consumido e a corrupção aumenta normalmente.
    */
-  static async openParvaArcaneTitheDialog(actor) {
+  static async openParvaArcaneTitheDialog(
+    actor,
+    { prevEc = null, prevDc = null, failedEc = null, failedDc = null, conRollMsgId = "" } = {}
+  ) {
+    if (!actor) return;
     const state = this.getPlagueState(actor);
+    const effPrevEc = prevEc !== null && prevEc !== undefined ? Number(prevEc) : Math.max(0, state.ec - 1);
+    const effFailedEc = failedEc !== null && failedEc !== undefined ? Number(failedEc) : state.ec;
+    const effPrevDc = prevDc !== null && prevDc !== undefined ? Number(prevDc) : state.dc;
+    const effFailedDc = failedDc !== null && failedDc !== undefined ? Number(failedDc) : 10 + effFailedEc;
+
+    const prevDlg = this._activeParvaTitheDialogs.get(actor.id);
+    if (prevDlg) {
+      try {
+        prevDlg.close();
+      } catch (_e) {}
+      this._activeParvaTitheDialogs.delete(actor.id);
+    }
+
     const pactMax = Number(actor.system?.spells?.pact?.max ?? 0);
     const pactVal = Number(actor.system?.spells?.pact?.value ?? pactMax);
 
-    let resolved = false;
     const d = createV2Dialog(
       {
-        title: "O Dízimo Arcano",
+        title: "O Dízimo Arcano — Canalização Instável",
         content: `
           <div class="coria-pact-box">
             <h3>O Dízimo Arcano</h3>
             <p style="color:#f5d0fe; margin-bottom: 10px;">
-              O patrono de <strong>${actor.name}</strong> exige um sacrifício para manter a corrupção afastada.
-              Deseja oferecer <strong>1 Espaço de Magia de Warlock</strong> (que ficará bloqueado durante todo o dia seguinte) através da <strong>Canalização Instável</strong> (Teste de Persuasão <strong>CD ${state.dc}</strong>)?
+              <strong>${actor.name}</strong> falhou no Teste de Resistência de Constituição contra a Praga Arcana (<strong>EC ${effPrevEc} &rarr; EC ${effFailedEc}</strong>).<br>
+              Deseja barganhar com seu Patrono oferecendo <strong>1 Espaço de Magia de Warlock</strong> (bloqueado durante o dia seguinte) através da <strong>Canalização Instável</strong> (Teste de Persuasão <strong>CD ${effPrevDc}</strong>) para conter o avanço e <strong>remover este +1 EC</strong>?
             </p>
             <div class="coria-plague-stats-row">
-              <div class="coria-plague-val"><span>Estágio</span>EC ${state.ec}</div>
-              <div class="coria-plague-val"><span>Persuasão CD</span>${state.dc}</div>
+              <div class="coria-plague-val"><span>Estágio</span>EC ${effPrevEc} &rarr; ${effFailedEc}</div>
+              <div class="coria-plague-val"><span>Persuasão CD</span>${effPrevDc}</div>
               <div class="coria-plague-val"><span>Slots Warlock</span>${pactVal} / ${pactMax}</div>
             </div>
             ${
@@ -1219,10 +1239,9 @@ export class ArcanePlagueManager {
             icon: '<i class="fas fa-hand-holding-magic"></i>',
             label: "Sim, Sacrificar Espaço de Warlock",
             callback: async () => {
-              resolved = true;
+              this._activeParvaTitheDialogs.delete(actor.id);
               if (pactVal <= 0) {
                 ui.notifications.warn("Parva não possui espaços de magia de Warlock disponíveis!");
-                await this.openConstitutionPlagueDialog(actor);
                 return;
               }
 
@@ -1230,7 +1249,7 @@ export class ArcanePlagueManager {
                 theme: "shadow",
                 icon: "fa-comments",
                 title: "O Dízimo Arcano — Canalização Instável",
-                bodyHtml: `<p><strong>${actor.name}</strong> inicia a barganha volátil com seu Patrono, oferecendo um Espaço de Magia de Warlock para conter a Praga Arcana (<strong>Carisma [Persuasão] CD ${state.dc}</strong>)...</p>`
+                bodyHtml: `<p><strong>${actor.name}</strong> inicia a barganha volátil com seu Patrono após falhar na resistência, oferecendo um Espaço de Magia de Warlock para impedir o avanço da Praga Arcana (<strong>Carisma [Persuasão] CD ${effPrevDc}</strong>)...</p>`
               });
 
               const livePactMax = Number(actor.system?.spells?.pact?.max ?? pactMax);
@@ -1239,43 +1258,45 @@ export class ArcanePlagueManager {
 
               const { roll, rollMessage } = await CoriaRollLedger.runAndCaptureRollMessage(actor, async () => {
                 if (typeof actor.rollSkill === "function") {
-                  return actor.rollSkill({ skill: "per", target: state.dc });
+                  return actor.rollSkill({ skill: "per", target: effPrevDc });
                 } else if (typeof actor.rollSkillTest === "function") {
                   return actor.rollSkillTest("per");
                 }
                 return null;
               });
 
-              if (!roll) {
-                await this.openConstitutionPlagueDialog(actor);
-                return;
-              }
+              if (!roll) return;
 
               await CoriaRollLedger.registerAndEvaluateParvaTithe({
                 rollMessage,
                 roll,
                 actor,
                 beforeState: {
-                  ec: state.ec,
-                  dc: state.dc,
+                  ec: effPrevEc,
+                  prevEc: effPrevEc,
+                  prevDc: effPrevDc,
+                  failedEc: effFailedEc,
+                  failedDc: effFailedDc,
+                  dc: effPrevDc,
                   prevBlocked,
-                  prevPactVal: livePactVal
+                  prevPactVal: livePactVal,
+                  fromFailedConSave: true,
+                  conRollMsgId
                 }
               });
             }
           },
           no: {
-            icon: '<i class="fas fa-dice-d20"></i>',
-            label: "Não, Rolar Constituição",
+            icon: '<i class="fas fa-skull"></i>',
+            label: "Não, Aceitar o Avanço da Praga",
             callback: async () => {
-              resolved = true;
+              this._activeParvaTitheDialogs.delete(actor.id);
               await this.sendCoriaChatCard(actor, {
                 theme: "failure",
-                icon: "fa-dice-d20",
+                icon: "fa-biohazard",
                 title: "Dízimo Recusado",
-                bodyHtml: `<p><strong>${actor.name}</strong> optou por não oferecer um Espaço de Magia de Warlock ao seu Patrono e enfrentará diretamente o Teste de Resistência de Constituição (<strong>CD ${state.dc}</strong>).</p>`
+                bodyHtml: `<p><strong>${actor.name}</strong> optou por não oferecer um Espaço de Magia de Warlock ao seu Patrono. A corrupção da Praga Arcana avança normalmente para <strong>EC ${effFailedEc}</strong> (Nova CD Base: <strong>CD ${effFailedDc}</strong>).</p>`
               });
-              await this.openConstitutionPlagueDialog(actor);
             }
           }
         },
@@ -1293,13 +1314,14 @@ export class ArcanePlagueManager {
           }
         },
         close: () => {
-          if (!resolved) {
-            this.openConstitutionPlagueDialog(actor);
+          if (this._activeParvaTitheDialogs.get(actor.id) === d) {
+            this._activeParvaTitheDialogs.delete(actor.id);
           }
         }
       },
-      { classes: ["coria-dialog"], width: 460 }
+      { classes: ["coria-dialog"], width: 470 }
     );
+    this._activeParvaTitheDialogs.set(actor.id, d);
     d.render(true);
   }
 
@@ -1690,6 +1712,41 @@ export class ArcanePlagueManager {
             roll,
             actor,
             dc
+          });
+        });
+      }
+
+      // Botão no card de falha da Praga de Parva para invocar "O Dízimo Arcano"
+      const parvaTitheBtn = rootEl.querySelector(".coria-parva-tithe-btn");
+      if (parvaTitheBtn && !parvaTitheBtn.dataset.boundListener) {
+        parvaTitheBtn.dataset.boundListener = "true";
+        parvaTitheBtn.addEventListener("click", async (ev) => {
+          ev.preventDefault();
+          ev.stopPropagation();
+
+          const actorId =
+            parvaTitheBtn.getAttribute("data-actor-id") || message.flags?.[MODULE_ID]?.parvaActorId;
+          const prevEc = Number(parvaTitheBtn.getAttribute("data-prev-ec") ?? 0);
+          const prevDc = Number(parvaTitheBtn.getAttribute("data-prev-dc") ?? 10);
+          const failedEc = Number(parvaTitheBtn.getAttribute("data-failed-ec") ?? prevEc + 1);
+          const failedDc = Number(parvaTitheBtn.getAttribute("data-failed-dc") ?? 10 + failedEc);
+
+          const actor =
+            game.actors?.get(actorId) ||
+            game.actors?.find(a => this.getPlagueRole(a) === "parva");
+          if (!actor) {
+            ui.notifications.warn("Ficha de Parva não encontrada.");
+            return;
+          }
+          if (!actor.isOwner && !game.user?.isGM) {
+            ui.notifications.warn("Apenas o jogador de Parva ou o Mestre pode invocar O Dízimo Arcano.");
+            return;
+          }
+          await this.openParvaArcaneTitheDialog(actor, {
+            prevEc,
+            prevDc,
+            failedEc,
+            failedDc
           });
         });
       }
@@ -2175,6 +2232,27 @@ export class ArcanePlagueManager {
           app.config.rolls[0]?.options?.types?.[0] ||
           "piercing";
 
+        // Auto-enable Hexblade's Curse (+PB damage) whenever Kyrion targets a creature with active Hexblade's Curse status!
+        const targetHasHexCurse = Array.from(game.user?.targets || []).some(
+          t => t?.actor && globalThis.AltarionAutomationManager?.hasHexbladesCurseOnTarget?.(t.actor, actor)
+        );
+        const primaryRollInit = app.config.rolls[0];
+        if (
+          targetHasHexCurse &&
+          primaryRollInit &&
+          !primaryRollInit.options?.kyrionHexbladesCurse &&
+          !primaryRollInit.options?.kyrionHexbladesCurseManuallyUnchecked
+        ) {
+          primaryRollInit.parts = Array.isArray(primaryRollInit.parts)
+            ? primaryRollInit.parts.filter(p => p !== "@kyrionHexCurse")
+            : [];
+          primaryRollInit.parts.push("@kyrionHexCurse");
+          primaryRollInit.data = primaryRollInit.data || {};
+          primaryRollInit.data.kyrionHexCurse = prof;
+          primaryRollInit.options = primaryRollInit.options || {};
+          primaryRollInit.options.kyrionHexbladesCurse = true;
+        }
+
         const hasHexCurse = Boolean(app.config.rolls[0]?.options?.kyrionHexbladesCurse);
         const hasDarkBlade = app.config.rolls.some(r => r?.options?.kyrionDarkBlade);
         const hasSneakAttack = app.config.rolls.some(r => r?.options?.kyrionSneakAttack);
@@ -2289,9 +2367,11 @@ export class ArcanePlagueManager {
             primaryRoll.parts.push("@kyrionHexCurse");
             primaryRoll.data.kyrionHexCurse = prof;
             primaryRoll.options.kyrionHexbladesCurse = true;
+            delete primaryRoll.options.kyrionHexbladesCurseManuallyUnchecked;
           } else {
             delete primaryRoll.data.kyrionHexCurse;
             delete primaryRoll.options.kyrionHexbladesCurse;
+            primaryRoll.options.kyrionHexbladesCurseManuallyUnchecked = true;
           }
         });
 
@@ -2562,8 +2642,8 @@ export class ArcanePlagueManager {
         <div class="coria-pact-box" style="text-align:left; margin-bottom:14px;">
           <h3 style="text-align:center;">Parva — O Dízimo Arcano</h3>
           <p>O patrono de Parva exige um sacrifício constante para manter a corrupção afastada.</p>
-          <p><strong>O Dízimo Arcano:</strong> Para evitar o avanço da praga, Parva precisa sacrificar <strong>1 Espaço de Magia de Warlock</strong> disponível, que fica bloqueado e indisponível durante todo o dia seguinte.</p>
-          <p><strong>Canalização Instável:</strong> Antes de sacrificar o espaço, Parva faz um teste de <strong>Persuasão (CD igual à CD atual da Praga)</strong>. Se passar, o espaço de magia é sacrificado e o EC não aumenta. Se falhar, o patrono recusa a energia corrompida (o espaço não é consumido), mas Parva precisará rolar seu Teste de Resistência de Constituição normalmente contra a infecção.</p>
+          <p><strong>O Dízimo Arcano:</strong> Caso falhe no teste de resistência de Constituição contra o avanço da praga, Parva pode optar por sacrificar <strong>1 Espaço de Magia de Warlock</strong> disponível (que fica bloqueado e indisponível durante todo o dia seguinte) para evitar o aumento de EC.</p>
+          <p><strong>Canalização Instável:</strong> O processo de barganhar com o patrono para que ele absorva a praga é volátil. Antes de sacrificar o espaço de magia, Parva deve fazer um teste de Persuasão (CD igual à CD atual da Praga). Se passar, o espaço de magia é sacrificado e o EC não aumenta. Se falhar, o patrono recusa a energia corrompida (o espaço de magia não é consumido) e a corrupção aumenta normalmente.</p>
         </div>
       `;
     }
