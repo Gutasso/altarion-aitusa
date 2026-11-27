@@ -14,6 +14,7 @@ import { PartyJsonSyncManager } from "./party-json-sync.js";
 import { CoriaAttunementSlots } from "./attunement-slots.js";
 import { CoriaChatTabs } from "./chat-tabs.js";
 import { CoriaResonantArcana } from "./resonant-arcana.js";
+import { CoriaModuleUpdater } from "./module-updater.js";
 import { isIgnoredBackupActor, shouldThisClientRunAutoSync, reconcilePartyUserAssignments } from "./sync-guard.js";
 
 function setupCoriaHubFloatingButtonGuard() {
@@ -317,6 +318,14 @@ Hooks.once("init", () => {
     default: true
   });
 
+  game.settings.register("altarion-aitusa", "floatingButtonPositions", {
+    name: "Floating Button Positions",
+    scope: "client",
+    config: false,
+    type: Object,
+    default: {}
+  });
+
   // Initialize Secondary Class mechanics, Aura Engine, Roll Ledger, Advanced Automations, Arcane Plague,
   // Party JSON Sync, Attunement Slots, Dual Chat Tabs & Resonant Arcana Cards
   SecondaryClassManager.init();
@@ -328,6 +337,7 @@ Hooks.once("init", () => {
   CoriaAttunementSlots.init();
   CoriaChatTabs.init();
   CoriaResonantArcana.init();
+  CoriaModuleUpdater.init();
   setupCoriaHubFloatingButtonGuard();
 });
 
@@ -367,6 +377,9 @@ Hooks.once("ready", async () => {
   if (game.settings.get("altarion-aitusa", "autoSync") && shouldThisClientRunAutoSync(null)) {
     if (altarion?.isOwner) await FeatureSyncManager.syncAltarion(altarion);
     if (aitusa?.isOwner) await FeatureSyncManager.syncAitusa(aitusa);
+    if (altarion && aitusa) {
+      await AltarionAutomationManager.syncAltarionAitusaSpellSlots(altarion, aitusa);
+    }
   }
 
   // Expose module API helpers
@@ -377,11 +390,13 @@ Hooks.once("ready", async () => {
       syncPartyFromJson: (opts = {}) => PartyJsonSyncManager.syncAllPartyActors(opts),
       syncActorFromJson: (actor, opts = {}) => PartyJsonSyncManager.syncActorFromJson(actor, opts),
       openAttunementSlots: (actor) => CoriaAttunementSlots.openAttunementSlotsDialog(actor),
-      reconcilePartyUserAssignments: (opts = { silent: false }) => reconcilePartyUserAssignments(opts)
+      reconcilePartyUserAssignments: (opts = { silent: false }) => reconcilePartyUserAssignments(opts),
+      checkForUpdates: () => CoriaModuleUpdater.checkForUpdates({ manual: true })
     };
   }
 
-  // Run curated 5-character JSON Sync (one-time per version) ONLY on the authoritative GM client (or solo local)
+  // Run curated 5-character JSON Sync (one-time per version) ONLY on the authoritative GM client (or solo local),
+  // and AFTER all startup synchronizations settle, run the GM-only Module Auto-Updater check!
   if (shouldThisClientRunAutoSync(null)) {
     setTimeout(async () => {
       try {
@@ -389,7 +404,22 @@ Hooks.once("ready", async () => {
       } catch (err) {
         console.warn("[Altarion & Aitusa] Delayed Party JSON Sync warning:", err);
       }
+      if (game.user?.isGM) {
+        try {
+          await CoriaModuleUpdater.checkForUpdatesOnStartup();
+        } catch (err) {
+          console.warn("[Altarion & Aitusa] Module Updater startup check warning:", err);
+        }
+      }
     }, 1800);
+  } else if (game.user?.isGM) {
+    setTimeout(async () => {
+      try {
+        await CoriaModuleUpdater.checkForUpdatesOnStartup();
+      } catch (err) {
+        console.warn("[Altarion & Aitusa] Module Updater startup check warning:", err);
+      }
+    }, 2400);
   }
 });
 

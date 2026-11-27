@@ -857,7 +857,9 @@ export class CoriaSpellImporter {
       spellDoc.system.method = "spell";
       spellDoc.system.sourceItem = isAncestralTab ? "class:dragon-rider" : "class:wizard";
       spellDoc.system.ability = "int";
-      spellDoc.system.prepared = 1;
+      // Dragon Rider knows spells (like Sorcerer) -> Always Prepared (2) so they never consume preparation slots;
+      // Wizard spells are prepared normally (1) against Wizard Level + INT mod.
+      spellDoc.system.prepared = isAncestralTab && Number(spellDoc.system.level || 0) > 0 ? 2 : 1;
       spellDoc.flags = foundry.utils.mergeObject(spellDoc.flags || {}, {
         [MODULE_ID]: {
           isPrimaryClassItem: isAncestralTab,

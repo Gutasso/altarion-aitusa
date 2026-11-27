@@ -290,6 +290,18 @@ export class PlutoniumDataBridge {
         }
       }
 
+      const sfFocus = brew.subclassFeature.find(sf => sf.name === "Draconic Focus");
+      if (sfFocus && Array.isArray(sfFocus.entries)) {
+        sfFocus.entries = sfFocus.entries.map(e =>
+          typeof e === "string"
+            ? e.replace(
+                "can cast an Ancestral spell you know of the level of the spell slot you expended this way",
+                "can cast an Ancestral spell, with casting time of an Action or a Bonus Action, you know of the level of the spell slot you expended this way"
+              )
+            : e
+        );
+      }
+
       const baseAttackNames = ["Ancestral Ward", "Ancestral Ray", "Ancestral Shielding"];
       const elevatedAttackNames = ["Bursting Strike", "Ancestral Surge", "Ancestral Marking"];
 
@@ -726,6 +738,14 @@ export class PlutoniumDataBridge {
       level
     });
     delete wizardClassData._id;
+    wizardClassData.system = wizardClassData.system || {};
+    wizardClassData.system.spellcasting = foundry.utils.mergeObject(wizardClassData.system.spellcasting || {}, {
+      progression: "full",
+      ability: "int",
+      preparation: {
+        formula: "max(1, @classes.wizard.levels + @abilities.int.mod)"
+      }
+    });
 
     // 2. 2014 PHB School of Abjuration Subclass
     const abjHash = globalThis.UrlUtil.URL_TO_HASH_BUILDER["subclass"]({
@@ -2974,7 +2994,10 @@ export class PlutoniumDataBridge {
     if (drClassIcon) dragonRiderClassData.img = drClassIcon;
     dragonRiderClassData.system.spellcasting = {
       progression: "third",
-      ability: "int"
+      ability: "int",
+      preparation: {
+        formula: ""
+      }
     };
     dragonRiderClassData.flags = foundry.utils.mergeObject(dragonRiderClassData.flags || {}, {
       "altarion-aitusa": {
@@ -3384,7 +3407,7 @@ export const DRAGON_RIDER_CLASS = {
     hitDice: "d10",
     hd: { denomination: "d10", spent: 0 },
     levels: 4,
-    spellcasting: { progression: "third", ability: "int" },
+    spellcasting: { progression: "third", ability: "int", preparation: { formula: "" } },
     saves: ["int", "con"]
   },
   flags: { "altarion-aitusa": { isPrimaryClass: true } }
@@ -3401,7 +3424,11 @@ export const WIZARD_CLASS = {
     hitDice: "d6",
     hd: { denomination: "d6", spent: 0 },
     levels: 1,
-    spellcasting: { progression: "full", ability: "int" },
+    spellcasting: {
+      progression: "full",
+      ability: "int",
+      preparation: { formula: "max(1, @classes.wizard.levels + @abilities.int.mod)" }
+    },
     saves: ["int", "wis"]
   },
   flags: { "altarion-aitusa": { isSecondaryClass: true } }

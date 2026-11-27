@@ -4156,6 +4156,29 @@ body.coria-hub-menu-open #flinn-portent-floating-btn {
   pointer-events: none !important;
 }
 
+#coria-echoes-floating-btn,
+#coria-plague-floating-btn,
+#flinn-portent-floating-btn {
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+#coria-echoes-floating-btn.coria-floating-dragging,
+#coria-plague-floating-btn.coria-floating-dragging,
+#flinn-portent-floating-btn.coria-floating-dragging {
+  cursor: grabbing !important;
+  transition: none !important;
+  transform: scale(1.06) !important;
+  opacity: 0.92;
+}
+
+#flinn-portent-floating-btn.coria-floating-dragging .flinn-portent-btn-label {
+  max-width: 0 !important;
+  opacity: 0 !important;
+  margin: 0 !important;
+}
+
 /* ============================================================================
  * 2. Halfling / Small-Stature Paper-Doll Visual Proportions (Flinn ~1m tall)
  *    Keeps all equipment slot buttons in the exact same positions!

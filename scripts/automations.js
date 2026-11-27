@@ -1253,11 +1253,16 @@ export class AltarionAutomationManager {
         if (!rootEl) return;
 
         // 1. AITUSA SPELLCASTING: Draconic Focus option to consume Altarion's Spell Slot
-        //    Dynamically updates its label whenever the player changes the "Cast at Level" dropdown!
+        //    Restricted to Action or Bonus Action spells (Aitusa casts them using her Action on her turn).
         if (this.isAitusa(actor) && item.type === "spell" && Number(item.system?.level || 0) > 0) {
           const altarion = this.getAltarionActor();
           const riderLvl = this.getRiderLevel(altarion);
-          if (altarion && riderLvl >= 7) {
+          const hasDraconicFocus =
+            Boolean(altarion) &&
+            (riderLvl >= 7 ||
+              altarion.items.some(i => i.type === "feat" && i.name?.trim().toLowerCase() === "draconic focus"));
+          const isFocusTimeEligible = this.isSpellEligibleForDraconicFocus(item);
+          if (altarion && hasDraconicFocus) {
             const resolveSelectedSpellLevel = () => {
               const baseLvl = Math.max(1, Number(item.system?.level || 1));
               const slotSelect = rootEl.querySelector('select[name="spell.slot"]');
@@ -1337,7 +1342,7 @@ export class AltarionAutomationManager {
               );
               const focusSpent = Math.clamp(Number(focusItem?.system?.uses?.spent || 0), 0, focusMax);
               const focusAvail = Math.max(0, focusMax - focusSpent);
-              const canUseFocus = availSlots > 0 && focusAvail > 0;
+              const canUseFocus = isFocusTimeEligible && availSlots > 0 && focusAvail > 0;
 
               const legendEl = wrapper.querySelector(".altarion-df-legend");
               if (legendEl) {
@@ -1345,7 +1350,9 @@ export class AltarionAutomationManager {
               }
               const textEl = wrapper.querySelector(".altarion-df-label-text");
               if (textEl) {
-                textEl.innerHTML = `Consume <strong>Altarion's Level ${spellLvl} Spell Slot</strong> (${availSlots}/${maxSlots} available) &amp; 1 <strong>Draconic Focus</strong> use (${focusAvail}/${focusMax})`;
+                textEl.innerHTML = isFocusTimeEligible
+                  ? `Consume <strong>Altarion's Level ${spellLvl} Spell Slot</strong> (${availSlots}/${maxSlots} available) &amp; 1 <strong>Draconic Focus</strong> use (${focusAvail}/${focusMax})`
+                  : `<span style="color:#fca5a5;">Draconic Focus permite apenas magias de <strong>Ação</strong> ou <strong>Ação Bônus</strong> (conjuradas com a Ação da Aitusa).</span>`;
               }
               const checkbox = wrapper.querySelector('input[name="altarionConsumeSlot"]');
               if (checkbox) {
@@ -1666,6 +1673,13 @@ export class AltarionAutomationManager {
         const altarion = this.getAltarionActor();
         if (!altarion) return;
 
+        if (!this.isSpellEligibleForDraconicFocus(item)) {
+          ui.notifications.warn(
+            `[Draconic Focus] Aitusa só pode canalizar magias com tempo de conjuração de Ação ou Ação Bônus (usando sua Ação).`
+          );
+          return false;
+        }
+
         const focusItem = altarion.items.find(
           i => i.type === "feat" && i.name?.trim().toLowerCase() === "draconic focus"
         );
@@ -1705,6 +1719,7 @@ export class AltarionAutomationManager {
         await altarion.update({
           [`system.spells.${slotKey}.value`]: Math.max(0, curSlots - 1)
         });
+        await this.syncAltarionAitusaSpellSlots(altarion, actor);
 
         foundry.utils.setProperty(
           messageConfig,
@@ -3220,6 +3235,18 @@ export class AltarionAutomationManager {
     Hooks.on("updateActor", async (actor, changed, options, userId) => {
       if (!actor || !actor.isOwner) return;
       if (game.user?.id !== userId) return;
+
+      // Bidirectional Spell Slot Synchronization between Altarion and Aitusa
+      // (Every slot spent or recovered on Altarion immediately mirrors to Aitusa, and vice-versa!)
+      if (changed?.system?.spells && !options?.altarionSlotSync) {
+        if (this.isAltarion(actor)) {
+          const aitusa = this.getAitusaActor();
+          if (aitusa) await this.syncAltarionAitusaSpellSlots(actor, aitusa);
+        } else if (this.isAitusa(actor)) {
+          const altarion = this.getAltarionActor();
+          if (altarion) await this.syncAltarionAitusaSpellSlots(actor, altarion);
+        }
+      }
 
       // Sync Aitusa's "Dragon Attacks" max if her STR changed
       if (this.isAitusa(actor) && changed?.system?.abilities?.str) {
@@ -6786,7 +6813,7 @@ export class AltarionAutomationManager {
         </div>
         <div class="altarion-ward-body">
           <strong>${foundry.utils.escapeHTML(attackerName)}</strong> hit <strong>${foundry.utils.escapeHTML(defender.name)}</strong> (${
-            isCrit ? "Critical Hit!" : `Attack ${total} vs AC ${defenderAc}`
+            isCrit ? "Critical Hit!" : `Attack ${total}`
           }) while <strong>Ancestral Shielding</strong> was active.<br>
           &bull; <strong>Temp HP Roll (${formula}):</strong> Rolled <strong>${rolledTempHp}</strong> &rarr; Applied <strong>${rolledTempHp} Temporary HP</strong> to <strong>${foundry.utils.escapeHTML(defender.name)}</strong>!<br>
           &bull; <strong>Ancestral Shielding (+${halfIntUp} AC)</strong> has ended on <strong>${foundry.utils.escapeHTML(defender.name)}</strong>.
@@ -6912,7 +6939,7 @@ export class AltarionAutomationManager {
         </div>
         <div class="altarion-ward-body">
           <strong>${attackerName}</strong> hit <strong>${defender.name}</strong> in melee (${
-            isCrit ? `Critical Hit!` : `Attack ${total} vs AC ${defenderAc}`
+            isCrit ? `Critical Hit!` : `Attack ${total}`
           }) while <strong>${armorLabel}</strong> (${curTemp} Temp HP) is active.<br>
           ${statusLine}
         </div>
@@ -8028,6 +8055,12 @@ export class AltarionAutomationManager {
             if (globalThis.FlinnManager?.createPortentGmOnlyChatMessage) {
               await globalThis.FlinnManager.createPortentGmOnlyChatMessage(p);
             }
+          } else if (payload?.type === "coriaSyncSpellSlots") {
+            const p = payload.params || {};
+            const targetActor = await this.resolveActorFromUuidOrId?.(p.targetUuid, p.targetActorId);
+            if (targetActor?.isOwner && p.updates && !foundry.utils.isEmpty(p.updates)) {
+              await targetActor.update(p.updates, { altarionSlotSync: true });
+            }
           } else if (payload?.type === "coriaApplyTempHp") {
             const p = payload.params || {};
             const targetActor = await this.resolveActorFromUuidOrId?.(p.targetUuid, p.targetActorId);
@@ -9001,7 +9034,7 @@ export class AltarionAutomationManager {
     const modBanner = sourceLabel
       ? `<div style="margin-bottom: 4px; color: #7dd3fc; font-weight: 700;"><i class="fas fa-bolt"></i> Modified by <strong>${foundry.utils.escapeHTML(
           sourceLabel
-        )}</strong> &rarr; Total <strong>${total}</strong> (d20 = ${nat}) vs AC <strong>${effAc}</strong></div>`
+        )}</strong> &rarr; Total <strong>${total}</strong> (d20 = ${nat})</div>`
       : "";
 
     let title = "";
@@ -9014,7 +9047,7 @@ export class AltarionAutomationManager {
         ${modBanner}
         <strong>${foundry.utils.escapeHTML(ctx.tokenName)}</strong> missed <strong>${foundry.utils.escapeHTML(
           ctx.targetName
-        )}</strong> (<strong class="coria-hl-failure">${total}</strong> vs AC <strong>${effAc}</strong>).
+        )}</strong> (<strong class="coria-hl-failure">Attack ${total}</strong>).
       `;
     } else if (!damageRolled) {
       const displayFormula = isCrit
@@ -9025,7 +9058,7 @@ export class AltarionAutomationManager {
         ${modBanner}
         <strong>${foundry.utils.escapeHTML(ctx.tokenName)}</strong> hit <strong>${foundry.utils.escapeHTML(
           ctx.targetName
-        )}</strong> (<strong class="coria-hl-success">${total}</strong> vs AC <strong>${effAc}</strong>${
+        )}</strong> (<strong class="coria-hl-success">Attack ${total}</strong>${
           isCrit ? " — <strong class=\"coria-hl-gold\">CRITICAL!</strong>" : ""
         })!
         ${
@@ -9060,7 +9093,7 @@ export class AltarionAutomationManager {
         ${modBanner}
         <strong>${foundry.utils.escapeHTML(ctx.tokenName)}</strong> hit <strong>${foundry.utils.escapeHTML(
           ctx.targetName
-        )}</strong> (<strong class="coria-hl-success">${total}</strong> vs AC <strong>${effAc}</strong>) and automatically applied <strong><span class="coria-custom-dmg-num">${damageTotal}</span> ${foundry.utils.escapeHTML(
+        )}</strong> (<strong class="coria-hl-success">Attack ${total}</strong>) and automatically applied <strong><span class="coria-custom-dmg-num">${damageTotal}</span> ${foundry.utils.escapeHTML(
           ctx.damageTypeLabel
         )} damage</strong>!
         ${breakdownLine}
@@ -9747,6 +9780,7 @@ export class AltarionAutomationManager {
     btn.innerHTML = `<i class="fas fa-hat-wizard"></i>`;
     btn.addEventListener("click", () => this.openGMEssenceHarvestEchoesDialog());
     document.body.appendChild(btn);
+    globalThis.CoriaMakeFloatingButtonDraggable?.(btn, "essence-harvest");
   }
 
   static async grantOrRevokeAltarionEcho(altarion, echoKey, grant = true) {
@@ -11442,6 +11476,90 @@ export class AltarionAutomationManager {
         chatChannel: "combat"
       }
     });
+  }
+
+  /* -------------------------------------------------------------------------- */
+  /*  DRACONIC FOCUS CASTING-TIME FILTER & ALTARION <-> AITUSA SPELL SLOT SYNC  */
+  /* -------------------------------------------------------------------------- */
+
+  static _syncingSpellSlots = false;
+
+  /**
+   * Returns true ONLY if the spell has a casting time of Action or Bonus Action
+   * (Draconic Focus allows Aitusa to channel Altarion's Ancestral/Wizard Action or Bonus Action spells as her Action).
+   */
+  static isSpellEligibleForDraconicFocus(item) {
+    if (!item || item.type !== "spell") return false;
+    const topType = String(item.system?.activation?.type || "").trim().toLowerCase();
+    if (topType) {
+      return topType === "action" || topType === "bonus";
+    }
+    const acts = item.system?.activities;
+    if (acts) {
+      const list = typeof acts.values === "function" ? Array.from(acts.values()) : Object.values(acts);
+      for (const act of list) {
+        const aType = String(act?.activation?.type || "").trim().toLowerCase();
+        if (aType) return aType === "action" || aType === "bonus";
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Mirror available & spent spell slots (`spell1..spell9`) from `sourceActor` onto `targetActor`
+   * so Altarion and Aitusa ALWAYS share the exact same available and expended spell slots.
+   */
+  static async syncAltarionAitusaSpellSlots(sourceActor, targetActor) {
+    if (!sourceActor || !targetActor || sourceActor.id === targetActor.id) return false;
+    if (this._syncingSpellSlots) return false;
+    const srcSpells = sourceActor.system?.spells;
+    const tgtSpells = targetActor.system?.spells;
+    if (!srcSpells || !tgtSpells) return false;
+
+    const updates = {};
+    for (let lvl = 1; lvl <= 9; lvl++) {
+      const key = `spell${lvl}`;
+      const srcSlot = srcSpells[key];
+      const tgtSlot = tgtSpells[key];
+      if (!srcSlot || !tgtSlot) continue;
+      const srcMax = Number(srcSlot.max || 0);
+      const srcVal = Math.max(0, Number(srcSlot.value ?? 0));
+      const tgtVal = Math.max(0, Number(tgtSlot.value ?? 0));
+      if (srcMax > 0 || tgtVal !== srcVal) {
+        if (tgtVal !== srcVal) {
+          updates[`system.spells.${key}.value`] = srcVal;
+        }
+      }
+      const srcOverride = srcSlot.override ?? null;
+      const tgtOverride = tgtSlot.override ?? null;
+      if (srcOverride !== tgtOverride) {
+        updates[`system.spells.${key}.override`] = srcOverride;
+      }
+    }
+
+    if (foundry.utils.isEmpty(updates)) return false;
+
+    this._syncingSpellSlots = true;
+    try {
+      if (targetActor.isOwner) {
+        await targetActor.update(updates, { altarionSlotSync: true });
+      } else if (game.socket && game.users?.activeGM) {
+        game.socket.emit("module.altarion-aitusa", {
+          type: "coriaSyncSpellSlots",
+          params: {
+            targetActorId: targetActor.id,
+            targetUuid: targetActor.uuid,
+            updates
+          }
+        });
+      }
+      return true;
+    } catch (err) {
+      console.warn("[Altarion & Aitusa] Error syncing spell slots between Altarion and Aitusa:", err);
+      return false;
+    } finally {
+      this._syncingSpellSlots = false;
+    }
   }
 }
 

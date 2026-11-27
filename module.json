@@ -4,7 +4,10 @@
   "name": "altarion-aitusa",
   "title": "Altarion & Aitusa - Dragon Rider",
   "description": "Character sheet implementation for Altarion (Dragon Rider Lvl 4 / Wizard Lvl 1) and Aitusa (Dragon Companion Lvl 4) in FoundryVTT.",
-  "version": "1.1.0",
+  "version": "1.2.261127",
+  "url": "https://github.com/Gutasso/altarion-aitusa",
+  "manifest": "https://raw.githubusercontent.com/Gutasso/altarion-aitusa/main/module.json",
+  "download": "https://github.com/Gutasso/altarion-aitusa/archive/refs/heads/main.zip",
   "author": "Gustavo",
   "authors": [
     {
@@ -72,5 +75,13 @@
       "name": "Português (Brasil)",
       "path": "lang/pt-BR.json"
     }
-  ]
+  ],
+  "flags": {
+    "altarion-aitusa": {
+      "patchId": "Altarion-aitusa_Patch_261127",
+      "repoOwner": "Gutasso",
+      "repoName": "altarion-aitusa",
+      "branch": "main"
+    }
+  }
 }

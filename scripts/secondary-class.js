@@ -44,15 +44,44 @@ export class SecondaryClassManager {
     };
 
     // 3. Wrap ClassData.prototype.prepareFinalData
-    // Ensures the secondary class item itself reports 0 Hit Dice while keeping its Spellcasting Save DC accurate.
+    // Ensures the secondary class item itself reports 0 Hit Dice while keeping its Spellcasting Save DC
+    // and Wizard Prepared Spells formula (Wizard Level + INT mod) accurate, while Dragon Rider has no preparation cap.
     const origClassPrepareFinalData = classProto.prepareFinalData;
     classProto.prepareFinalData = function (...args) {
-      origClassPrepareFinalData.apply(this, args);
       const item = this.parent;
       const actor = item?.actor;
+      const isAltarion = Boolean(item && actor && SecondaryClassManager.isAltarion(actor));
+      const ident = String(this.identifier || item?.name || "").trim().toLowerCase();
+
+      if (isAltarion && this.spellcasting) {
+        if (ident === "wizard" || ident.includes("mago")) {
+          this.spellcasting.ability = "int";
+          if (this.spellcasting.preparation && !this.spellcasting.preparation.formula) {
+            this.spellcasting.preparation.formula = "max(1, @classes.wizard.levels + @abilities.int.mod)";
+          }
+        } else if (ident === "dragon-rider" || ident === "dragon rider" || ident.includes("cavaleiro")) {
+          this.spellcasting.ability = "int";
+          if (this.spellcasting.preparation) {
+            this.spellcasting.preparation.formula = "";
+          }
+        }
+      }
+
+      origClassPrepareFinalData.apply(this, args);
+
       if (item && actor && SecondaryClassManager.isSecondaryClass(item, actor)) {
         this.hd.max = 0;
         this.hd.value = 0;
+      }
+
+      if (isAltarion && this.spellcasting?.preparation) {
+        const intMod = Number(actor.system?.abilities?.int?.mod ?? 0);
+        if (ident === "wizard" || ident.includes("mago")) {
+          const wizLvl = Number(this.levels || 0);
+          this.spellcasting.preparation.max = Math.max(1, wizLvl + intMod);
+        } else if (ident === "dragon-rider" || ident === "dragon rider" || ident.includes("cavaleiro")) {
+          this.spellcasting.preparation.max = 0;
+        }
       }
     };
 

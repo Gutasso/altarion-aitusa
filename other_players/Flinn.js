@@ -634,6 +634,7 @@ export class FlinnManager {
         this.openPortentRollsDialog(liveFlinn, { mode: "view" });
       });
       document.body.appendChild(btn);
+      globalThis.CoriaMakeFloatingButtonDraggable?.(btn, "flinn-portent");
     }
 
     btn.innerHTML = `
@@ -1434,6 +1435,8 @@ export class FlinnManager {
    */
   static getReadyReactionSpellInfo(actor, spellNameLower) {
     if (!actor || !actor.items) return null;
+    // Aitusa can NEVER cast spells as a Reaction (Draconic Focus only channels Action/Bonus Action spells as her Action)
+    if (globalThis.AltarionAutomationManager?.isAitusa?.(actor)) return null;
     const cleanTarget = String(spellNameLower || "").trim().toLowerCase().replace(/’/g, "'");
     const spellItem = actor.items.find(
       i => i.type === "spell" && i.name?.trim().toLowerCase().replace(/’/g, "'") === cleanTarget
@@ -2181,7 +2184,7 @@ export class FlinnManager {
       if (isAttackRoll && origNat !== 1) {
         for (const tgt of attackTargets) {
           const tgtActor = tgt.actor;
-          if (!tgtActor || !this.isUserControllerOf(tgtActor)) continue;
+          if (!tgtActor || AltarionAutomationManager.isAitusa(tgtActor) || !this.isUserControllerOf(tgtActor)) continue;
           const ledgerDef = message.flags?.[MODULE_ID]?.rollLedger?.defenders?.find(
             d => d.defenderActorId === tgtActor.id
           );
@@ -2257,6 +2260,7 @@ export class FlinnManager {
         for (const candidateActor of game.actors || []) {
           if (candidateActor.type !== "character") continue;
           if (isIgnoredBackupActor(candidateActor)) continue;
+          if (AltarionAutomationManager.isAitusa(candidateActor)) continue;
           if (!this.isUserControllerOf(candidateActor)) continue;
 
           const sbInfo = this.getReadyReactionSpellInfo(candidateActor, "silvery barbs");
@@ -2465,6 +2469,8 @@ export class FlinnManager {
       const rTok = rollerTok || (rollerActor ? AltarionAutomationManager.getActorCanvasToken(rollerActor) : null);
       for (const candidateActor of game.actors || []) {
         if (candidateActor.type !== "character") continue;
+        if (isIgnoredBackupActor(candidateActor)) continue;
+        if (AltarionAutomationManager.isAitusa(candidateActor)) continue;
         if (!this.isUserControllerOf(candidateActor)) continue;
         const sbInfo = this.getReadyReactionSpellInfo(candidateActor, "silvery barbs");
         if (!sbInfo) continue;
@@ -3052,7 +3058,7 @@ export class FlinnManager {
         &bull; <strong>Armor Class:</strong> <strong>${oldAc}</strong> &rarr; <strong>${newAc} AC</strong> <em>(+5 AC until start of next turn)</em><br>
         &bull; <strong>Outcome:</strong> <strong class="${blockedAttack ? "coria-hl-success" : "coria-hl-failure"}">${
           blockedAttack
-            ? `The attack (${origTotal} vs AC ${newAc}) was BLOCKED by Shield!`
+            ? `The attack (${origTotal}) was BLOCKED by Shield!`
             : `${foundry.utils.escapeHTML(caster.name)}'s AC increased to ${newAc} until the start of their next turn!`
         }</strong>
       `,

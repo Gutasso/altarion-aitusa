@@ -1343,6 +1343,27 @@ export class FeatureSyncManager {
    * while giving Aitusa's "Arcane Bolt" its dedicated purple impact icon
    * ("icons/magic/light/explosion-impact-purple.webp").
    */
+  /**
+   * Determine whether a spell has a casting time of an Action or Bonus Action
+   * (required for Aitusa to channel it via Draconic Focus as her Action).
+   */
+  static isSpellEligibleForDraconicFocus(spellItem) {
+    if (!spellItem || spellItem.type !== "spell") return false;
+    const topType = String(spellItem.system?.activation?.type || "").trim().toLowerCase();
+    if (topType) {
+      return topType === "action" || topType === "bonus";
+    }
+    const acts = spellItem.system?.activities;
+    if (acts) {
+      const list = typeof acts.values === "function" ? Array.from(acts.values()) : Object.values(acts);
+      for (const act of list) {
+        const aType = String(act?.activation?.type || "").trim().toLowerCase();
+        if (aType) return aType === "action" || aType === "bonus";
+      }
+    }
+    return false;
+  }
+
   static async syncAitusaSpellsFromAltarion(altarion, aitusa) {
     if (!altarion || !aitusa || !aitusa.isOwner || this._mirroringSpells) return;
     this._mirroringSpells = true;
@@ -1362,12 +1383,14 @@ export class FeatureSyncManager {
         await aitusa.deleteEmbeddedDocuments("Item", legacyOnAitusaIds);
       }
 
-      // 2. Collect unique spells from Altarion's spell list
+      // 2. Collect unique Action / Bonus Action spells from Altarion's full spell list
+      //    (includes BOTH Dragon Rider / Ancestral spells AND Wizard spells, restricted to Action or Bonus Action!)
       const altarionSpellsByName = new Map();
       for (const sp of altarion.items) {
         if (sp.type !== "spell") continue;
         const nKey = normalizeSpellName(sp.name);
         if (!nKey || ["fire bolt", "booming blade", "armor of agathys"].includes(nKey)) continue;
+        if (!this.isSpellEligibleForDraconicFocus(sp)) continue;
         if (!altarionSpellsByName.has(nKey)) {
           altarionSpellsByName.set(nKey, sp);
         }
@@ -1385,6 +1408,10 @@ export class FeatureSyncManager {
         const mirroredId = sp.flags?.["altarion-aitusa"]?.mirroredFromAltarionSpellId;
         const isMirrored = Boolean(sp.flags?.["altarion-aitusa"]?.isMirroredFromAltarion);
 
+        if (!this.isSpellEligibleForDraconicFocus(sp)) {
+          staleIds.push(sp.id);
+          continue;
+        }
         if (isMirrored && !validAltarionSpellIds.has(mirroredId) && !validAltarionSpellNames.has(nKey)) {
           staleIds.push(sp.id);
           continue;
@@ -2151,6 +2178,8 @@ export class FeatureSyncManager {
             img: wizData.img,
             "system.description.value": wizData.system.description.value,
             "system.source": wizData.system.source,
+            "system.spellcasting.ability": "int",
+            "system.spellcasting.preparation.formula": "max(1, @classes.wizard.levels + @abilities.int.mod)",
             "system.advancement": updatedAdvPatch,
             flags: foundry.utils.mergeObject(wizExistingObj.flags || {}, wizData.flags || {})
           });
@@ -2158,6 +2187,37 @@ export class FeatureSyncManager {
       } else if (!wizard) {
         const createdWiz = await actor.createEmbeddedDocuments("Item", [foundry.utils.deepClone(WIZARD_CLASS)]);
         wizard = createdWiz[0];
+      } else if (wizard) {
+        const curWizFormula = String(wizard.system?.spellcasting?.preparation?.formula || "").trim();
+        if (!curWizFormula || wizard.system?.spellcasting?.ability !== "int") {
+          await wizard.update({
+            "system.spellcasting.ability": "int",
+            "system.spellcasting.preparation.formula": "max(1, @classes.wizard.levels + @abilities.int.mod)"
+          });
+        }
+      }
+
+      // Ensure Dragon Rider class has NO preparation cap (known-spell caster like Sorcerer)
+      // and ensure leveled Dragon Rider / Ancestral spells are Always Prepared (prepared = 2)
+      const drClsNow = actor.items.find(
+        i => i.type === "class" && (i.system?.identifier === "dragon-rider" || i.name?.trim().toLowerCase() === "dragon rider")
+      );
+      if (drClsNow && String(drClsNow.system?.spellcasting?.preparation?.formula || "").trim() !== "") {
+        await drClsNow.update({ "system.spellcasting.preparation.formula": "" });
+      }
+      const drSpellsToAlwaysPrep = [];
+      for (const sp of actor.items) {
+        if (sp.type !== "spell" || Number(sp.system?.level || 0) <= 0) continue;
+        const isDrSpell =
+          sp.system?.sourceItem === "class:dragon-rider" ||
+          Boolean(sp.flags?.["altarion-aitusa"]?.isPrimaryClassItem) ||
+          sp.flags?.["altarion-aitusa"]?.coriaSpellClassOrigin === "primary";
+        if (isDrSpell && Number(sp.system?.prepared ?? 0) !== 2) {
+          drSpellsToAlwaysPrep.push({ _id: sp.id, "system.prepared": 2 });
+        }
+      }
+      if (drSpellsToAlwaysPrep.length > 0) {
+        await actor.updateEmbeddedDocuments("Item", drSpellsToAlwaysPrep);
       }
 
       // 3. Pull Wizard class features (and School of Abjuration subclass features if selected) from Compendium advancements
@@ -2326,9 +2386,10 @@ export class FeatureSyncManager {
       // 4. Apply trait scaling (Force Resistance / Immunity at lvl 11+)
       await DragonScalingManager.scaleAltarion(actor, riderLevel);
 
-      // 4b. Mirror Altarion's full spell list onto Aitusa (preserving Aitusa's custom Arcane Bolt icon)
+      // 4b. Mirror Altarion's Action/Bonus Action spells onto Aitusa & sync Spell Slots
       if (aitusaActor?.isOwner) {
         await this.syncAitusaSpellsFromAltarion(actor, aitusaActor);
+        await globalThis.AltarionAutomationManager?.syncAltarionAitusaSpellSlots?.(actor, aitusaActor);
       }
 
       // 5. Refresh actor derived data so Primary Level & Proficiency Bonus are exact
@@ -2482,10 +2543,11 @@ export class FeatureSyncManager {
         await actor.update(aitusaActorUpdates);
       }
 
-      // Mirror all spells from Altarion's spell list onto Aitusa so Aitusa always has access to Altarion's full spell list
+      // Mirror Action/Bonus Action spells from Altarion's spell list onto Aitusa & sync Spell Slots
       const altarionActor = game.actors.find(a => SecondaryClassManager.isAltarion(a));
       if (altarionActor) {
         await this.syncAitusaSpellsFromAltarion(altarionActor, actor);
+        await globalThis.AltarionAutomationManager?.syncAltarionAitusaSpellSlots?.(altarionActor, actor);
       } else {
         // Fallback if Altarion actor is not yet created
         const aitusaEchoingWard = actor.items.find(

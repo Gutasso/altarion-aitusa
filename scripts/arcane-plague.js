@@ -2761,6 +2761,7 @@ export class ArcanePlagueManager {
     widget.innerHTML = `<i class="fas fa-biohazard"></i>`;
     widget.addEventListener("click", () => this.openGMGlobalControlPanel());
     document.body.appendChild(widget);
+    globalThis.CoriaMakeFloatingButtonDraggable?.(widget, "plague-command");
   }
 
   /**

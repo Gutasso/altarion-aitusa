@@ -5056,7 +5056,7 @@ export const PARTY_JSON_DATA = {
               "spent": 0
             },
             "method": "spell",
-            "prepared": 1,
+            "prepared": 2,
             "sourceItem": "class:dragon-rider",
             "activities": {
               "dnd5eactivity000": {

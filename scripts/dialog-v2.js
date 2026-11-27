@@ -1646,3 +1646,237 @@ export class CoriaWindowThemeManager {
 }
 
 globalThis.CoriaWindowThemeManager = CoriaWindowThemeManager;
+
+/* ============================================================================
+ * Draggable & Persistent Floating Scene Buttons (Essence Harvest, Plague, Portent)
+ * - Click and hold (>= 6px movement) to drag any floating button anywhere on screen.
+ * - Normal clicks continue opening the panel immediately without interference.
+ * - Saves position per user in BOTH Foundry client settings AND localStorage so
+ *   positions survive closing/reopening Foundry, hard reloads, and module updates.
+ * ============================================================================ */
+
+export class CoriaFloatingDragManager {
+  static _registry = new Map();
+  static _resizeBound = false;
+  static _resizeRaf = null;
+
+  static _getLocalStorageKeys() {
+    const worldId = game?.world?.id || "default";
+    const userId = game?.user?.id || "anon";
+    return [
+      `coria_floating_btn_pos_v1:${worldId}:${userId}`,
+      `coria_floating_btn_pos_v1:global:${userId}`,
+      "coria_floating_btn_pos_v1:global"
+    ];
+  }
+
+  static _readAllPositions() {
+    let result = {};
+    // 1. Read localStorage fallback first (broadest -> most specific)
+    try {
+      const keys = this._getLocalStorageKeys().slice().reverse();
+      for (const k of keys) {
+        const raw = window.localStorage?.getItem(k);
+        if (!raw) continue;
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === "object") {
+          result = { ...result, ...parsed };
+        }
+      }
+    } catch (_e) {
+      // ignore localStorage errors
+    }
+
+    // 2. Overlay Foundry client setting (authoritative per-client persistence)
+    try {
+      if (game?.settings?.settings?.has("altarion-aitusa.floatingButtonPositions")) {
+        const saved = game.settings.get("altarion-aitusa", "floatingButtonPositions");
+        if (saved && typeof saved === "object") {
+          result = { ...result, ...saved };
+        }
+      }
+    } catch (_e) {
+      // ignore if settings not ready yet
+    }
+
+    return result;
+  }
+
+  static _savePosition(buttonKey, pos) {
+    if (!buttonKey || !pos || !Number.isFinite(pos.left) || !Number.isFinite(pos.top)) return;
+    const all = this._readAllPositions();
+    all[buttonKey] = {
+      left: Math.round(pos.left),
+      top: Math.round(pos.top)
+    };
+
+    try {
+      const serialized = JSON.stringify(all);
+      for (const k of this._getLocalStorageKeys()) {
+        window.localStorage?.setItem(k, serialized);
+      }
+    } catch (_e) {
+      // ignore quota/private-mode errors
+    }
+
+    try {
+      if (game?.settings?.settings?.has("altarion-aitusa.floatingButtonPositions")) {
+        game.settings.set("altarion-aitusa", "floatingButtonPositions", all).catch?.(() => {});
+      }
+    } catch (_e) {
+      // ignore
+    }
+  }
+
+  static _clampToViewport(el, left, top) {
+    const pad = 8;
+    const rect = el.getBoundingClientRect();
+    const w = Math.max(rect.width || el.offsetWidth || 50, 32);
+    const h = Math.max(rect.height || el.offsetHeight || 50, 32);
+    const maxLeft = Math.max(pad, window.innerWidth - w - pad);
+    const maxTop = Math.max(pad, window.innerHeight - h - pad);
+    return {
+      left: Math.min(Math.max(pad, left), maxLeft),
+      top: Math.min(Math.max(pad, top), maxTop)
+    };
+  }
+
+  static _applyPosition(el, left, top) {
+    const clamped = this._clampToViewport(el, left, top);
+    el.style.left = `${Math.round(clamped.left)}px`;
+    el.style.top = `${Math.round(clamped.top)}px`;
+    el.style.bottom = "auto";
+    el.style.right = "auto";
+    return clamped;
+  }
+
+  static _ensureResizeListener() {
+    if (this._resizeBound) return;
+    this._resizeBound = true;
+    window.addEventListener("resize", () => {
+      if (this._resizeRaf) cancelAnimationFrame(this._resizeRaf);
+      this._resizeRaf = requestAnimationFrame(() => {
+        this._resizeRaf = null;
+        const all = this._readAllPositions();
+        for (const [key, el] of this._registry.entries()) {
+          if (!el?.isConnected) {
+            this._registry.delete(key);
+            continue;
+          }
+          const saved = all[key];
+          if (saved && Number.isFinite(Number(saved.left)) && Number.isFinite(Number(saved.top))) {
+            this._applyPosition(el, Number(saved.left), Number(saved.top));
+          }
+        }
+      });
+    });
+  }
+
+  static attach(el, buttonKey) {
+    if (!el || !buttonKey) return el;
+    this._registry.set(buttonKey, el);
+    this._ensureResizeListener();
+
+    // Restore saved position (if any) immediately on mount
+    const saved = this._readAllPositions()[buttonKey];
+    if (saved && Number.isFinite(Number(saved.left)) && Number.isFinite(Number(saved.top))) {
+      // Defer 1 frame after insertion so offsetWidth/offsetHeight are accurate if just appended
+      requestAnimationFrame(() => {
+        if (el.isConnected) {
+          this._applyPosition(el, Number(saved.left), Number(saved.top));
+        }
+      });
+    }
+
+    if (el.dataset.coriaDragBound === "true") return el;
+    el.dataset.coriaDragBound = "true";
+
+    if (el.title && !el.title.includes("Arraste para mover")) {
+      el.title = `${el.title} (Arraste para mover)`;
+    }
+
+    const DRAG_THRESHOLD_PX = 6;
+    let pointerId = null;
+    let startX = 0;
+    let startY = 0;
+    let origLeft = 0;
+    let origTop = 0;
+    let isDragging = false;
+    let suppressNextClickUntil = 0;
+
+    // Capture-phase click suppressor so releasing a drag NEVER triggers the button's click action
+    el.addEventListener(
+      "click",
+      (ev) => {
+        if (Date.now() < suppressNextClickUntil) {
+          ev.preventDefault();
+          ev.stopImmediatePropagation();
+          ev.stopPropagation();
+        }
+      },
+      true
+    );
+
+    el.addEventListener("pointerdown", (ev) => {
+      if (ev.button !== 0) return;
+      pointerId = ev.pointerId;
+      startX = ev.clientX;
+      startY = ev.clientY;
+      const rect = el.getBoundingClientRect();
+      origLeft = rect.left;
+      origTop = rect.top;
+      isDragging = false;
+      try {
+        el.setPointerCapture(pointerId);
+      } catch (_e) {
+        // ignore if unsupported
+      }
+    });
+
+    el.addEventListener("pointermove", (ev) => {
+      if (pointerId === null || ev.pointerId !== pointerId) return;
+      const dx = ev.clientX - startX;
+      const dy = ev.clientY - startY;
+      if (!isDragging) {
+        if (Math.hypot(dx, dy) < DRAG_THRESHOLD_PX) return;
+        isDragging = true;
+        el.classList.add("coria-floating-dragging");
+      }
+      ev.preventDefault();
+      this._applyPosition(el, origLeft + dx, origTop + dy);
+    });
+
+    const finishDrag = (ev) => {
+      if (pointerId === null || (ev && ev.pointerId !== pointerId)) return;
+      try {
+        if (el.hasPointerCapture?.(pointerId)) {
+          el.releasePointerCapture(pointerId);
+        }
+      } catch (_e) {
+        // ignore
+      }
+      pointerId = null;
+
+      if (isDragging) {
+        isDragging = false;
+        el.classList.remove("coria-floating-dragging");
+        suppressNextClickUntil = Date.now() + 350;
+        const rect = el.getBoundingClientRect();
+        const finalPos = this._applyPosition(el, rect.left, rect.top);
+        this._savePosition(buttonKey, finalPos);
+      }
+    };
+
+    el.addEventListener("pointerup", finishDrag);
+    el.addEventListener("pointercancel", finishDrag);
+
+    return el;
+  }
+}
+
+export function makeFloatingButtonDraggable(el, buttonKey) {
+  return CoriaFloatingDragManager.attach(el, buttonKey);
+}
+
+globalThis.CoriaFloatingDragManager = CoriaFloatingDragManager;
+globalThis.CoriaMakeFloatingButtonDraggable = makeFloatingButtonDraggable;

@@ -651,8 +651,8 @@ export class CoriaRollLedger {
       })
       .join("");
 
-    const vsText = Number.isFinite(Number(targetThreshold))
-      ? ` vs ${isAttackRoll ? "AC" : "DC"} ${targetThreshold}`
+    const vsText = !isAttackRoll && Number.isFinite(Number(targetThreshold))
+      ? ` vs DC ${targetThreshold}`
       : "";
 
     banner.style.cssText = `margin: 6px 0; padding: 7px 10px; border-radius: 6px; border: 1.5px solid ${borderCol}; border-left: 4px solid ${borderCol}; background: ${bgCol}; color: #f8fafc; font-size: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.45);`;
@@ -1907,7 +1907,7 @@ export class CoriaRollLedger {
                     <span>Ancestral Shielding — Reverted (${foundry.utils.escapeHTML(sourceLabel)})</span>
                   </div>
                   <div class="altarion-ward-body">
-                    <strong>${foundry.utils.escapeHTML(ledger.attackerName || "Attacker")}</strong>'s attack became a <strong class="coria-hl-failure">MISS</strong> (${total} vs AC ${targetAc}) after <strong>${foundry.utils.escapeHTML(sourceLabel)}</strong>!<br>
+                    <strong>${foundry.utils.escapeHTML(ledger.attackerName || "Attacker")}</strong>'s attack became a <strong class="coria-hl-failure">MISS</strong> (Attack ${total}) after <strong>${foundry.utils.escapeHTML(sourceLabel)}</strong>!<br>
                     &bull; <strong>Temporary HP Reverted</strong> (${prevTemp} Temp HP) and <strong>Ancestral Shielding (+${acBonus} AC)</strong> restored on <strong>${foundry.utils.escapeHTML(defender.name)}</strong>.
                   </div>
                 </div>
@@ -1940,7 +1940,7 @@ export class CoriaRollLedger {
                     <span>${foundry.utils.escapeHTML(ret.armorLabel || "Arcane Armor")} — Retaliation Reverted (${foundry.utils.escapeHTML(sourceLabel)})</span>
                   </div>
                   <div class="altarion-ward-body">
-                    <strong>${foundry.utils.escapeHTML(ledger.attackerName || "Attacker")}</strong>'s melee attack against <strong>${foundry.utils.escapeHTML(defender.name)}</strong> became a <strong class="coria-hl-failure">MISS</strong> (${total} vs AC ${targetAc}) after <strong>${foundry.utils.escapeHTML(sourceLabel)}</strong>!<br>
+                    <strong>${foundry.utils.escapeHTML(ledger.attackerName || "Attacker")}</strong>'s melee attack against <strong>${foundry.utils.escapeHTML(defender.name)}</strong> became a <strong class="coria-hl-failure">MISS</strong> (Attack ${total}) after <strong>${foundry.utils.escapeHTML(sourceLabel)}</strong>!<br>
                     &bull; The retaliation damage (<strong>${ret.damage} ${ret.damageTypeLabel || "Force"}</strong>) was automatically undone (<strong class="coria-hl-success">+${ret.damage} HP restored</strong>).
                   </div>
                 </div>
@@ -2716,7 +2716,7 @@ export class CoriaRollLedger {
     if (elemType) {
       const elemLabel = this.ELEMENTAL_LABELS[elemType] || elemType;
       for (const victim of candidateVictims) {
-        if (!victim || !FM.isUserControllerOf(victim)) continue;
+        if (!victim || AM.isAitusa?.(victim) || !FM.isUserControllerOf(victim)) continue;
         const aeInfo = FM.getReadyReactionSpellInfo(victim, "absorb elements");
         if (!aeInfo) continue;
 
@@ -2746,8 +2746,15 @@ export class CoriaRollLedger {
     if (altarion && FM.isUserControllerOf(altarion)) {
       const altarionTok = AM.getActorCanvasToken(altarion);
       const wardState = AM.getArcaneWardState?.(altarion);
+      const hasProjectedWardFeat = Boolean(
+        altarion.items?.some(i => {
+          if (i.type !== "feat") return false;
+          const n = String(i.name || "").trim().toLowerCase();
+          return n === "projected ward" || n === "project ward";
+        })
+      );
       const wardActiveAndPositive = Boolean(
-        wardState && wardState.eligible && wardState.active && wardState.current > 0
+        hasProjectedWardFeat && wardState && wardState.eligible && wardState.active && wardState.current > 0
       );
       const echoingInfo = FM.getReadyReactionSpellInfo(altarion, "altarion's echoing ward");
 
@@ -2970,8 +2977,19 @@ export class CoriaRollLedger {
       return;
     }
 
-    // --- 3. PROJECT WARD (Altarion's Arcane Ward) ---
+    // --- 3. PROJECT WARD (Altarion's Arcane Ward — requires Projected Ward feature at Wizard Lvl 6) ---
     if (reactType === "project-ward") {
+      const hasProjectedWardFeat = Boolean(
+        caster?.items?.some(i => {
+          if (i.type !== "feat") return false;
+          const n = String(i.name || "").trim().toLowerCase();
+          return n === "projected ward" || n === "project ward";
+        })
+      );
+      if (!hasProjectedWardFeat) {
+        ui.notifications.warn("Altarion ainda não possui a habilidade Projected Ward (Wizard Nível 6)!");
+        return;
+      }
       const wardState = AM.getArcaneWardState?.(caster);
       if (!wardState || !wardState.eligible || !wardState.active || wardState.current <= 0) {
         ui.notifications.warn("A Arcane Ward do Altarion não está ativa ou está com 0 PV!");
